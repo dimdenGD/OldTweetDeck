@@ -6,9 +6,8 @@
   "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
   "permissions": [
     "declarativeNetRequest",
-    "scripting",
-    "webNavigation",
-    "tabs"
+    "cookies",
+    "scripting"
   ],
   "background": {
     "service_worker": "background.js"
@@ -17,7 +16,8 @@
     "*://*.twitter.com/*",
     "*://twitter.com/*",
     "*://twimg.com/*",
-    "*://*.twimg.com/*"
+    "*://*.twimg.com/*",
+    "*://tweetdeck.dimden.dev/*"
   ],
   
   "declarative_net_request": {
@@ -34,7 +34,8 @@
         "files/*"
       ],
       "matches": [
-        "*://*.twitter.com/*"
+        "*://*.twitter.com/*",
+        "*://tweetdeck.dimden.dev/*"
       ]
     }
   ],
@@ -47,7 +48,7 @@
   "content_scripts": [
     {
       "matches": ["https://tweetdeck.twitter.com/"],
-      "js": ["test.js"],
+      "js": ["injection.js"],
       "all_frames": true,
       "run_at": "document_start"
     }

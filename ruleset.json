@@ -30,18 +30,6 @@
         "id": 3,
         "priority": 1,
         "action": {
-            "type": "redirect",
-            "redirect": { "extensionPath": "/files/version.json" }
-        },
-        "condition": {
-            "urlFilter": "https://tweetdeck.dimden.dev/web/dist/version.json?*",
-            "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
-        }
-    },
-    {
-        "id": 4,
-        "priority": 1,
-        "action": {
             "type": "modifyHeaders",
             "requestHeaders": [
                 { "header": "origin", "operation": "set", "value": "https://tweetdeck.twitter.com" },
@@ -59,7 +47,7 @@
         }
     },
     {
-        "id": 5,
+        "id": 4,
         "priority": 1,
         "action": {
             "type": "block"

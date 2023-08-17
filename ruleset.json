@@ -1,0 +1,14 @@
+[
+    {
+        "id": 1,
+        "priority": 1,
+        "action": {
+            "type": "modifyHeaders",
+            "responseHeaders": [{ "header": "location", "operation": "remove" }]
+        },
+        "condition": {
+            "urlFilter": "*://tweetdeck.twitter.com",
+            "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
+        }
+    }
+]

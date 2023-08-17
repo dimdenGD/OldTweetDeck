@@ -30,7 +30,8 @@
   "web_accessible_resources": [
     {
       "resources": [
-        "images/*"
+        "images/*",
+        "files/*"
       ],
       "matches": [
         "*://*.twitter.com/*"

@@ -1,0 +1,35 @@
+<!doctype html>
+<html class=scroll-v lang=en-US>
+  <head>
+    <meta charset=utf-8>
+    <meta content="width=device-width,initial-scale=1,minimum-scale=1,user-scalable=yes" name=viewport>
+    <title>TweetDeck</title>
+    <meta content=TweetDeck name=application-name>
+    <meta content="TweetDeck is your personal browser for staying in touch with what’s happening now." name=description>
+    <meta content=yes name=apple-mobile-web-app-capable>
+    <meta content=black name=apple-mobile-web-app-status-bar-style>
+    <link href=https://ton.twimg.com/tweetdeck-web/favicon.b5a6cafd56.ico rel="shortcut icon">
+    <link href=https://ton.twimg.com/tweetdeck-web/web/assets/logos/ios-icon-iphone.374457286f.png rel=apple-touch-icon sizes=57x57>
+    <link href=https://ton.twimg.com/tweetdeck-web/web/assets/logos/ios-icon-ipad.f98c6da5d0.png rel=apple-touch-icon sizes=72x72>
+    <link href=https://ton.twimg.com/tweetdeck-web/web/assets/logos/ios-icon-iphone@2x.736a7a7698.png rel=apple-touch-icon sizes=114x114>
+    <link href=https://ton.twimg.com/tweetdeck-web/web/assets/logos/ios-icon-ipad@2x.992bd475a2.png rel=apple-touch-icon sizes=144x144>
+    <!-- <link href=https://ton.twimg.com/tweetdeck-web/web/dist/bundle.90f94aeb6c.css rel=stylesheet> -->
+  </head>
+  <body class=scroll-v>
+    <audio id=update-sound preload=auto style="display:none">
+      <source src=https://ton.twimg.com/tweetdeck-web/web/assets/sounds/tweet.a0da953980.mp3 type=audio/mp3>
+      <source src=https://ton.twimg.com/tweetdeck-web/web/assets/sounds/tweet.8c519d390a.ogg type=audio/ogg>
+    </audio>
+    <div class="js-app-loading login-container">
+      <div class="block txt-center ovl-plain">
+        <div class="ovl-block sign-in">
+          <div class="block txt-center js-signin-ui"><img alt=Loading… class=spinner-centered src=https://ton.twimg.com/tweetdeck-web/web/assets/global/backgrounds/spinner_blue.0f83d5101b.gif></div>
+        </div>
+      </div>
+    </div>
+    <div class="is-hidden js-message-banner message-banner"></div>
+    <div class="is-hidden application js-app"></div>
+    <div class=js-modals-container></div>
+    <!-- <script src=vendor.js></script>
+    <script src=bundle.js></script> -->
+</body>

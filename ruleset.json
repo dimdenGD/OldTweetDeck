@@ -4,10 +4,25 @@
         "priority": 1,
         "action": {
             "type": "modifyHeaders",
-            "responseHeaders": [{ "header": "location", "operation": "remove" }]
+            "responseHeaders": [
+                { "header": "location", "operation": "remove" },
+                { "header": "content-security-policy", "operation": "remove" }
+            ]
         },
         "condition": {
-            "urlFilter": "*://tweetdeck.twitter.com",
+            "urlFilter": "*://tweetdeck.twitter.com/*",
+            "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
+        }
+    },
+    {
+        "id": 2,
+        "priority": 1,
+        "action": {
+            "type": "redirect",
+            "redirect": { "extensionPath": "/files/version.json" }
+        },
+        "condition": {
+            "urlFilter": "*://tweetdeck.twitter.com/web/dist/version.json?*",
             "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
         }
     }

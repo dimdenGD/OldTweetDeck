@@ -6,18 +6,15 @@
   "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
   "permissions": [
     "declarativeNetRequest",
-    "cookies",
-    "scripting"
+    "cookies"
   ],
   "background": {
     "service_worker": "background.js"
   },
   "host_permissions": [
-    "*://*.twitter.com/*",
-    "*://twitter.com/*",
-    "*://twimg.com/*",
-    "*://*.twimg.com/*",
-    "*://tweetdeck.dimden.dev/*"
+    "https://tweetdeck.twitter.com/*",
+    "https://api.twitter.com/*",
+    "https://tweetdeck.dimden.dev/*"
   ],
   
   "declarative_net_request": {

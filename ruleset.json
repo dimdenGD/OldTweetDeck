@@ -10,7 +10,7 @@
             ]
         },
         "condition": {
-            "urlFilter": "*://tweetdeck.twitter.com/*",
+            "urlFilter": "https://tweetdeck.twitter.com/*",
             "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
         }
     },
@@ -22,7 +22,7 @@
             "redirect": { "extensionPath": "/files/decider.json" }
         },
         "condition": {
-            "urlFilter": "*://tweetdeck.twitter.com/decider?*",
+            "urlFilter": "https://tweetdeck.twitter.com/decider?*",
             "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
         }
     },
@@ -34,7 +34,7 @@
             "redirect": { "extensionPath": "/files/version.json" }
         },
         "condition": {
-            "urlFilter": "*://tweetdeck.dimden.dev/web/dist/version.json?*",
+            "urlFilter": "https://tweetdeck.dimden.dev/web/dist/version.json?*",
             "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
         }
     },
@@ -53,7 +53,7 @@
             ]
         },
         "condition": {
-            "urlFilter": "*://*.twitter.com/*",
+            "urlFilter": "https://*.twitter.com/*",
             "initiatorDomains": ["tweetdeck.dimden.dev"],
             "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
         }
@@ -65,7 +65,7 @@
             "type": "block"
         },
         "condition": {
-            "urlFilter": "*://ton.twimg.com/tweetdeck-web/web/dist/*.js",
+            "urlFilter": "https://ton.twimg.com/tweetdeck-web/web/dist/*.js",
             "resourceTypes": ["main_frame", "sub_frame", "stylesheet", "script", "image", "font", "xmlhttprequest", "other"]
         }
     }

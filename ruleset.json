@@ -5,7 +5,7 @@
         "action": {
             "type": "modifyHeaders",
             "responseHeaders": [
-                { "header": "location", "operation": "remove" },
+                { "header": "Location", "operation": "remove" },
                 { "header": "content-security-policy", "operation": "remove" }
             ]
         },

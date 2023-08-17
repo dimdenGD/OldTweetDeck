@@ -1,0 +1,85 @@
+// This script generates Firefox version of the extension and packs Chrome and Firefox versions to zip files.
+// Except Firefox version it makes doesn't work lol dont use it
+
+const fsp = require('fs').promises;
+const fs = require('fs');
+const path = require('path');
+const AdmZip = require('adm-zip');
+
+async function copyDir(src, dest) {
+    const entries = await fsp.readdir(src, { withFileTypes: true });
+    await fsp.mkdir(dest);
+    for (let entry of entries) {
+        if(entry.name === '.git' || entry.name === '.github' || entry.name === '_metadata' || entry.name === 'node_modules') continue;
+        const srcPath = path.join(src, entry.name);
+        const destPath = path.join(dest, entry.name);
+        if (entry.isDirectory()) {
+            await copyDir(srcPath, destPath);
+        } else {
+            await fsp.copyFile(srcPath, destPath);
+        }
+    }
+}
+
+if(fs.existsSync('../OldTweetDeckTempChrome')) {
+    fs.rmSync('../OldTweetDeckTempChrome', { recursive: true });
+}
+if(fs.existsSync('../OldTweetDeckFirefox')) {
+    fs.rmSync('../OldTweetDeckFirefox', { recursive: true });
+}
+
+console.log("Copying...");
+copyDir('./', '../OldTweetDeckFirefox').then(async () => {
+    await copyDir('./', '../OldTweetDeckTempChrome');
+    console.log("Copied!");
+    console.log("Patching...");
+
+    let manifest = JSON.parse(await fsp.readFile('../OldTweetDeckTempChrome/manifest.json', 'utf8'));
+    manifest.background.scripts = [manifest.background.service_worker];
+    manifest.browser_specific_settings = {
+        gecko: {
+            id: "oldtweetdeck@dimden.dev",
+            strict_min_version: "113.0"
+        }
+    };
+    delete manifest.background.service_worker;
+    manifest.permissions.push("webRequest", "webRequestBlocking");
+
+    fs.unlinkSync('../OldTweetDeckFirefox/pack.js');
+    fs.unlinkSync('../OldTweetDeckTempChrome/pack.js');
+    fs.unlinkSync('../OldTweetDeckFirefox/README.md');
+    fs.unlinkSync('../OldTweetDeckTempChrome/README.md');
+    fs.unlinkSync('../OldTweetDeckFirefox/package.json');
+    fs.unlinkSync('../OldTweetDeckTempChrome/package.json');
+    fs.unlinkSync('../OldTweetDeckFirefox/package-lock.json');
+    fs.unlinkSync('../OldTweetDeckTempChrome/package-lock.json');
+    fs.unlinkSync('../OldTweetDeckFirefox/.gitignore');
+    fs.unlinkSync('../OldTweetDeckTempChrome/.gitignore');
+    fs.writeFileSync('../OldTweetDeckFirefox/manifest.json', JSON.stringify(manifest, null, 2));
+
+    console.log("Patched!");
+
+    console.log("Zipping Firefox version...");
+    try {
+        const zip = new AdmZip();
+        const outputDir = "../OldTweetDeckFirefox.zip";
+        zip.addLocalFolder("../OldTweetDeckFirefox");
+        zip.writeZip(outputDir);
+    } catch (e) {
+        console.log(`Something went wrong ${e}`);
+    }
+    console.log("Zipping Chrome version...");
+    try {
+        const zip = new AdmZip();
+        const outputDir = "../OldTweetDeckChrome.zip";
+        zip.addLocalFolder("../OldTweetDeckTempChrome");
+        zip.writeZip(outputDir);
+    } catch (e) {
+        console.log(`Something went wrong ${e}`);
+    }
+    console.log("Zipped!");
+    console.log("Deleting temporary folders...");
+    fs.rmSync('../OldTweetDeckTempChrome', { recursive: true });
+    fs.rmSync('../OldTweetDeckFirefox', { recursive: true });
+    console.log("Deleted!");
+});

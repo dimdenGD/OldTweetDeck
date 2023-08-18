@@ -33,7 +33,8 @@
             "type": "modifyHeaders",
             "requestHeaders": [
                 { "header": "origin", "operation": "set", "value": "https://tweetdeck.twitter.com" },
-                { "header": "sec-fetch-site", "operation": "set", "value": "same-site" }
+                { "header": "sec-fetch-site", "operation": "set", "value": "same-site" },
+                { "header": "referer", "operation": "remove" }
             ],
             "responseHeaders": [
                 { "header": "access-control-allow-origin", "operation": "set", "value": "https://tweetdeck.dimden.dev" },

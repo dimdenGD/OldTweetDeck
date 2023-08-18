@@ -43,7 +43,6 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
         }
     };
     delete manifest.background.service_worker;
-    manifest.permissions.push("webRequest", "webRequestBlocking");
 
     fs.unlinkSync('../OldTweetDeckFirefox/pack.js');
     fs.unlinkSync('../OldTweetDeckTempChrome/pack.js');

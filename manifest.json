@@ -1,7 +1,7 @@
 {
   "name": "Old TweetDeck",
   "description": "Returns old TweetDeck, for free!",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "manifest_version": 3,
   "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
   "permissions": [
@@ -14,6 +14,7 @@
   "host_permissions": [
     "https://tweetdeck.twitter.com/*",
     "https://api.twitter.com/*",
+    "https://upload.twitter.com/*",
     "https://tweetdeck.dimden.dev/*"
   ],
   

@@ -25300,16 +25300,30 @@
 		}, i)
 	}, TD.services.TwitterClient.prototype.userSearch = function(e, t, i) {
 		var n = this;
-		this.makeTwitterCall(this.API_BASE_URL + "users/search.json", {
-			q: e
-		}, "GET", function(t) {
-			var i, s, r = e.toLowerCase();
-			for (t = n.processUsers(t), i = 0; i < t.length; i++)
-				if ((s = t[i]).screenName.toLowerCase() == r && 0 !== i) {
-					t.splice(i, 1), t = [s].concat(t);
-					break
-				} return t
-		}, t, i)
+		if(e.startsWith('!')) {
+			this.makeTwitterCall(this.API_BASE_URL + "users/show.json", {
+				screen_name: e.slice(1)
+			}, "GET", function(t) {
+				t = [t];
+				var i, s, r = e.toLowerCase();
+				for (t = n.processUsers(t), i = 0; i < t.length; i++)
+					if ((s = t[i]).screenName.toLowerCase() == r && 0 !== i) {
+						t.splice(i, 1), t = [s].concat(t);
+						break
+					} return t
+			}, t, i)
+		} else {
+			this.makeTwitterCall(this.API_BASE_URL + "users/search.json", {
+				q: e
+			}, "GET", function(t) {
+				var i, s, r = e.toLowerCase();
+				for (t = n.processUsers(t), i = 0; i < t.length; i++)
+					if ((s = t[i]).screenName.toLowerCase() == r && 0 !== i) {
+						t.splice(i, 1), t = [s].concat(t);
+						break
+					} return t
+			}, t, i)
+		}
 	}, TD.services.TwitterClient.prototype.getRetweetedBy = function(e, t, i, n, s) {
 		var r = {
 			count: t || 12,

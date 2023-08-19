@@ -3110,9 +3110,6 @@
 			var t = {};
 			t.Authorization = TD.util.getBearerTokenAuthHeader(), t["X-Twitter-Auth-Type"] = "OAuth2Session";
 			var i = TD.util.getCsrfTokenHeader();
-            window.parent.postMessage({
-                action: "getcookie"
-            }, "*");
 			return i && (t["X-Csrf-Token"] = i), (0, d.default)({}, e, t)
 		}
 

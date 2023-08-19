@@ -2,19 +2,11 @@
 
 chrome.webRequest.onHeadersReceived.addListener(
     function(details) {
-        try {
-            let parsedUrl = new URL(details.url);
-            let path = parsedUrl.pathname;
-            if(path === '/') {
-                return {
-                    responseHeaders: details.responseHeaders.filter(header => header.name.toLowerCase() !== 'content-security-policy' && header.name.toLowerCase() !== 'location')
-                }
-            }
-        } catch(e) {
-            return {responseHeaders: details.responseHeaders};
+        return {
+            responseHeaders: details.responseHeaders.filter(header => header.name.toLowerCase() !== 'content-security-policy' && header.name.toLowerCase() !== 'location')
         }
     },
-    {urls: ["https://tweetdeck.twitter.com/"]},
+    {urls: ["https://tweetdeck.twitter.com/*"]},
     ["blocking", "responseHeaders"]
 );
 

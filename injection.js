@@ -42,5 +42,6 @@ window.addEventListener("message", (event) => {
     } else {
         bundle_css_style.innerHTML = bundle_css.value;
     }
+    console.log(bundle_css_style);
     document.head.appendChild(bundle_css_style);
 })();

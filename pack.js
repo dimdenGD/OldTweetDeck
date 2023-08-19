@@ -1,5 +1,4 @@
 // This script generates Firefox version of the extension and packs Chrome and Firefox versions to zip files.
-// Except Firefox version it makes doesn't work lol dont use it
 
 const fsp = require('fs').promises;
 const fs = require('fs');

@@ -149,3 +149,4 @@ setTimeout(() => {
     document.head.appendChild(style);
 }, 1000);
 setTimeout(showNotifications, 2000);
+setInterval(showNotifications, 60000 * 60);

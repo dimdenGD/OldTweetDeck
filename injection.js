@@ -23,21 +23,21 @@ window.addEventListener("message", (event) => {
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css').then(r => r.text())
     ]);
     let vendor_js_script = document.createElement('script');
-    if(remote_vendor_js.status === 'fulfilled') {
+    if(remote_vendor_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         vendor_js_script.innerHTML = remote_vendor_js.value;
     } else {
         vendor_js_script.innerHTML = vendor_js.value;
     }
     document.head.appendChild(vendor_js_script);
     let bundle_js_script = document.createElement('script');
-    if(remote_bundle_js.status === 'fulfilled') {
+    if(remote_bundle_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         bundle_js_script.innerHTML = remote_bundle_js.value;
     } else {
         bundle_js_script.innerHTML = bundle_js.value;
     }
     document.head.appendChild(bundle_js_script);
     let bundle_css_style = document.createElement('style');
-    if(remote_bundle_css.status === 'fulfilled') {
+    if(remote_bundle_css.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         bundle_css_style.innerHTML = remote_bundle_css.value;
     } else {
         bundle_css_style.innerHTML = bundle_css.value;

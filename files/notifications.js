@@ -118,6 +118,14 @@ style.innerHTML = /*css*/`
     content: "⚠️";
     margin-right: 5px;
 }
+.otd-notification-error > .otd-notification-content::before {
+    content: "❌";
+    margin-right: 5px;
+}
+.otd-notification-info > .otd-notification-content::before {
+    content: "ℹ️";
+    margin-right: 5px;
+}
 @keyframes opac {
     0% {
         opacity: 0

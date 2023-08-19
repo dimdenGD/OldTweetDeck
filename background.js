@@ -1,23 +1,39 @@
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-    if(request.action === "setcookie") {
-        let ct0 = request.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
-        if(!ct0) return;
-        ct0 = ct0[1];
-        chrome.cookies.set({
-            domain: ".twitter.com",
-            name: "ct0",
-            value: ct0,
-            url: "https://tweetdeck.twitter.com/",
-            secure: true,
-            sameSite: "no_restriction"
-        });
-        chrome.cookies.set({
-            domain: ".dimden.dev",
-            name: "ct0",
-            value: ct0,
-            url: "https://tweetdeck.dimden.dev/",
-            secure: true,
-            sameSite: "no_restriction"
-        });
-    }
-});
+
+
+chrome.webRequest.onHeadersReceived.addListener(
+    function(details) {
+        try {
+            let parsedUrl = new URL(details.url);
+            let path = parsedUrl.pathname;
+            if(path === '/') {
+                return {
+                    responseHeaders: details.responseHeaders.filter(header => header.name.toLowerCase() !== 'content-security-policy' && header.name.toLowerCase() !== 'location')
+                }
+            }
+        } catch(e) {
+            return {responseHeaders: details.responseHeaders};
+        }
+    },
+    {urls: ["https://tweetdeck.twitter.com/"]},
+    ["blocking", "responseHeaders"]
+);
+
+chrome.webRequest.onBeforeRequest.addListener(
+    function(details) {
+        try {
+            let parsedUrl = new URL(details.url);
+            let path = parsedUrl.pathname;
+            if(path === '/decider') {
+                return {
+                    redirectUrl: chrome.runtime.getURL('/files/decider.json')
+                }
+            } else if(path === '/web/dist/version.json') {
+                return {
+                    redirectUrl: chrome.runtime.getURL('/files/version.json')
+                }
+            }
+        } catch(e) {}
+    },
+    {urls: ["https://tweetdeck.twitter.com/*"]},
+    ["blocking"]
+);

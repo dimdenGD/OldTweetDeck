@@ -34,14 +34,12 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
     console.log("Patching...");
 
     let manifest = JSON.parse(await fsp.readFile('../OldTweetDeckTempChrome/manifest.json', 'utf8'));
-    manifest.background.scripts = [manifest.background.service_worker];
     manifest.browser_specific_settings = {
         gecko: {
             id: "oldtweetdeck@dimden.dev",
-            strict_min_version: "113.0"
+            strict_min_version: "90.0"
         }
     };
-    delete manifest.background.service_worker;
 
     fs.unlinkSync('../OldTweetDeckFirefox/pack.js');
     fs.unlinkSync('../OldTweetDeckTempChrome/pack.js');

@@ -27,6 +27,12 @@
   "content_scripts": [
     {
       "matches": ["https://tweetdeck.twitter.com/"],
+      "js": ["files/notifications.js"],
+      "all_frames": true,
+      "run_at": "document_start"
+    },
+    {
+      "matches": ["https://tweetdeck.twitter.com/"],
       "js": ["injection.js"],
       "all_frames": true,
       "run_at": "document_start"

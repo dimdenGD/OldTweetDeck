@@ -6,16 +6,41 @@ window.addEventListener("message", (event) => {
 
 (async () => {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
-    console.log(html);
     document.documentElement.innerHTML = html;
-    let vendor_js = document.createElement('script');
-    vendor_js.src = chrome.runtime.getURL('/files/vendor.js');
-    document.head.appendChild(vendor_js);
-    let bundle_js = document.createElement('script');
-    bundle_js.src = chrome.runtime.getURL('/files/bundle.js');
-    document.head.appendChild(bundle_js);
-    let bundle_css = document.createElement('link');
-    bundle_css.rel = 'stylesheet';
-    bundle_css.href = chrome.runtime.getURL('/files/bundle.css');
-    document.head.appendChild(bundle_css);
+    let [
+        vendor_js,
+        bundle_js,
+        bundle_css,
+        remote_vendor_js,
+        remote_bundle_js,
+        remote_bundle_css
+    ] = await Promise.allSettled([
+        fetch(chrome.runtime.getURL('/files/vendor.js')).then(r => r.text()),
+        fetch(chrome.runtime.getURL('/files/bundle.js')).then(r => r.text()),
+        fetch(chrome.runtime.getURL('/files/bundle.css')).then(r => r.text()),
+        fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/vendor.js').then(r => r.text()),
+        fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.js').then(r => r.text()),
+        fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css').then(r => r.text())
+    ]);
+    let vendor_js_script = document.createElement('script');
+    if(remote_vendor_js.status === 'fulfilled') {
+        vendor_js_script.innerHTML = remote_vendor_js.value;
+    } else {
+        vendor_js_script.innerHTML = vendor_js.value;
+    }
+    document.head.appendChild(vendor_js_script);
+    let bundle_js_script = document.createElement('script');
+    if(remote_bundle_js.status === 'fulfilled') {
+        bundle_js_script.innerHTML = remote_bundle_js.value;
+    } else {
+        bundle_js_script.innerHTML = bundle_js.value;
+    }
+    document.head.appendChild(bundle_js_script);
+    let bundle_css_style = document.createElement('style');
+    if(remote_bundle_css.status === 'fulfilled') {
+        bundle_css_style.innerHTML = remote_bundle_css.value;
+    } else {
+        bundle_css_style.innerHTML = bundle_css.value;
+    }
+    document.head.appendChild(bundle_css_style);
 })();

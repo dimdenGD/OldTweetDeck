@@ -1,13 +1,12 @@
-
-
 chrome.webRequest.onHeadersReceived.addListener(
     function(details) {
+        let headers = details.responseHeaders.filter(header => header.name.toLowerCase() !== 'content-security-policy' && header.name.toLowerCase() !== 'location');
         return {
-            responseHeaders: details.responseHeaders.filter(header => header.name.toLowerCase() !== 'content-security-policy' && header.name.toLowerCase() !== 'location')
+            responseHeaders: headers
         }
     },
     {urls: ["https://tweetdeck.twitter.com/*"]},
-    ["blocking", "responseHeaders"]
+    ["blocking", "responseHeaders", "extraHeaders"]
 );
 
 chrome.webRequest.onBeforeRequest.addListener(

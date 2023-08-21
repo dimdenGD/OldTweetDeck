@@ -41649,9 +41649,6 @@ html.dark .Tooltip-inner {
 html.dark .modal-content {
     background-color: #15202b !important;
 }
-@-moz-document url-prefix("https://tweetdeck.twitter.com/")
-{
-    body:before {
-        position: relative !important;
-    }
+body:before {
+    position: relative !important;
 }

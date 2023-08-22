@@ -39,8 +39,7 @@ chrome.webRequest.onBeforeRequest.addListener(
         try {
             let parsedUrl = new URL(details.url);
             let path = parsedUrl.pathname;
-            console.log(path);
-            if(path.startsWith('/gryphon-client/')) {
+            if(path.startsWith('/gryphon-client/') && details.initiator === 'https://tweetdeck.twitter.com') {
                 return {
                     cancel: true
                 }

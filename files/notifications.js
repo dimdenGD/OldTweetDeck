@@ -1,13 +1,13 @@
 function createModal(html, className, onclose, canclose) {
     let modal = document.createElement('div');
-    modal.classList.add('modal');
+    modal.classList.add('otd-modal');
     let modal_content = document.createElement('div');
-    modal_content.classList.add('modal-content');
+    modal_content.classList.add('otd-modal-content');
     if(className) modal_content.classList.add(className);
     modal_content.innerHTML = html;
     modal.appendChild(modal_content);
     let close = document.createElement('span');
-    close.classList.add('modal-close');
+    close.classList.add('otd-modal-close');
     close.title = "ESC";
     close.innerHTML = '&times;';
     document.body.style.overflowY = 'hidden';
@@ -88,7 +88,7 @@ async function showNotifications() {
 
 let style = document.createElement('style');
 style.innerHTML = /*css*/`
-.modal {
+.otd-modal {
     position: fixed;
     z-index: 200;
     left: 0;
@@ -100,19 +100,23 @@ style.innerHTML = /*css*/`
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.modal-content {
+.otd-modal-content {
     width: fit-content;
     min-width: 500px;
     margin: auto;
     border-radius: 5px;
-    border: 1px solid gray);
     padding: 20px;
     background-color: white;
+    color: black;
     top: 20%;
     position: relative;
     max-height: 60%;
     overflow-y: inherit;
     animation: opac 0.2s ease-in-out;
+}
+html.dark .otd-modal-content {
+    background-color: #15202b;
+    color: white;
 }
 .otd-notification-warning > .otd-notification-content::before {
     content: "⚠️";
@@ -135,7 +139,7 @@ style.innerHTML = /*css*/`
     }
 }
 
-.modal-close {
+.otd-modal-close {
     color: #aaaaaa;
     float: right;
     font-size: 20px;
@@ -145,8 +149,8 @@ style.innerHTML = /*css*/`
     position: absolute;
 }
 
-.modal-close:hover,
-.modal-close:focus {
+.otd-modal-close:hover,
+.otd-modal-close:focus {
     color: black;
     text-decoration: none;
     cursor: pointer;

@@ -1,13 +1,14 @@
 {
   "name": "Old TweetDeck",
   "description": "Returns old TweetDeck, for free!",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "manifest_version": 2,
   "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
     "https://tweetdeck.twitter.com/*",
+    "https://abs.twimg.com/*",
     "https://api.twitter.com/*",
     "https://upload.twitter.com/*"
   ],

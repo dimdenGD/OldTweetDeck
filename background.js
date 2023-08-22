@@ -27,9 +27,26 @@ chrome.webRequest.onBeforeRequest.addListener(
                 return {
                     redirectUrl: chrome.runtime.getURL('/files/version.json')
                 }
-            }
+            };
         } catch(e) {}
     },
     {urls: ["https://tweetdeck.twitter.com/*"]},
+    ["blocking"]
+);
+
+chrome.webRequest.onBeforeRequest.addListener(
+    function(details) {
+        try {
+            let parsedUrl = new URL(details.url);
+            let path = parsedUrl.pathname;
+            console.log(path);
+            if(path.startsWith('/gryphon-client/')) {
+                return {
+                    cancel: true
+                }
+            }
+        } catch(e) {}
+    },
+    {urls: ["https://abs.twimg.com/*"]},
     ["blocking"]
 );

@@ -54,4 +54,10 @@ window.addEventListener("message", (event) => {
         }
     }, 200);
     setTimeout(() => clearInterval(int), 10000);
+    setTimeout(function() {
+        let badBody = document.querySelector('body[style="background-color: #FFFFFF;"]');
+        if (badBody) {
+            badBody.remove(); 
+        }
+    }, 500); // 0.5s
 })();

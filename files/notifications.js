@@ -104,9 +104,7 @@ style.innerHTML = /*css*/`
     width: fit-content;
     min-width: 500px;
     margin: auto;
-    border-radius: 5px;
-    border: 1px solid gray);
-    padding: 20px;
+    border-radius: 15px;
     background-color: white;
     top: 20%;
     position: relative;

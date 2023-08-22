@@ -17558,6 +17558,7 @@ a.caldisabled {
 }
 .account-bio {
     color: #8899a6;
+    max-width:500px;
 }
 .media-img {
     max-width: 100%;

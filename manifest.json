@@ -1,23 +1,25 @@
 {
-  "name": "Old TweetDeck",
+  "name": "OldTweetDeck",
   "description": "Returns old TweetDeck, for free!",
-  "version": "2.0.5",
+  "version": "3.0.0",
   "manifest_version": 2,
   "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
   "permissions": [
     "webRequest",
     "webRequestBlocking",
+    "https://twitter.com/*",
     "https://tweetdeck.twitter.com/*",
     "https://abs.twimg.com/*",
     "https://api.twitter.com/*",
     "https://upload.twitter.com/*"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["src/background.js"]
   },
   "web_accessible_resources": [
     "images/*",
-    "files/*"
+    "files/*",
+    "src/*"
   ],
   "icons": {
     "16": "/images/logo16.png",
@@ -27,14 +29,8 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://tweetdeck.twitter.com/"],
-      "js": ["files/notifications.js"],
-      "all_frames": true,
-      "run_at": "document_start"
-    },
-    {
-      "matches": ["https://tweetdeck.twitter.com/"],
-      "js": ["injection.js"],
+      "matches": ["https://twitter.com/i/tweetdeck"],
+      "js": ["src/notifications.js", "src/injection.js"],
       "all_frames": true,
       "run_at": "document_start"
     }

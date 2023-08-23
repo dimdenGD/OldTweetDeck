@@ -1,5 +1,5 @@
 {
-  "name": "Old TweetDeck",
+  "name": "OldTweetDeck",
   "description": "Returns old TweetDeck, for free!",
   "version": "2.0.5",
   "manifest_version": 2,
@@ -19,7 +19,8 @@
   },
   "web_accessible_resources": [
     "images/*",
-    "files/*"
+    "files/*",
+    "src/*"
   ],
   "icons": {
     "16": "/images/logo16.png",

@@ -1,5 +1,161 @@
 const PUBLIC_TOKEN = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
 const NEW_API = 'https://twitter.com/i/api/graphql';
+const cursors = {};
+
+function parseNoteTweet(result) {
+    let text, entities;
+    if(result.note_tweet.note_tweet_results.result) {
+        text = result.note_tweet.note_tweet_results.result.text;
+        entities = result.note_tweet.note_tweet_results.result.entity_set;
+        if(result.note_tweet.note_tweet_results.result.richtext?.richtext_tags.length) {
+            entities.richtext = result.note_tweet.note_tweet_results.result.richtext.richtext_tags // logically, richtext is an entity, right?
+        }
+    } else {
+        text = result.note_tweet.note_tweet_results.text;
+        entities = result.note_tweet.note_tweet_results.entity_set;
+    }
+    return {text, entities};
+}
+
+function parseTweet(res) {
+    if(typeof res !== "object") return;
+    if(res.limitedActionResults) {
+        let limitation = res.limitedActionResults.limited_actions.find(l => l.action === "Reply");
+        if(limitation) {
+            res.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : LOC.limited_tweet.message;
+        }
+        res = res.tweet;
+    }
+    if(!res.legacy && res.tweet) res = res.tweet;
+    let tweet = res.legacy;
+    if(!res.core) return;
+    tweet.user = res.core.user_results.result.legacy;
+    tweet.user.id_str = tweet.user_id_str;
+    if(res.core.user_results.result.is_blue_verified) {
+        tweet.user.verified = true;
+        tweet.user.verified_type = "Blue";
+    }
+    if(tweet.retweeted_status_result) {
+        let result = tweet.retweeted_status_result.result;
+        if(result.limitedActionResults) {
+            let limitation = result.limitedActionResults.limited_actions.find(l => l.action === "Reply");
+            if(limitation) {
+                result.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : LOC.limited_tweet.message;
+            }
+            result = result.tweet;
+        }
+        if(
+            result.quoted_status_result && 
+            result.quoted_status_result.result.legacy &&
+            result.quoted_status_result.result.core &&
+            result.quoted_status_result.result.core.user_results.result.legacy    
+        ) {
+            result.legacy.quoted_status = result.quoted_status_result.result.legacy;
+            if(result.legacy.quoted_status) {
+                result.legacy.quoted_status.user = result.quoted_status_result.result.core.user_results.result.legacy;
+                result.legacy.quoted_status.user.id_str = result.legacy.quoted_status.user_id_str;
+                if(result.quoted_status_result.result.core.user_results.result.is_blue_verified) {
+                    result.legacy.quoted_status.user.verified = true;
+                    result.legacy.quoted_status.user.verified_type = "Blue";
+                }
+            } else {
+                console.warn("No retweeted quoted status", result);
+            }
+        }
+        tweet.retweeted_status = result.legacy;
+        if(tweet.retweeted_status && result.core.user_results.result.legacy) {
+            tweet.retweeted_status.user = result.core.user_results.result.legacy;
+            tweet.retweeted_status.user.id_str = tweet.retweeted_status.user_id_str;
+            if(result.core.user_results.result.is_blue_verified) {
+                tweet.retweeted_status.user.verified = true;
+                tweet.retweeted_status.user.verified_type = "Blue";
+            }
+            tweet.retweeted_status.ext = {};
+            if(result.views) {
+                tweet.retweeted_status.ext.views = {r: {ok: {count: +result.views.count}}};
+            }
+            if(res.card && res.card.legacy && res.card.legacy.binding_values) {
+                tweet.retweeted_status.card = res.card.legacy;
+            }
+        } else {
+            console.warn("No retweeted status", result);
+        }
+        if(result.note_tweet && result.note_tweet.note_tweet_results) {
+            let note = parseNoteTweet(result);
+            tweet.retweeted_status.full_text = note.text;
+            tweet.retweeted_status.entities = note.entities;
+            tweet.retweeted_status.display_text_range = undefined; // no text range for long tweets
+        }
+    }
+
+    if(res.quoted_status_result) {
+        tweet.quoted_status_result = res.quoted_status_result;
+    }
+    if(res.note_tweet && res.note_tweet.note_tweet_results) {
+        let note = parseNoteTweet(res);
+        tweet.full_text = note.text;
+        tweet.entities = note.entities;
+        tweet.display_text_range = undefined; // no text range for long tweets
+    }
+    if(tweet.quoted_status_result) {
+        let result = tweet.quoted_status_result.result;
+        if(!result.core && result.tweet) result = result.tweet;
+        if(result.limitedActionResults) {
+            let limitation = result.limitedActionResults.limited_actions.find(l => l.action === "Reply");
+            if(limitation) {
+                result.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : LOC.limited_tweet.message;
+            }
+            result = result.tweet;
+        }
+        tweet.quoted_status = result.legacy;
+        if(tweet.quoted_status) {
+            tweet.quoted_status.user = result.core.user_results.result.legacy;
+            if(!tweet.quoted_status.user) {
+                delete tweet.quoted_status;
+            } else {
+                tweet.quoted_status.user.id_str = tweet.quoted_status.user_id_str;
+                if(result.core.user_results.result.is_blue_verified) {
+                    tweet.quoted_status.user.verified = true;
+                    tweet.quoted_status.user.verified_type = "Blue";
+                }
+                tweet.quoted_status.ext = {};
+                if(result.views) {
+                    tweet.quoted_status.ext.views = {r: {ok: {count: +result.views.count}}};
+                }
+            }
+        } else {
+            console.warn("No quoted status", result);
+        }
+    }
+    if(res.card && res.card.legacy) {
+        tweet.card = res.card.legacy;
+        let bvo = {};
+        for(let i = 0; i < tweet.card.binding_values.length; i++) {
+            let bv = tweet.card.binding_values[i];
+            bvo[bv.key] = bv.value;
+        }
+        tweet.card.binding_values = bvo;
+    }
+    if(res.views) {
+        if(!tweet.ext) tweet.ext = {};
+        tweet.ext.views = {r: {ok: {count: +res.views.count}}};
+    }
+    if(res.source) {
+        tweet.source = res.source;
+    }
+    if(res.birdwatch_pivot) { // community notes
+        tweet.birdwatch = res.birdwatch_pivot;
+    }
+
+    if(tweet.favorited && tweet.favorite_count === 0) {
+        tweet.favorite_count = 1;
+    }
+    if(tweet.retweeted && tweet.retweet_count === 0) {
+        tweet.retweet_count = 1;
+    }
+
+    return tweet;
+}
 
 function getCurrentUserId() {
     let accounts = TD.storage.accountController.getAll();
@@ -23,6 +179,7 @@ const proxyRoutes = [
         path: '/1.1/statuses/user_timeline.json',
         method: 'GET',
         beforeRequest: xhr => {
+            console.log(xhr);
             xhr.modReqHeaders['Authorization'] = PUBLIC_TOKEN;
             try {
                 let url = new URL(xhr.modUrl);
@@ -36,13 +193,70 @@ const proxyRoutes = [
                 } else {
                     variables.userId = user_id;
                 }
+                let max_id = params.get('max_id');
+                if(max_id) {
+                    let bn = BigInt(params.get('max_id'));
+                    bn += BigInt(1);
+                    if(cursors[`${variables.userId}-${bn}`]) {
+                        variables.cursor = cursors[`${variables.userId}-${bn}`];
+                    }
+                }
+                xhr.storage.user_id = variables.userId;
                 xhr.modUrl = `${NEW_API}/QqZBEqganhHwmU9QscmIug/UserTweets?${generateParams(features, variables, fieldToggles)}`;
             } catch(e) {
                 console.error(e);
             }
         },
         afterRequest: xhr => {
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return [];
+            }
+            if (data.errors && data.errors[0]) {
+                return [];
+            }
+            let instructions = data.data.user.result.timeline_v2.timeline.instructions;
+            let entries = instructions.find(e => e.type === "TimelineAddEntries");
+            if(!entries) {
+                return [];
+            }
+            entries = entries.entries;
+            let tweets = [];
+            for(let entry of entries) {
+                if(entry.entryId.startsWith("tweet-")) {
+                    let result = entry.content.itemContent.tweet_results.result;
+                    let tweet = parseTweet(result);
+                    if(tweet) {
+                        tweet.hasModeratedReplies = entry.content.itemContent.hasModeratedReplies;
+                        tweets.push(tweet);
+                    }
+                } else if(entry.entryId.startsWith("profile-conversation-")) {
+                    let items = entry.content.items;
+                    for(let i = 0; i < items.length; i++) {
+                        let item = items[i];
+                        let result = item.item.itemContent.tweet_results.result;
+                        if(item.entryId.includes("-tweet-")) {
+                            let tweet = parseTweet(result);
+                            if(!tweet) continue;
 
+                            if(i !== items.length - 1) tweet.threadContinuation = true;
+                            if(i !== 0) tweet.noTop = true;
+
+                            tweet.hasModeratedReplies = item.item.itemContent.hasModeratedReplies;
+                            tweets.push(tweet);
+                        }
+                    }
+                }
+            }
+
+            let cursor = entries.find(e => e.entryId.startsWith("sq-cursor-bottom-") || e.entryId.startsWith("cursor-bottom-")).content.value;
+            if(cursor) {
+                cursors[`${xhr.storage.user_id}-${tweets[tweets.length-1].id_str}`] = cursor;
+            }
+
+            return tweets;
         }
     }
 ];
@@ -55,6 +269,7 @@ XMLHttpRequest = function () {
             this.modUrl = url;
             this.originalUrl = url;
             this.modReqHeaders = {};
+            this.storage = {};
             
             try {
                 let parsedUrl = new URL(url);
@@ -79,7 +294,7 @@ XMLHttpRequest = function () {
         },
         get(xhr, key) {
             if (!key in xhr) return undefined;
-            if(key === 'responseText') return this.interceptResponseText(xhr, xhr[key]);
+            if(key === 'responseText') return this.interceptResponseText(xhr);
 
             let value = xhr[key];
             if (typeof value === "function") {
@@ -95,11 +310,16 @@ XMLHttpRequest = function () {
             }
             return value;
         },
-        interceptResponseText(xhr, text) {
-            if(this.proxyRoute && this.proxyRoute.afterRequest) {
-                this.proxyRoute.afterRequest(xhr);
+        interceptResponseText(xhr) {
+            if(xhr.proxyRoute && xhr.proxyRoute.afterRequest) {
+                let out = xhr.proxyRoute.afterRequest(xhr);
+                if(typeof out === "object") {
+                    return JSON.stringify(out);
+                } else {
+                    return out;
+                }
             }
-            return text;
+            return xhr.responseText;
         }
     });
 }

@@ -22,7 +22,7 @@ function parseTweet(res) {
     if(res.limitedActionResults) {
         let limitation = res.limitedActionResults.limited_actions.find(l => l.action === "Reply");
         if(limitation) {
-            res.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : LOC.limited_tweet.message;
+            res.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : "This tweet has limitations to who can reply.";
         }
         res = res.tweet;
     }
@@ -40,7 +40,7 @@ function parseTweet(res) {
         if(result.limitedActionResults) {
             let limitation = result.limitedActionResults.limited_actions.find(l => l.action === "Reply");
             if(limitation) {
-                result.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : LOC.limited_tweet.message;
+                result.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : "This tweet has limitations to who can reply.";
             }
             result = result.tweet;
         }
@@ -103,7 +103,7 @@ function parseTweet(res) {
         if(result.limitedActionResults) {
             let limitation = result.limitedActionResults.limited_actions.find(l => l.action === "Reply");
             if(limitation) {
-                result.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : LOC.limited_tweet.message;
+                result.tweet.legacy.limited_actions_text = limitation.prompt ? limitation.prompt.subtext.text : "This tweet has limitations to who can reply.";
             }
             result = result.tweet;
         }

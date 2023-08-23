@@ -7,6 +7,8 @@
   "permissions": [
     "webRequest",
     "webRequestBlocking",
+    "cookies",
+    "https://twitter.com/*",
     "https://tweetdeck.twitter.com/*",
     "https://abs.twimg.com/*",
     "https://api.twitter.com/*",

@@ -8,6 +8,7 @@ window.addEventListener("message", (event) => {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
     document.documentElement.innerHTML = html;
     let [
+        interception_js,
         vendor_js,
         bundle_js,
         bundle_css,
@@ -15,6 +16,7 @@ window.addEventListener("message", (event) => {
         remote_bundle_js,
         remote_bundle_css
     ] = await Promise.allSettled([
+        fetch(chrome.runtime.getURL('/files/interception.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/vendor.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/bundle.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/bundle.css')).then(r => r.text()),
@@ -22,6 +24,10 @@ window.addEventListener("message", (event) => {
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.js').then(r => r.text()),
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css').then(r => r.text())
     ]);
+    let interception_js_script = document.createElement('script');
+    interception_js_script.innerHTML = interception_js.value;
+    document.head.appendChild(interception_js_script);
+    
     let vendor_js_script = document.createElement('script');
     if(remote_vendor_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         vendor_js_script.innerHTML = remote_vendor_js.value;

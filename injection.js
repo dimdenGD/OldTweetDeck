@@ -44,20 +44,14 @@ window.addEventListener("message", (event) => {
     }
     document.head.appendChild(bundle_css_style);
 
-    let int = setInterval(() => {
+    let int = setTimeout(function() {
         let badBody = document.querySelector('body:not(#injected-body)');
-        let badHead = document.querySelector('head:not(#injected-head)');
-        if (badBody && badHead) {
-            badBody.remove();
-            badHead.remove();
+        if (badBody) {
+            let badHead = document.querySelector('head:not(#injected-head)');
             clearInterval(int);
+            if(badHead) badHead.remove();
+            badBody.remove(); 
         }
     }, 200);
     setTimeout(() => clearInterval(int), 10000);
-    setTimeout(function() {
-        let badBody = document.querySelector('body[style="background-color: #FFFFFF;"]');
-        if (badBody) {
-            badBody.remove(); 
-        }
-    }, 500); // 0.5s
 })();

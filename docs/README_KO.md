@@ -2,7 +2,7 @@
 옛날 트윗덱을 공짜로 되돌립니다!
 현재 쉽게 설치하는 방법은 없지만, 이 리포지토리를 다운하고 크롬/엣지/오페라/웨일 등의 다른 크로미움 브라우저에 이용하능합니다.
   
-2015년의 트위터를 다시 이용하는 것에 관심있다면, [OldTwitter](https://github.com/dimdenGD/OldTwitter) 확장프로그램도 한번 보세요.  
+2015년과 2018년의 트위터를 다시 이용하는 것에 관심있다면, [OldTwitter](https://github.com/dimdenGD/OldTwitter) 확장프로그램도 한번 보세요.  
   
 ![Screenshot](https://lune.dimden.dev/9713d947d56.png)  
 
@@ -52,3 +52,6 @@ Better TweetDeck이 이 확장프로그램과 장동하도록 만든 포크가 �
 ## ~~투명한 거부권~~
 옛날 정보는 만료되었습니다.
 확장프로그램을 manifest v2로 다시 만들었고, 외부서버가 필요하지 않습니다.
+
+## 한국어 번역
+[han_eirin](https://twitter.com/han_eirin)

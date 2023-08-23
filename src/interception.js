@@ -179,7 +179,6 @@ const proxyRoutes = [
         path: '/1.1/statuses/user_timeline.json',
         method: 'GET',
         beforeRequest: xhr => {
-            console.log(xhr);
             xhr.modReqHeaders['Authorization'] = PUBLIC_TOKEN;
             try {
                 let url = new URL(xhr.modUrl);
@@ -257,6 +256,79 @@ const proxyRoutes = [
             }
 
             return tweets;
+        }
+    },
+    {
+        path: '/1.1/search/universal.json',
+        method: 'GET',
+        beforeRequest: xhr => {
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKEN;
+            try {
+                let url = new URL(xhr.modUrl);
+                let params = new URLSearchParams(url.search);
+                let variables = {
+                    rawQuery: params.get('q'),
+                    count: 40,
+                    querySource: 'typed_query',
+                    product: "Latest",
+                };
+                let features = {"rweb_lists_timeline_redesign_enabled":false,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"tweetypie_unmention_optimization_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":false,"tweet_awards_web_tipping_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_media_download_video_enabled":false,"responsive_web_enhance_cards_enabled":false};
+
+                xhr.modUrl = `${NEW_API}/nK1dw4oV3k4w5TdtcAdSww/SearchTimeline?${generateParams(features, variables)}`;
+            } catch(e) {
+                console.error(e);
+            }
+        },
+        afterRequest: xhr => {
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return [];
+            }
+            if (data.errors && data.errors[0]) {
+                return [];
+            }
+            let instructions = data.data.search_by_raw_query.search_timeline.timeline.instructions;
+            let entries = instructions.find(i => i.entries);
+            if(!entries) {
+                return [];
+            }
+            entries = entries.entries;
+            let res = [];
+            for(let entry of entries) {
+                if(entry.entryId.startsWith('sq-I-t-') || entry.entryId.startsWith('tweet-')) {
+                    let result = entry.content.itemContent.tweet_results.result;
+
+                    if(entry.content.itemContent.promotedMetadata) {
+                        continue;
+                    }
+                    let tweet = parseTweet(result);
+                    if(!tweet) {
+                        continue;
+                    }
+                    res.push(tweet);
+                }
+            }
+            let cursor = entries.find(e => e.entryId.startsWith('sq-cursor-bottom-') || e.entryId.startsWith('cursor-bottom-'));
+            if(cursor) {
+                cursor = cursor.content.value;
+            } else {
+                cursor = instructions.find(e => e.entry_id_to_replace && (e.entry_id_to_replace.startsWith('sq-cursor-bottom-') || e.entry_id_to_replace.startsWith('cursor-bottom-')));
+                if(cursor) {
+                    cursor = cursor.entry.content.value;
+                } else {
+                    cursor = null;
+                }
+            }
+
+            return {
+                metadata: {
+                    cursor,
+                    refresh_interval_in_sec: 30
+                },
+                modules: res.map(t => ({status: {data: t}}))
+            };
         }
     }
 ];

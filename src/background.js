@@ -14,6 +14,17 @@ chrome.webRequest.onHeadersReceived.addListener(
     extraInfoSpec
 );
 
+chrome.webRequest.onBeforeSendHeaders.addListener(
+    function(details) {
+        let headers = details.requestHeaders.filter(header => header.name.toLowerCase() !== 'referer');
+        return {
+            requestHeaders: headers
+        }
+    },
+    {urls: ["https://twitter.com/i/api/graphql/*"]},
+    extraInfoSpec.map(s => s.replace('response', 'request'))
+)
+
 chrome.webRequest.onBeforeRequest.addListener(
     function(details) {
         try {

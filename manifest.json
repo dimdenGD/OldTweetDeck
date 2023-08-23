@@ -15,7 +15,7 @@
     "https://upload.twitter.com/*"
   ],
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["src/background.js"]
   },
   "web_accessible_resources": [
     "images/*",
@@ -30,7 +30,7 @@
   "content_scripts": [
     {
       "matches": ["https://twitter.com/i/tweetdeck"],
-      "js": ["files/notifications.js", "injection.js"],
+      "js": ["src/notifications.js", "src/injection.js"],
       "all_frames": true,
       "run_at": "document_start"
     }

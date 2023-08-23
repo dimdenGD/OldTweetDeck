@@ -58,12 +58,12 @@ XMLHttpRequest = function () {
             
             try {
                 let parsedUrl = new URL(url);
-                let proxyRoute = proxyRoutes.find(route => route.path === parsedUrl.pathname && route.method.toUpperCase() === method.toUpperCase());
-                if(proxyRoute && proxyRoute.beforeRequest) {
-                    proxyRoute.beforeRequest(this);
-                }
+                this.proxyRoute = proxyRoutes.find(route => route.path === parsedUrl.pathname && route.method.toUpperCase() === method.toUpperCase());
             } catch(e) {
                 console.error(e);
+            }
+            if(this.proxyRoute && this.proxyRoute.beforeRequest) {
+                this.proxyRoute.beforeRequest(this);
             }
 
             this.open(method, this.modUrl, async, username, password);
@@ -96,6 +96,9 @@ XMLHttpRequest = function () {
             return value;
         },
         interceptResponseText(xhr, text) {
+            if(this.proxyRoute && this.proxyRoute.afterRequest) {
+                this.proxyRoute.afterRequest(xhr);
+            }
             return text;
         }
     });

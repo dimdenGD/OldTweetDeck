@@ -11,7 +11,7 @@
         remote_bundle_js,
         remote_bundle_css
     ] = await Promise.allSettled([
-        fetch(chrome.runtime.getURL('/files/interception.js')).then(r => r.text()),
+        fetch(chrome.runtime.getURL('/src/interception.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/vendor.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/bundle.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/bundle.css')).then(r => r.text()),

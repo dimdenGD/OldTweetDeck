@@ -1,12 +1,7 @@
-window.addEventListener("message", (event) => {
-    if (event.data.action === "getcookie") {
-        chrome.runtime.sendMessage({ action: "setcookie", cookie: document.cookie });
-    }
-});
-
 (async () => {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
     document.documentElement.innerHTML = html;
+
     let [
         interception_js,
         vendor_js,
@@ -27,7 +22,7 @@ window.addEventListener("message", (event) => {
     let interception_js_script = document.createElement('script');
     interception_js_script.innerHTML = interception_js.value;
     document.head.appendChild(interception_js_script);
-    
+
     let vendor_js_script = document.createElement('script');
     if(remote_vendor_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         vendor_js_script.innerHTML = remote_vendor_js.value;

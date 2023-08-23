@@ -27,6 +27,7 @@
     } else {
         interception_js_script.innerHTML = interception_js.value;
     }
+    document.head.appendChild(interception_js_script);
 
     let vendor_js_script = document.createElement('script');
     if(remote_vendor_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {

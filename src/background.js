@@ -3,6 +3,17 @@ if (chrome.webRequest.OnHeadersReceivedOptions.hasOwnProperty("EXTRA_HEADERS")) 
     extraInfoSpec.push("extraHeaders");
 }
 
+chrome.webRequest.onHeadersReceived.addListener(
+    function(details) {
+        let headers = details.responseHeaders.filter(header => header.name.toLowerCase() !== 'content-security-policy' && header.name.toLowerCase() !== 'location');
+        return {
+            responseHeaders: headers
+        }
+    },
+    {urls: ["https://twitter.com/i/tweetdeck"]},
+    extraInfoSpec
+);
+
 chrome.webRequest.onBeforeRequest.addListener(
     function(details) {
         try {

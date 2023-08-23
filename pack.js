@@ -40,6 +40,7 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
             strict_min_version: "90.0"
         }
     };
+    manifest.permissions.push("https://tweetdeck.dimden.dev/*", "https://raw.githubusercontent.com/*");
 
     fs.unlinkSync('../OldTweetDeckFirefox/pack.js');
     fs.unlinkSync('../OldTweetDeckTempChrome/pack.js');

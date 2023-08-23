@@ -22,32 +22,42 @@
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css').then(r => r.text())
     ]);
     let interception_js_script = document.createElement('script');
-    if(remote_interception_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
+    if(remote_interception_js.status === 'fulfilled' && remote_interception_js.value.length > 30 && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         interception_js_script.innerHTML = remote_interception_js.value;
+        console.log('Using remote interception.js');
     } else {
         interception_js_script.innerHTML = interception_js.value;
+        console.log('Using local interception.js');
     }
     document.head.appendChild(interception_js_script);
 
     let vendor_js_script = document.createElement('script');
-    if(remote_vendor_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
+    if(remote_vendor_js.status === 'fulfilled' && remote_vendor_js.value.length > 30 && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         vendor_js_script.innerHTML = remote_vendor_js.value;
+        console.log('Using remote vendor.js');
     } else {
         vendor_js_script.innerHTML = vendor_js.value;
+        console.log('Using local vendor.js');
     }
     document.head.appendChild(vendor_js_script);
+
     let bundle_js_script = document.createElement('script');
-    if(remote_bundle_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
+    if(remote_bundle_js.status === 'fulfilled' && remote_bundle_js.value.length > 30 && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         bundle_js_script.innerHTML = remote_bundle_js.value;
+        console.log('Using remote bundle.js');
     } else {
         bundle_js_script.innerHTML = bundle_js.value;
+        console.log('Using local bundle.js');
     }
     document.head.appendChild(bundle_js_script);
+    
     let bundle_css_style = document.createElement('style');
-    if(remote_bundle_css.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
+    if(remote_bundle_css.status === 'fulfilled' && remote_bundle_css.value.length > 30 && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
         bundle_css_style.innerHTML = remote_bundle_css.value;
+        console.log('Using remote bundle.css');
     } else {
         bundle_css_style.innerHTML = bundle_css.value;
+        console.log('Using local bundle.css');
     }
     document.head.appendChild(bundle_css_style);
 

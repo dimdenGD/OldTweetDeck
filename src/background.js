@@ -24,18 +24,11 @@ chrome.webRequest.onBeforeRequest.addListener(
 );
 
 chrome.webRequest.onBeforeRequest.addListener(
-    function(details) {
-        try {
-            let parsedUrl = new URL(details.url);
-            let path = parsedUrl.pathname;
-            let initiator = details.initiator || details.originUrl || details.documentUrl;
-            if(path.startsWith('/gryphon-client/') && initiator.startsWith('https://twitter.com/i/tweetdeck')) {
-                return {
-                    cancel: true
-                }
-            }
-        } catch(e) {}
+    function() {
+        return {
+            redirectUrl: 'https://twitter.com/i/tweetdeck'
+        }
     },
-    {urls: ["https://abs.twimg.com/*"]},
+    {urls: ["https://tweetdeck.twitter.com/*"]},
     ["blocking"]
 );

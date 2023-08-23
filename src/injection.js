@@ -7,6 +7,7 @@
         vendor_js,
         bundle_js,
         bundle_css,
+        remote_interception_js,
         remote_vendor_js,
         remote_bundle_js,
         remote_bundle_css
@@ -15,13 +16,17 @@
         fetch(chrome.runtime.getURL('/files/vendor.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/bundle.js')).then(r => r.text()),
         fetch(chrome.runtime.getURL('/files/bundle.css')).then(r => r.text()),
+        fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/src/interception.js').then(r => r.text()),
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/vendor.js').then(r => r.text()),
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.js').then(r => r.text()),
         fetch('https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css').then(r => r.text())
     ]);
     let interception_js_script = document.createElement('script');
-    interception_js_script.innerHTML = interception_js.value;
-    document.head.appendChild(interception_js_script);
+    if(remote_interception_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {
+        interception_js_script.innerHTML = remote_interception_js.value;
+    } else {
+        interception_js_script.innerHTML = interception_js.value;
+    }
 
     let vendor_js_script = document.createElement('script');
     if(remote_vendor_js.status === 'fulfilled' && !localStorage.getItem('OTDalwaysUseLocalFiles')) {

@@ -201,7 +201,7 @@ const proxyRoutes = [
                     }
                 }
                 xhr.storage.user_id = variables.userId;
-                xhr.modUrl = `${NEW_API}/QqZBEqganhHwmU9QscmIug/UserTweets?${generateParams(features, variables, fieldToggles)}`;
+                xhr.modUrl = `${NEW_API}/wxoVeDnl0mP7VLhe6mTOdg/UserTweetsAndReplies?${generateParams(features, variables, fieldToggles)}`;
             } catch(e) {
                 console.error(e);
             }

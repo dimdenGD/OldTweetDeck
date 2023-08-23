@@ -7,7 +7,7 @@
 ![Screenshot](https://lune.dimden.dev/9713d947d56.png)  
 
 ## 설치
-### 크로미움 (크롬, 엣지, 오페라, Brave, 등) 
+### 크로미움 (크롬, 엣지, 오페라, Brave, 웨일 등) 
 1. [배포 페이지](https://github.com/dimdenGD/OldTweetDeck/releases)로 가서 `OldTweetDeckChrome.zip`을 다운로드 합니다.
 2. 파일의 압축을 풉니다.
 3. 확장 프로그램 페이지(``chrome://extensions``)로 접속합니다.

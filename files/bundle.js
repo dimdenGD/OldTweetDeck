@@ -3320,17 +3320,26 @@
 		}, e.buildRequest = function(t) {
 			"GET" !== t.method && "DELETE" !== t.method || (t.url = TD.net.util.addURLParameters(t.url, t.params), delete t.params), t.body = t.params;
 			var n = p(t.headers, t.account);
-			if (i(t.account).isCookieUser()) return e.checkCookie().addCallback((0, o.default)({
-				method: t.method,
-				url: t.url,
-				headers: g(n),
-				body: t.body,
-				settings: (0, a.default)({}, t.settings, {
-					xhrFields: {
-						withCredentials: !0
-					}
-				})
-			}));
+			if(n['x-act-as-user-id'] && t.url && t.url.includes('/1.1/statuses/user_timeline.json')) {
+				let url = new URL(t.url);
+				let params = new URLSearchParams(url.search);
+				params.set('user_id', n['x-act-as-user-id']);
+				url.search = params.toString();
+				t.url = url.toString();
+			}
+			if (i(t.account).isCookieUser()) {
+				return e.checkCookie().addCallback((0, o.default)({
+					method: t.method,
+					url: t.url,
+					headers: g(n),
+					body: t.body,
+					settings: (0, a.default)({}, t.settings, {
+						xhrFields: {
+							withCredentials: !0
+						}
+					})
+				}));
+			}
 			var s = e.signRequest(t.account, t.url, t.method, t.body, t.headers);
 			return s.addCallback(function(e) {
 				var i = e.data,

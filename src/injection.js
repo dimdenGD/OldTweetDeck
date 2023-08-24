@@ -18,7 +18,12 @@
             ),
         ]);
     if (!localStorage.getItem("OTDalwaysUseLocalFiles")) {
-        const remote_files = await Promise.allSettled([
+        const [
+            remote_interception_js,
+            remote_vendor_js,
+            remote_bundle_js,
+            remote_bundle_css,
+        ] = await Promise.allSettled([
             fetch(
                 "https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/src/interception.js",
             ).then((r) => r.text()),
@@ -32,13 +37,34 @@
                 "https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css",
             ).then((r) => r.text()),
         ]);
+
         if (
-            remote_files.every(
-                (file) => file.status === "fulfilled" && file.value.length > 30,
-            )
+            remote_interception_js.status === "fulfilled" &&
+            remote_interception_js.value.length > 30
         ) {
-            [interception_js, vendor_js, bundle_js, bundle_css] = remote_files;
-            console.log("Using remote files");
+            interception_js = remote_interception_js;
+            console.log("Using remote interception.js");
+        }
+        if (
+            remote_vendor_js.status === "fulfilled" &&
+            remote_vendor_js.value.length > 30
+        ) {
+            vendor_js = remote_vendor_js;
+            console.log("Using remote vendor.js");
+        }
+        if (
+            remote_bundle_js.status === "fulfilled" &&
+            remote_bundle_js.value.length > 30
+        ) {
+            bundle_js = remote_bundle_js;
+            console.log("Using remote bundle.js");
+        }
+        if (
+            remote_bundle_css.status === "fulfilled" &&
+            remote_bundle_css.value.length > 30
+        ) {
+            bundle_css = remote_bundle_css;
+            console.log("Using remote bundle.css");
         }
     }
 

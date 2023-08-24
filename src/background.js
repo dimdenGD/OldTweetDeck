@@ -99,7 +99,6 @@ chrome.webRequest.onBeforeRequest.addListener(
             let requestFrom = urls[details.tabId][details.frameId];
             if (
                 path.startsWith("/responsive-web/client-web/") &&
-                !path.startsWith("/responsive-web/client-web/main") &&
                 requestFrom === "https://twitter.com/i/tweetdeck"
             ) {
                 return {

@@ -250,6 +250,8 @@ const proxyRoutes = [
                 }
             }
 
+            if(tweets.length === 0) return tweets;
+
             let cursor = entries.find(e => e.entryId.startsWith("sq-cursor-bottom-") || e.entryId.startsWith("cursor-bottom-")).content.value;
             if(cursor) {
                 cursors[`${xhr.storage.user_id}-${tweets[tweets.length-1].id_str}`] = cursor;

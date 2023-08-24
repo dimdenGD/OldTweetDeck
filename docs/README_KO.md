@@ -42,6 +42,7 @@
 확장 프로그램 파일 자체가 업데이트 되면, 확장프로그램을 삭제후 재설치 하세요.
 
 역주) 근데 계속 프로그래밍 하면서 봤는데 직접 새버전을 다운받아서 삭제후 재설치 하는게 제일 확실한 방법입니다.
+서버에서 제대로 못받아오는 경우가 있어요.
 
 ## Better TweetDeck
 Better TweetDeck이 이 확장프로그램과 장동하도록 만든 포크가 있습니다, [여기](https://github.com/dimdenGD/BetterTweetDeck/)에서 찾을 수 있으며. 이 확장프로그램과 같은 방식으로 설치할 수 있으며, [릴리즈 페이지](https://github.com/dimdenGD/BetterTweetDeck/releases)에서 반드시 다운로드해야 합나다.  

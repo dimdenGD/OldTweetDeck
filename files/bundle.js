@@ -1,3 +1,13 @@
+setTimeout(function () {
+	document.title = "TweetDeck";
+
+	var icon = document.createElement("link");
+	icon.type = "image/x-icon";
+	icon.rel = "shortcut icon";
+	icon.href = "https://ton.twimg.com/tweetdeck-web/favicon.b5a6cafd56.ico";
+	document.getElementsByTagName("head")[0].appendChild(icon);
+}, 3000);
+
 ! function(e) {
 	function t(t) {
 		for (var n, a, o = t[0], l = t[1], c = t[2], d = 0, h = []; d < o.length; d++) a = o[d], s[a] && h.push(s[a][0]), s[a] = 0;

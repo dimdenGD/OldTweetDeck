@@ -256,6 +256,21 @@ const proxyRoutes = [
             if(cursor) {
                 cursors[`${xhr.storage.user_id}-${tweets[tweets.length-1].id_str}`] = cursor;
             }
+            
+            let pinEntry = instructions.find(e => e.type === "TimelinePinEntry");
+            if(pinEntry && pinEntry.entry && pinEntry.entry.content && pinEntry.entry.content.itemContent) {
+                let result = pinEntry.entry.content.itemContent.tweet_results.result;
+                let pinnedTweet = parseTweet(result);
+                if(pinnedTweet) {
+                    let tweetTimes = tweets.map(t => [t.id_str, new Date(t.created_at).getTime()]);
+                    tweetTimes.push([pinnedTweet.id_str, new Date(pinnedTweet.created_at).getTime()]);
+                    tweetTimes.sort((a, b) => b[1] - a[1]);
+                    let index = tweetTimes.findIndex(t => t[0] === pinnedTweet.id_str);
+                    if(index !== tweets.length) {
+                        tweets.splice(index, 0, pinnedTweet);
+                    }
+                }
+            }
 
             return tweets;
         }

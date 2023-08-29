@@ -61,6 +61,8 @@ Better TweetDeck이 이 확장프로그램과 장동하도록 만든 포크가 �
 BetterTweetDeck을 설치하셨다면 OldTweetdeck V3에 작동하도록 수정한 [새로운 업데이트](https://github.com/dimdenGD/BetterTweetDeck/releases/tag/v4.11.1)가 있습니다.
 
 ### 이 프로젝트를 계속 유지하기 위해 [기부](https://dimden.dev/donate/)를 고려해 주세요.
+#### 3.0.3
+고정된 트윗을 보여줍니다(만약에 최신에 있을 경우)
 #### 3.0.2
 여러 유저의 타임라인이 주계정만 보여주는 문제를 해결했습니다.
 #### 3.0.1

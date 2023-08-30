@@ -199,7 +199,6 @@ const proxyRoutes = [
                 if(max_id) {
                     let bn = BigInt(params.get('max_id'));
                     bn += BigInt(1);
-                    console.log(variables.userId, bn.toString(), max_id, cursors[`${variables.userId}-${bn}`], cursors);
                     if(cursors[`${variables.userId}-${bn}`]) {
                         variables.cursor = cursors[`${variables.userId}-${bn}`];
                     }

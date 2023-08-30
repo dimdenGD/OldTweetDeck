@@ -52,6 +52,10 @@ Better TweetDeck이 이 확장프로그램과 장동하도록 만든 포크가 �
 #### Manifest version 2 is deprecated, and support will be removed in 2023. 이라는 경고가 뜹니다.
 무시하세요
 
+#### 유저(User) 또는 검색(Search) 열이 로딩되지 않습니다.
+API 제한에 도달했습니다. 일정 시간이 지난 후에 원래대로 돌아올 것입니다. 만약에 이것을 우회하고 싶으면, F12를 누른 뒤, 콘솔(Console)탭으로 가서 `localStorage.abuseAPIkeys = '1'`을 작성한 뒤 엔터를 누르세요. 이것은 여러 API 토큰을 사용하도록 설정하고, API 제한을 2배로 늘려줍니다. 하지만 이로인한 불이익은 당신의 책임입니다. 다시 비활성하려면 `delete localStorage.abuseAPIkeys`을 작성한 뒤 엔터를 누르세요.  
+  
+
 ## 업데이트 내역
 ### 3.0
 이 버전은 요청에 가로채기를 추가했습니다. 일반 트위터의 요청을 리버스앤지니어링 하여서, 일반 트위터에서 사용하는 해당 요청을 찾을 수 있었습니다. 이제 트윗댁이 종료 API를 사용하려고 하면, 요청이 새 엔드포인트로 리다이렉트 되고, 결과가 옛날 포멧으로 변환됩니다.
@@ -61,6 +65,8 @@ Better TweetDeck이 이 확장프로그램과 장동하도록 만든 포크가 �
 BetterTweetDeck을 설치하셨다면 OldTweetdeck V3에 작동하도록 수정한 [새로운 업데이트](https://github.com/dimdenGD/BetterTweetDeck/releases/tag/v4.11.1)가 있습니다.
 
 ### 이 프로젝트를 계속 유지하기 위해 [기부](https://dimden.dev/donate/)를 고려해 주세요.
+#### 3.0.4
+버전 업데이트
 #### 3.0.3
 고정된 트윗을 보여줍니다(만약에 최신에 있을 경우)
 #### 3.0.2

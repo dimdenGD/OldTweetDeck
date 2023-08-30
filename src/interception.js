@@ -199,6 +199,7 @@ const proxyRoutes = [
                 if(max_id) {
                     let bn = BigInt(params.get('max_id'));
                     bn += BigInt(1);
+                    console.log(variables.userId, bn.toString(), max_id, cursors[`${variables.userId}-${bn}`], cursors);
                     if(cursors[`${variables.userId}-${bn}`]) {
                         variables.cursor = cursors[`${variables.userId}-${bn}`];
                     }
@@ -239,7 +240,6 @@ const proxyRoutes = [
                     let result = entry.content.itemContent.tweet_results.result;
                     let tweet = parseTweet(result);
                     if(tweet) {
-                        tweet.hasModeratedReplies = entry.content.itemContent.hasModeratedReplies;
                         tweets.push(tweet);
                     }
                 } else if(entry.entryId.startsWith("profile-conversation-")) {
@@ -249,19 +249,18 @@ const proxyRoutes = [
                         let result = item.item.itemContent.tweet_results.result;
                         if(item.entryId.includes("-tweet-")) {
                             let tweet = parseTweet(result);
-                            if(!tweet) continue;
-
-                            if(i !== items.length - 1) tweet.threadContinuation = true;
-                            if(i !== 0) tweet.noTop = true;
-
-                            tweet.hasModeratedReplies = item.item.itemContent.hasModeratedReplies;
-                            tweets.push(tweet);
+                            if(tweet && tweet.user.id_str === xhr.storage.user_id) {
+                                tweets.push(tweet);
+                            }
                         }
                     }
                 }
             }
 
             if(tweets.length === 0) return tweets;
+
+            // i didn't know they return tweets unsorted???
+            tweets.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
             let cursor = entries.find(e => e.entryId.startsWith("sq-cursor-bottom-") || e.entryId.startsWith("cursor-bottom-")).content.value;
             if(cursor) {

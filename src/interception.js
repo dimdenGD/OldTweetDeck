@@ -1,4 +1,7 @@
-const PUBLIC_TOKEN = 'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA';
+const PUBLIC_TOKENS = [
+    'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA',
+    'Bearer AAAAAAAAAAAAAAAAAAAAAF7aAAAAAAAASCiRjWvh7R5wxaKkFp7MM%2BhYBqM%3DbQ0JPmjU9F6ZoMhDfI4uTNAaQuTDm2uO9x3WFVr2xBZ2nhjdP0'
+];
 const NEW_API = 'https://twitter.com/i/api/graphql';
 const cursors = {};
 
@@ -173,20 +176,20 @@ function generateParams(features, variables, fieldToggles) {
     return params.toString();
 }
 
+let counter = 0;
 const OriginalXHR = XMLHttpRequest;
 const proxyRoutes = [
     {
         path: '/1.1/statuses/user_timeline.json',
         method: 'GET',
         beforeRequest: xhr => {
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKEN;
             try {
                 let url = new URL(xhr.modUrl);
                 let params = new URLSearchParams(url.search);
                 let user_id = params.get('user_id');
-                let variables = {"count":100,"includePromotedContent":false,"withQuickPromoteEligibilityTweetFields":false,"withVoice":true,"withV2Timeline":true};
+                let variables = {"count":20,"includePromotedContent":false,"withQuickPromoteEligibilityTweetFields":false,"withVoice":true,"withV2Timeline":true};
                 let features = {"rweb_lists_timeline_redesign_enabled":false,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"tweetypie_unmention_optimization_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":false,"tweet_awards_web_tipping_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_media_download_video_enabled":false,"responsive_web_enhance_cards_enabled":false};
-                let fieldToggles = {"withArticleRichContentState":false};
+
                 if(!user_id) {
                     variables.userId = getCurrentUserId();
                 } else {
@@ -201,10 +204,18 @@ const proxyRoutes = [
                     }
                 }
                 xhr.storage.user_id = variables.userId;
-                xhr.modUrl = `${NEW_API}/wxoVeDnl0mP7VLhe6mTOdg/UserTweetsAndReplies?${generateParams(features, variables, fieldToggles)}`;
+
+                xhr.modUrl = `${NEW_API}/wxoVeDnl0mP7VLhe6mTOdg/UserTweetsAndReplies?${generateParams(features, variables)}`;
             } catch(e) {
                 console.error(e);
             }
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = localStorage.abuseAPIkeys == '1' ? PUBLIC_TOKENS[(counter++) % 2] : PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
             try {
@@ -279,7 +290,6 @@ const proxyRoutes = [
         path: '/1.1/search/universal.json',
         method: 'GET',
         beforeRequest: xhr => {
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKEN;
             try {
                 let url = new URL(xhr.modUrl);
                 let params = new URLSearchParams(url.search);
@@ -295,6 +305,13 @@ const proxyRoutes = [
             } catch(e) {
                 console.error(e);
             }
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = localStorage.abuseAPIkeys == '1' ? PUBLIC_TOKENS[(counter++) % 2] : PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
             try {
@@ -352,7 +369,6 @@ const proxyRoutes = [
         path: '/1.1/users/search.json',
         method: 'GET',
         beforeRequest: xhr => {
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKEN;
             try {
                 let url = new URL(xhr.modUrl);
                 let params = new URLSearchParams(url.search);
@@ -368,6 +384,13 @@ const proxyRoutes = [
             } catch(e) {
                 console.error(e);
             }
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = localStorage.abuseAPIkeys == '1' ? PUBLIC_TOKENS[(counter++) % 2] : PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
             try {
@@ -441,6 +464,9 @@ XMLHttpRequest = function () {
             this.modReqHeaders[name] = value;
         },
         send(body = null) {
+            if(this.proxyRoute && this.proxyRoute.beforeSendHeaders) {
+                this.proxyRoute.beforeSendHeaders(this);
+            }
             for (const [name, value] of Object.entries(this.modReqHeaders)) {
                 this.setRequestHeader(name, value);
             }

@@ -72,6 +72,13 @@ async function showNotifications() {
     let currentVersion = chrome.runtime.getManifest().version;
    
     for(let notif of notifsToDisplay) {
+        if(!localStorage.OTDnotifsReadOnce && notif.ignoreOnInstall) {
+            let readNotifs = localStorage.getItem('readNotifications') ? JSON.parse(localStorage.getItem('readNotifications')) : [];
+            if(readNotifs.includes(notif.id)) continue;
+            readNotifs.push(notif.id);
+            localStorage.setItem('readNotifications', JSON.stringify(readNotifs));
+            continue;
+        }
         if(notif.maxVersion && !maxVersionCheck(currentVersion, notif.maxVersion)) continue;
         if(notif.minVersion && !minVersionCheck(currentVersion, notif.minVersion)) continue;
         if(document.querySelector('.otd-notification-modal')) continue;
@@ -80,10 +87,12 @@ async function showNotifications() {
         createModal(notifHTML, 'otd-notification-modal', () => {
             if(!notif.dismissable) return;
             let readNotifs = localStorage.getItem('readNotifications') ? JSON.parse(localStorage.getItem('readNotifications')) : [];
+            if(readNotifs.includes(notif.id)) return;
             readNotifs.push(notif.id);
             localStorage.setItem('readNotifications', JSON.stringify(readNotifs));
-        }, () => Date.now() - shown > 1000);
+        }, () => Date.now() - shown > 3000);
     }
+    localStorage.OTDnotifsReadOnce = '1';
 }
 
 let style = document.createElement('style');

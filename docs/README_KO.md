@@ -69,6 +69,7 @@ BetterTweetDeck을 설치하셨다면 OldTweetdeck V3에 작동하도록 수정�
 main 분기 병합
 <details>
 <summary>과거 업데이트 내역</summary>
+  
 #### 3.0.6
 로그 제거
 #### 3.0.5

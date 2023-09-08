@@ -1,7 +1,7 @@
 ﻿# OldTweetDeck
 Returns old TweetDeck, for free!
   
-If you're interested in getting 2015 Twitter back, you can also check out [OldTwitter](https://github.com/dimdenGD/OldTwitter) extension.  
+> If you're interested in getting 2015-2018 Twitter back, you can also check out [OldTwitter](https://github.com/dimdenGD/OldTwitter) extension.  
   
 ![Screenshot](https://lune.dimden.dev/9713d947d56.png)  
 

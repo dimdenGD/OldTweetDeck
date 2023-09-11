@@ -54,7 +54,3 @@ Ignore this warning.
    
 #### User or Search column aren't loading for me.
 You're getting rate limited. They'll comeback after some time. If you want to try to bypass this, press F12, go to Console tab and paste `localStorage.abuseAPIkeys = '1'` and hit enter. This will use multiple API keys and double the rate limit, but use on your own risk. To disable this feature, paste `delete localStorage.abuseAPIkeys` and hit enter.  
-  
-## ~~Transparent disclaimer~~
-Old info that was here is now outdated.  
-I've remade extension into manifest v2. Now all files are included in extension itself, no external server required!

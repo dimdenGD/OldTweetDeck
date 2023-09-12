@@ -21183,9 +21183,6 @@ html.dark .touch-device .scroll-v {
 html.dark .touch-device .antiscroll-inner {
     -webkit-overflow-scrolling: auto;
 }
-html.dark .needs-scroll-bottom-offset.scroll-styled-h {
-    bottom: 4px;
-}
 html.dark .l-table {
     display: table;
     width: 100%;

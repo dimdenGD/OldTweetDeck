@@ -98,8 +98,10 @@ chrome.webRequest.onBeforeRequest.addListener(
             // want to use details.originUrl but it's not available in Chrome
             let requestFrom = urls[details.tabId][details.frameId];
             if (
-                (path.startsWith("/responsive-web/client-web-legacy/") ||
-                    path.startsWith("/responsive-web/client-web/")) &&
+                (
+                    path.startsWith("/responsive-web/client-web-legacy/") ||
+                    path.startsWith("/responsive-web/client-web/")
+                ) &&
                 requestFrom === "https://twitter.com/i/tweetdeck"
             ) {
                 return {

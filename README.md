@@ -53,4 +53,4 @@ I've made a fork of BetterTD that works with this extension, you can find it [he
 Ignore this warning.  
    
 #### User or Search column aren't loading for me.
-You're getting rate limited. They'll comeback after some time. If you want to try to bypass this, press F12, go to Console tab and paste `localStorage.abuseAPIkeys = '1'` and hit enter. This will use multiple API keys and double the rate limit, but use on your own risk. To disable this feature, paste `delete localStorage.abuseAPIkeys` and hit enter.  
+You're getting rate limited. They'll comeback after some time.  

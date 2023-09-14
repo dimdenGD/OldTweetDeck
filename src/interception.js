@@ -496,7 +496,142 @@ const proxyRoutes = [
                 return {};
             }
             let tweet = parseTweet(data.data.create_tweet.tweet_results.result);
-            return JSON.stringify(tweet);
+            return tweet;
+        }
+    },
+    {
+        path: /\/1.1\/statuses\/retweet\/(\d+).json/,
+        method: 'POST',
+        beforeRequest: (xhr) => {
+            let originalUrl = new URL(xhr.originalUrl);
+            xhr.storage.tweet_id = originalUrl.pathname.match(/\/1.1\/statuses\/retweet\/(\d+).json/)[1];
+            xhr.storage.retweeter = getCurrentUserId();
+            xhr.modUrl = `https://twitter.com/i/api/graphql/ojPdsZsimiJrUGLR1sjUtA/CreateRetweet`;
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
+            if(xhr.modReqHeaders['x-act-as-user-id']) {
+                xhr.storage.retweeter = xhr.modReqHeaders['x-act-as-user-id'];
+            }
+        },
+        beforeSendBody: (xhr, body) => {
+            return JSON.stringify({
+                "variables": {
+                    "tweet_id": xhr.storage.tweet_id,
+                    "dark_request": false
+                }, 
+                "queryId": "ojPdsZsimiJrUGLR1sjUtA"
+            });
+        },
+        afterRequest: xhr => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return {};
+            }
+            if (data.errors && data.errors[0]) {
+                return {};
+            }
+            let res = data.data.create_retweet.retweet_results.result;
+            let tweet = res.legacy;
+            tweet.id_str = res.rest_id;
+            if(!tweet.user) {
+                tweet.user = {
+                    id_str: xhr.storage.retweeter
+                }
+            }
+            return tweet;
+        }
+    },
+    {
+        path: /\/1.1\/statuses\/unretweet\/(\d+).json/,
+        method: 'POST',
+        beforeRequest: (xhr) => {
+            let originalUrl = new URL(xhr.originalUrl);
+            xhr.storage.tweet_id = originalUrl.pathname.match(/\/1.1\/statuses\/unretweet\/(\d+).json/)[1];
+            xhr.storage.retweeter = getCurrentUserId();
+            xhr.modUrl = `https://twitter.com/i/api/graphql/iQtK4dl5hBmXewYZuEOKVw/DeleteRetweet`;
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
+            if(xhr.modReqHeaders['x-act-as-user-id']) {
+                xhr.storage.retweeter = xhr.modReqHeaders['x-act-as-user-id'];
+            }
+        },
+        beforeSendBody: (xhr, body) => {
+            return JSON.stringify({"variables":{"source_tweet_id":xhr.storage.tweet_id,"dark_request":false},"queryId":"iQtK4dl5hBmXewYZuEOKVw"})
+        },
+        afterRequest: xhr => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return {};
+            }
+            if (data.errors && data.errors[0]) {
+                return {};
+            }
+            let res = data.data.unretweet.source_tweet_results.result;
+            let tweet = res.legacy;
+            tweet.id_str = res.rest_id;
+            if(!tweet.user) {
+                tweet.user = {
+                    id_str: xhr.storage.retweeter
+                }
+            }
+            return tweet;
+        }
+    },
+    {
+        path: /\/1.1\/statuses\/show\/(\d+).json/,
+        method: 'GET',
+        beforeRequest: xhr => {
+            let originalUrl = new URL(xhr.originalUrl);
+            xhr.storage.tweet_id = originalUrl.pathname.match(/\/1.1\/statuses\/show\/(\d+).json/)[1];
+            xhr.modUrl = `https://twitter.com/i/api/graphql/KwGBbJZc6DBx8EKmyQSP7g/TweetDetail?variables=${encodeURIComponent(JSON.stringify({
+                "focalTweetId":xhr.storage.tweet_id,
+                "with_rux_injections":false,
+                "includePromotedContent":false,
+                "withCommunity":true,
+                "withQuickPromoteEligibilityTweetFields":true,
+                "withBirdwatchNotes":true,
+                "withVoice":true,
+                "withV2Timeline":true
+            }))}&features=${encodeURIComponent(JSON.stringify({"rweb_lists_timeline_redesign_enabled":false,"blue_business_profile_image_shape_enabled":true,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":false,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"tweetypie_unmention_optimization_enabled":true,"vibe_api_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":false,"interactive_text_enabled":true,"responsive_web_text_conversations_enabled":false,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":false,"responsive_web_enhance_cards_enabled":false}))}`;
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
+        },
+        afterRequest: xhr => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return {};
+            }
+            if (data.errors && data.errors[0]) {
+                return {};
+            }
+            let ic = data.data.threaded_conversation_with_injections_v2.instructions.find(i => i.type === "TimelineAddEntries").entries.find(e => e.entryId === `tweet-${xhr.storage.tweet_id}`).content.itemContent;
+            let res = ic.tweet_results.result;
+            let tweet = parseTweet(res);
+            return tweet;
         }
     },
 ];
@@ -513,7 +648,14 @@ XMLHttpRequest = function () {
             
             try {
                 let parsedUrl = new URL(url);
-                this.proxyRoute = proxyRoutes.find(route => route.path === parsedUrl.pathname && route.method.toUpperCase() === method.toUpperCase());
+                this.proxyRoute = proxyRoutes.find(route => {
+                    if(route.method.toUpperCase() !== method.toUpperCase()) return false;
+                    if(typeof route.path === "string") {
+                        return route.path === parsedUrl.pathname;
+                    } else if(route.path instanceof RegExp) {
+                        return route.path.test(parsedUrl.pathname);
+                    }
+                });
             } catch(e) {
                 console.error(e);
             }

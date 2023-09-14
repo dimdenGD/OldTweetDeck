@@ -22341,6 +22341,7 @@ setTimeout(function () {
 		}
 		this.setRetweeted(!1), (0, h.default)(document).trigger("uiUndoRetweet", {
 			tweetId: this.getMainTweet().id,
+			retweetId: this.id,
 			from: this.account.getKey()
 		})
 	}, TD.services.TwitterStatus.prototype.quoteTo = function(e) {
@@ -30229,6 +30230,10 @@ setTimeout(function () {
 					method: "POST",
 					url: "statuses/destroy/:id.json"
 				},
+				unretweet: { // this one's fake
+					method: "POST",
+					url: "statuses/unretweet/:id.json"
+				},
 				message: {
 					method: "POST",
 					url: "direct_messages/new.json"
@@ -30348,10 +30353,10 @@ setTimeout(function () {
 					}
 				});
 			r.addCallback(function(e) {
-				return e.response.current_user_retweet ? this.destroyTweet({
+				return this.destroyRetweet({
 					accountKey: n,
-					tweetId: e.response.current_user_retweet.id_str
-				}) : TD.core.defer.succeed()
+					tweetId: t.tweetId
+				})
 			}.bind(this)), r.addCallbacks(function() {
 				(0, s.default)(document).trigger("dataUndoRetweetSuccess", {
 					tweetId: i,
@@ -30367,6 +30372,28 @@ setTimeout(function () {
 			var t, i = new TD.core.defer.Deferred;
 			try {
 				t = this.attr.resources.destroy, (0, r.makeTwitterApiCall)({
+					request: {
+						accountKey: e.accountKey
+					},
+					resource: t.url.replace(":id", e.tweetId),
+					method: t.method,
+					success: function(e) {
+						i.callback(e)
+					},
+					error: function(e) {
+						i.errback(e)
+					}
+				})
+			} catch (t) {
+				i.errback({
+					request: e
+				})
+			}
+			return i
+		}, this.destroyRetweet = function(e) {
+			var t, i = new TD.core.defer.Deferred;
+			try {
+				t = this.attr.resources.unretweet, (0, r.makeTwitterApiCall)({
 					request: {
 						accountKey: e.accountKey
 					},
@@ -43159,6 +43186,7 @@ setTimeout(function () {
 					case "undo-retweet":
 						(0, r.default)(document).trigger("uiUndoRetweet", {
 							tweetId: o.getMainTweet().id,
+							retweetId: o.id,
 							from: o.account.getKey()
 						});
 						break;

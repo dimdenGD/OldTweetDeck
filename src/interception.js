@@ -634,6 +634,25 @@ const proxyRoutes = [
             return tweet;
         }
     },
+    {
+        path: /\/1.1\/statuses\/destroy\/(\d+).json/,
+        method: 'POST',
+        beforeRequest: (xhr) => {
+            let originalUrl = new URL(xhr.originalUrl);
+            xhr.storage.tweet_id = originalUrl.pathname.match(/\/1.1\/statuses\/destroy\/(\d+).json/)[1];
+            xhr.modUrl = `https://twitter.com/i/api/graphql/VaenaVgh5q5ih7kvyVjgtg/DeleteTweet`;
+        },
+        beforeSendHeaders: xhr => {
+            xhr.modReqHeaders['Content-Type'] = 'application/json';
+            xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
+            xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders['X-Twitter-Client-Version'];
+        },
+        beforeSendBody: (xhr, body) => {
+            return JSON.stringify({"variables":{"tweet_id":xhr.storage.tweet_id,"dark_request":false},"queryId":"VaenaVgh5q5ih7kvyVjgtg"});
+        }
+    },
 ];
 
 // wrap the XMLHttpRequest

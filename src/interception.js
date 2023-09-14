@@ -218,6 +218,7 @@ const proxyRoutes = [
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
+            let data;
             try {
                 data = JSON.parse(xhr.responseText);
             } catch(e) {
@@ -312,6 +313,7 @@ const proxyRoutes = [
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
+            let data;
             try {
                 data = JSON.parse(xhr.responseText);
             } catch(e) {
@@ -391,6 +393,7 @@ const proxyRoutes = [
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
+            let data;
             try {
                 data = JSON.parse(xhr.responseText);
             } catch(e) {

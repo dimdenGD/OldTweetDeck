@@ -479,6 +479,9 @@ const proxyRoutes = [
             if(params.media_ids) {
                 variables.media.media_entities = params.media_ids.split(',').map(id => ({media_id: id, tagged_users: []}));
             }
+            if(params.attachment_url) {
+                variables.attachment_url = params.attachment_url;
+            }
 
             return JSON.stringify({
                 variables,

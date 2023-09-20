@@ -8,6 +8,37 @@ setTimeout(function () {
 	document.getElementsByTagName("head")[0].appendChild(icon);
 }, 3000);
 
+function expandTweet(e, tweet_id) {
+	e.preventDefault();
+	e.target.innerText = "Loading...";
+	e.target.onclick = null;
+
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", `https://api.twitter.com/1.1/statuses/show/${tweet_id}.json`, true);
+	xhr.setRequestHeader("X-Twitter-Active-User", "yes");
+	xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
+	xhr.setRequestHeader("X-Twitter-Client-Language", "en");
+	xhr.setRequestHeader("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
+	xhr.setRequestHeader("X-Csrf-Token", (function () {
+        let csrf = document.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
+        return csrf ? csrf[1] : "";
+    })());
+	xhr.withCredentials = true;
+
+	xhr.onreadystatechange = function () {
+		if (xhr.readyState === 4 && xhr.status === 200) {
+			var data = JSON.parse(xhr.responseText);
+			e.target.parentElement.innerText = data.full_text;
+			e.target.remove();
+		} else {
+			e.target.innerText = "Error";
+			e.target.style.color = "red";
+		}
+	};
+	
+	xhr.send();
+}
+
 ! function(e) {
 	function t(t) {
 		for (var n, a, o = t[0], l = t[1], c = t[2], d = 0, h = []; d < o.length; d++) a = o[d], s[a] && h.push(s[a][0]), s[a] = 0;
@@ -22105,7 +22136,13 @@ setTimeout(function () {
 			this.prettyRetweetCount = !!t && (0, T.default)(t, s), this.prettyLikeCount = !!i && (0, T.default)(i, s), this.prettyReplyCount = !!n && (0, T.default)(n, s), this.withPrettyEngagements = !0
 		} else this.withPrettyEngagements = !1
 	}, TD.services.TwitterStatus.prototype._generateHTMLText = function() {
-		this.htmlText = TD.util.transform(this.text, this.entities)
+		this.htmlText = TD.util.transform(this.text, this.entities);
+		let cleanText = this.text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
+		if(cleanText.endsWith("...") || cleanText.endsWith("…")) {
+			if(this.text.length >= 279 && this.text.length < 400) {
+				this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${this.id}" onclick="expandTweet(event, '${this.id}')">Expand tweet</a>`;
+			};
+		}
 	}, TD.services.TwitterStatus.prototype.getMainUser = function() {
 		return this.retweetedStatus ? this.retweetedStatus.user : this.user
 	}, TD.services.TwitterStatus.prototype.getCreator = function() {

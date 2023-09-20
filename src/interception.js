@@ -80,6 +80,10 @@ function parseTweet(res) {
             if(res.card && res.card.legacy && res.card.legacy.binding_values) {
                 tweet.retweeted_status.card = res.card.legacy;
             }
+            if(tweet.retweeted_status.full_text) {
+                // weird bug with "…" being removed for some reason
+                tweet.retweeted_status.full_text = tweet.retweeted_status.full_text.replace(/…/g, "...");
+            }
         } else {
             console.warn("No retweeted status", result);
         }
@@ -125,6 +129,10 @@ function parseTweet(res) {
                 if(result.views) {
                     tweet.quoted_status.ext.views = {r: {ok: {count: +result.views.count}}};
                 }
+                // weird bug with "…" being removed for some reason
+                if(tweet.quoted_status.full_text) {
+                    tweet.quoted_status.full_text = tweet.quoted_status.full_text.replace(/…/g, "...");
+                }
             }
         } else {
             console.warn("No quoted status", result);
@@ -148,6 +156,10 @@ function parseTweet(res) {
     }
     if(res.birdwatch_pivot) { // community notes
         tweet.birdwatch = res.birdwatch_pivot;
+    }
+    // weird bug with "…" being removed for some reason
+    if(tweet.full_text) {
+        tweet.full_text = tweet.full_text.replace(/…/g, "...");
     }
 
     if(tweet.favorited && tweet.favorite_count === 0) {
@@ -179,6 +191,7 @@ function generateParams(features, variables, fieldToggles) {
 let counter = 0;
 const OriginalXHR = XMLHttpRequest;
 const proxyRoutes = [
+    // User timeline
     {
         path: '/1.1/statuses/user_timeline.json',
         method: 'GET',
@@ -285,6 +298,7 @@ const proxyRoutes = [
             return tweets;
         }
     },
+    // Search
     {
         path: '/1.1/search/universal.json',
         method: 'GET',
@@ -365,6 +379,7 @@ const proxyRoutes = [
             };
         }
     },
+    // User search
     {
         path: '/1.1/users/search.json',
         method: 'GET',
@@ -437,6 +452,7 @@ const proxyRoutes = [
             return res;
         }
     },
+    // Tweet creation
     {
         path: '/1.1/statuses/update.json',
         method: 'POST',
@@ -505,6 +521,7 @@ const proxyRoutes = [
             return tweet;
         }
     },
+    // Retweeting
     {
         path: /\/1.1\/statuses\/retweet\/(\d+).json/,
         method: 'POST',
@@ -555,6 +572,7 @@ const proxyRoutes = [
             return tweet;
         }
     },
+    // Unretweeting
     {
         path: /\/1.1\/statuses\/unretweet\/(\d+).json/,
         method: 'POST',
@@ -599,6 +617,7 @@ const proxyRoutes = [
             return tweet;
         }
     },
+    // Getting tweet details
     {
         path: /\/1.1\/statuses\/show\/(\d+).json/,
         method: 'GET',
@@ -640,6 +659,7 @@ const proxyRoutes = [
             return tweet;
         }
     },
+    // Tweet deletion
     {
         path: /\/1.1\/statuses\/destroy\/(\d+).json/,
         method: 'POST',
@@ -659,6 +679,7 @@ const proxyRoutes = [
             return JSON.stringify({"variables":{"tweet_id":xhr.storage.tweet_id,"dark_request":false},"queryId":"VaenaVgh5q5ih7kvyVjgtg"});
         }
     },
+    // Tweet replies
     {
         path: /\/2\/timeline\/conversation\/(\d+).json/,
         method: 'GET',
@@ -691,59 +712,12 @@ const proxyRoutes = [
             for(let id in data.globalObjects.tweets) {
                 let tweet = data.globalObjects.tweets[id];
 
-                if(!tweet.contributors) tweet.contributors = null;
-                tweet.conversation_id = parseInt(tweet.conversation_id_str);
-                if(!tweet.coordinates) tweet.coordinates = null;
-                if(!tweet.conversation_muted) tweet.conversation_muted = false;
-                if(!tweet.favorited) tweet.favorited = false;
-                if(!tweet.geo) tweet.geo = null;
-                if(!tweet.id) tweet.id = parseInt(id);
-                if(!tweet.in_reply_to_screen_name) tweet.in_reply_to_screen_name = null;
-                if(!tweet.in_reply_to_status_id) tweet.in_reply_to_status_id = null;
-                if(!tweet.in_reply_to_status_id_str) tweet.in_reply_to_status_id_str = null;
-                if(!tweet.in_reply_to_user_id) tweet.in_reply_to_user_id = null;
-                if(!tweet.in_reply_to_user_id_str) tweet.in_reply_to_user_id_str = null;
-                if(!tweet.is_quote_status) tweet.is_quote_status = false;
-                if(!tweet.place) tweet.place = null;
-                if(!tweet.supplemental_language) tweet.supplemental_language = null;
-                if(!tweet.retweeted) tweet.retweeted = false;
-                if(!tweet.truncated) tweet.truncated = false;
-                if(!tweet.user_id) tweet.user_id = parseInt(tweet.user_id_str);
+                if(tweet.full_text) {
+                    // weird bug with "…" being removed for some reason
+                    tweet.full_text = tweet.full_text.replace(/…/g, "...");
+                }
             }
-            for(let id in data.globalObjects.users) {
-                let user = data.globalObjects.users[id];
 
-                if(!user.default_profile) user.default_profile = false;
-                if(!user.default_profile_image) user.default_profile_image = false;
-                if(!user.entities.description) user.entities.description = {urls: []};
-                if(!user.entities.description.urls) user.entities.description.urls = [];
-                if(!user.entities.url) user.entities.url = {urls: []};
-                if(!user.entities.url.urls) user.entities.url.urls = [];
-                if(!user.follow_request_sent) user.follow_request_sent = false;
-                if(!user.following) user.following = false;
-                if(!user.has_extended_profile) user.has_extended_profile = false;
-                if(!user.is_translation_enabled) user.is_translation_enabled = false;
-                if(!user.is_translator) user.is_translator = false;
-                if(!user.followed_by) user.followed_by = false;
-                if(!user.id) user.id = parseInt(id);
-                if(!user.lang) user.lang = null;
-                if(!user.notifications) user.notifications = false;
-                if(!user.profile_background_color) user.profile_background_color = "C0DEED";
-                if(!user.profile_background_image_url) user.profile_background_image_url = "http://abs.twimg.com/images/themes/theme1/bg.png";
-                if(!user.profile_background_image_url_https) user.profile_background_image_url_https = "https://abs.twimg.com/images/themes/theme1/bg.png";
-                if(!user.profile_background_tile) user.profile_background_tile = false;
-                if(!user.profile_link_color) user.profile_link_color = "1DA1F2";
-                if(!user.profile_image_url && user.profile_image_url_https) user.profile_image_url = user.profile_image_url_https.replace("https://", "http://");
-                if(!user.profile_sidebar_border_color) user.profile_sidebar_border_color = "000000";
-                if(!user.profile_sidebar_fill_color) user.profile_sidebar_fill_color = "DDEEF6";
-                if(!user.profile_text_color) user.profile_text_color = "333333";
-                if(!user.profile_use_background_image) user.profile_use_background_image = true;
-                if(!user.protected) user.protected = false;
-                if(!user.require_some_consent) user.require_some_consent = false;
-                if(!user.time_zone) user.time_zone = null;
-                if(!user.utc_offset) user.utc_offset = null;
-                if(!user.verified) user.verified = false;
-            }
             let entries = data.timeline.instructions.find(i => i.addEntries);
             if(entries) {
                 entries.addEntries.entries = entries.addEntries.entries.filter(e => !e.entryId.startsWith('tweetComposer-'));
@@ -769,6 +743,60 @@ const proxyRoutes = [
                         }
                         entry.content = newContent;
                     }
+                }
+            }
+
+            return data;
+        }
+    },
+    // Home timeline
+    {
+        path: "/1.1/statuses/home_timeline.json",
+        method: 'GET',
+        afterRequest: xhr => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return data;
+            }
+            if (data.errors && data.errors[0]) {
+                return data;
+            }
+            for(let i in data) {
+                let tweet = data[i];
+
+                if(tweet.full_text) {
+                    // weird bug with "…" being removed for some reason
+                    tweet.full_text = tweet.full_text.replace(/…/g, "...");
+                }
+            }
+
+            return data;
+        }
+    },
+    // List timeline
+    {
+        path: "/1.1/lists/statuses.json",
+        method: 'GET',
+        afterRequest: xhr => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch(e) {
+                console.error(e);
+                return data;
+            }
+            if (data.errors && data.errors[0]) {
+                return data;
+            }
+            for(let i in data) {
+                let tweet = data[i];
+
+                if(tweet.full_text) {
+                    // weird bug with "…" being removed for some reason
+                    tweet.full_text = tweet.full_text.replace(/…/g, "...");
                 }
             }
 

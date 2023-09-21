@@ -1,6 +1,6 @@
 const PUBLIC_TOKENS = [
-    'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA', // twitter for web
-    'Bearer AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF' // new tweetdeck (x pro)
+    'Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA', // w
+    'Bearer AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF' // x
 ];
 const NEW_API = 'https://twitter.com/i/api/graphql';
 const cursors = {};
@@ -227,7 +227,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
@@ -323,7 +323,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
@@ -404,7 +404,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
@@ -463,7 +463,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         beforeSendBody: (xhr, body) => {
@@ -535,7 +535,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
             if(xhr.modReqHeaders['x-act-as-user-id']) {
                 xhr.storage.retweeter = xhr.modReqHeaders['x-act-as-user-id'];
@@ -586,7 +586,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
             if(xhr.modReqHeaders['x-act-as-user-id']) {
                 xhr.storage.retweeter = xhr.modReqHeaders['x-act-as-user-id'];
@@ -639,7 +639,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         afterRequest: xhr => {
@@ -672,7 +672,7 @@ const proxyRoutes = [
             xhr.modReqHeaders['Content-Type'] = 'application/json';
             xhr.modReqHeaders['X-Twitter-Active-User'] = 'yes';
             xhr.modReqHeaders['X-Twitter-Client-Language'] = 'en';
-            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders['Authorization'] = PUBLIC_TOKENS[localStorage.OTDenableRateLimitBypass === '1' ? 1 : 0];
             delete xhr.modReqHeaders['X-Twitter-Client-Version'];
         },
         beforeSendBody: (xhr, body) => {

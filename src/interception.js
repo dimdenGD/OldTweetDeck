@@ -857,6 +857,16 @@ const proxyRoutes = [
             return data;
         }
     },
+    // TweetDeck state
+    {
+        path: "/1.1/tweetdeck/clients/blackbird/all",
+        method: 'GET',
+        afterRequest: xhr => {
+            // Save state to localstorage in case twitter shuts this api down so I can restore it for users later
+            localStorage.setItem('OTD_tweetdeck_state', xhr.responseText);
+            return xhr.responseText;
+        }
+    },
 ];
 
 // wrap the XMLHttpRequest

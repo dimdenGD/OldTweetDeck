@@ -16950,7 +16950,7 @@ function expandTweet(e, tweet_id) {
 				showStartupNotifications: TD.settings.getShowStartupNotifications(),
 				displaySensitiveMedia: TD.settings.getDisplaySensitiveMedia(),
 				autoplayGifs: TD.settings.getAutoPlayGifs(),
-				enableRateLimitBypass: localStorage.OTDenableRateLimitBypass === '1',
+				enableRateLimitBypass: localStorage.OTDuseDifferentToken === '1',
 				theme: TD.settings.getTheme(),
 				columnWidth: TD.settings.getColumnWidth(),
 				fontSize: TD.settings.getFontSize()
@@ -16980,7 +16980,7 @@ function expandTweet(e, tweet_id) {
 					});
 					break;
 				case this.attr.enableRateLimitBypassInputId:
-					localStorage.OTDenableRateLimitBypass = i ? '1' : '0', this.mergeState({
+					localStorage.OTDuseDifferentToken = i ? '1' : '0', this.mergeState({
 						enableRateLimitBypass: i
 					});
 					break;
@@ -17016,7 +17016,7 @@ function expandTweet(e, tweet_id) {
 			this.$showNotifications.removeClass(i ? "icon-toggle-off" : "icon-toggle-on").addClass(i ? "icon-toggle-on" : "icon-toggle-off"), 
 			this.$displaySensitiveContent.removeClass(n ? "icon-toggle-off" : "icon-toggle-on").addClass(n ? "icon-toggle-on" : "icon-toggle-off"), 
 			this.$autoplayGifs.removeClass(s ? "icon-toggle-off" : "icon-toggle-on").addClass(s ? "icon-toggle-on" : "icon-toggle-off"), 
-			this.$enableRateLimitBypass.removeClass(localStorage.OTDenableRateLimitBypass === '1' ? "icon-toggle-off" : "icon-toggle-on").addClass(localStorage.OTDenableRateLimitBypass === '1' ? "icon-toggle-on" : "icon-toggle-off"),
+			this.$enableRateLimitBypass.removeClass(localStorage.OTDuseDifferentToken === '1' ? "icon-toggle-off" : "icon-toggle-on").addClass(localStorage.OTDuseDifferentToken === '1' ? "icon-toggle-on" : "icon-toggle-off"),
 			this.$theme.find("[value=" + r + "]").prop("checked", !0), 
 			this.$columnWidth.find("[value=" + a + "]").prop("checked", !0), 
 			this.$fontSize.find("[value=" + o + "]").prop("checked", !0)

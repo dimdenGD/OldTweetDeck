@@ -864,9 +864,8 @@ const proxyRoutes = [
         afterRequest: xhr => {
             // Save state to localstorage in case twitter shuts this api down so I can restore it for users later
             if(xhr.status === 200 && xhr.responseText.length > 100) {
-                let data;
                 try {
-                    data = JSON.parse(xhr.responseText);
+                    JSON.parse(xhr.responseText);
                     localStorage.setItem('OTD_tweetdeck_state', xhr.responseText);
                 } catch(e) {
                     console.error(e);

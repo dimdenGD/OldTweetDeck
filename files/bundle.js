@@ -28,7 +28,7 @@ function expandTweet(e, tweet_id) {
 	xhr.onreadystatechange = function () {
 		if (xhr.readyState === 4 && xhr.status === 200) {
 			var data = JSON.parse(xhr.responseText);
-			e.target.parentElement.innerText = data.full_text;
+			e.target.parentElement.innerText = data.full_text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
 			e.target.remove();
 		} else {
 			e.target.innerText = "Error";
@@ -22140,7 +22140,8 @@ function expandTweet(e, tweet_id) {
 		let cleanText = this.text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
 		if(cleanText.endsWith("...") || cleanText.endsWith("…")) {
 			if(this.text.length >= 279 && this.text.length < 400) {
-				this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${this.id}" onclick="expandTweet(event, '${this.id}')">Expand tweet</a>`;
+				let id = this.retweetedStatus ? this.retweetedStatus.id : this.id;
+				this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')">Expand tweet</a>`;
 			};
 		}
 	}, TD.services.TwitterStatus.prototype.getMainUser = function() {

@@ -28,7 +28,7 @@ function expandTweet(e, tweet_id) {
 	xhr.onreadystatechange = function () {
 		if (xhr.readyState === 4 && xhr.status === 200) {
 			var data = JSON.parse(xhr.responseText);
-			e.target.parentElement.innerText = data.full_text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
+			e.target.parentElement.innerHTML = TD.util.transform(data.full_text, data.entities);
 			e.target.remove();
 		} else {
 			e.target.innerText = "Error";
@@ -22199,8 +22199,8 @@ document.body.addEventListener("click", function (e) {
 	}, TD.services.TwitterStatus.prototype._generateHTMLText = function() {
 		this.htmlText = TD.util.transform(this.text, this.entities);
 		let cleanText = this.text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
-		if(cleanText.endsWith("...") || cleanText.endsWith("…")) {
-			if(this.text.length >= 278 && this.text.length < 400) {
+		if(cleanText.endsWith("…")) {
+			if(this.text.length >= 275 && this.text.length < 400) {
 				let id = this.retweetedStatus ? this.retweetedStatus.id : this.id;
 				this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')">Expand tweet</a>`;
 			};

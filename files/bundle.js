@@ -20,7 +20,7 @@ function expandTweet(e, tweet_id) {
 	xhr.setRequestHeader("X-Twitter-Client-Language", "en");
 	xhr.setRequestHeader("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
 	xhr.setRequestHeader("X-Csrf-Token", (function () {
-        let csrf = document.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
+        var csrf = document.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
         return csrf ? csrf[1] : "";
     })());
 	xhr.withCredentials = true;
@@ -38,6 +38,40 @@ function expandTweet(e, tweet_id) {
 	
 	xhr.send();
 }
+document.body.addEventListener("click", function (e) {
+	if(e.target.classList.contains("tweet-bookmark-menu-option")) {
+		var tweetId = e.target.dataset.tweetId;
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", `https://twitter.com/i/api/graphql/aoDbu3RHznuiSkQ9aNM67Q/CreateBookmark`, true);
+		xhr.setRequestHeader("X-Twitter-Active-User", "yes");
+		xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
+		xhr.setRequestHeader("X-Twitter-Client-Language", "en");
+		xhr.setRequestHeader("Content-Type", "application/json");
+		xhr.setRequestHeader("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
+		xhr.setRequestHeader("X-Csrf-Token", (function () {
+			var csrf = document.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
+			return csrf ? csrf[1] : "";
+		})());
+		xhr.withCredentials = true;
+
+		xhr.onreadystatechange = function () {
+			if(xhr.readyState === 4) {
+				try {
+					let data = JSON.parse(xhr.responseText);
+					if(data.errors && data.errors.length > 0) {
+						toasts.showErrorNotification({message: "Error: " + data.errors[0].message.replace('favorited', 'bookmarked') }); // why is twitter saying 'favorited' for bookmark errors?
+					} else {
+						toasts.showNotification({message: "Success: Bookmarked tweet" });
+					}
+				} catch (e) {
+					toasts.showErrorNotification({message: "Error: " + xhr.responseText });
+				}
+			}
+		};
+
+		xhr.send(JSON.stringify({"variables":{"tweet_id":tweetId},"queryId":"aoDbu3RHznuiSkQ9aNM67Q"}));
+	}
+});
 
 ! function(e) {
 	function t(t) {
@@ -1329,7 +1363,8 @@ function expandTweet(e, tweet_id) {
 		r.default.update(e.notification, {
 			bodyText: e.message
 		}), e.remove && t.removeNotification(e)
-	}
+	},
+	window.toasts = t;
 }, , function(e, t, i) {
 	"use strict";
 	var n, s = h(i(9)),
@@ -11147,7 +11182,7 @@ function expandTweet(e, tweet_id) {
 	i.r(t), t.default = '<div class="js-accordion-toggle-view accordion-header is-actionable link-clean block cf txt-size--14"> <div class="facet-title padding-l--36"> <i class="icon {{iconClass}} facet-type-icon"></i> <span class="txt-size--13">{{title}}</span> </div> <i class="icon icon-arrow-d pull-right txt-size--10"></i> <i class="icon icon-arrow-u pull-right txt-size--10"></i> <div class="{{jsClass}} facet-subtitle padding-t--3 padding-r--12 padding-l--36 nbfc"> {{summaryText}} </div> </div>'
 }, function(e, t, i) {
 	"use strict";
-	i.r(t), t.default = '<ul> {{#chirp}} {{#user}}{{^isProtected}} <li class="is-selectable"><a href="#" data-action="embed">{{_i}}Embed this Tweet{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="reference-to">{{_i}}Copy link to this Tweet{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="message-to">{{_i}}Share via Direct Message{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="email">{{_i}}Share via Email{{/i}}</a></li> <li class="drp-h-divider"></li> {{/isProtected}}{{/user}} {{/chirp}} {{#user}} <li class="is-selectable"><a href="#" data-action="mention" class="txt-ellipsis">{{_i}}Tweet to @{{screenName}}{{/i}}</a></li> {{> menus/follow_menuitem }} {{#showFavorite}} <li class="is-selectable"> <a href="#" data-action="favoriteOrUnfavorite"> {{_i}}Like from accounts…{{/i}} </a> </li> {{/showFavorite}} <li class="is-selectable"><a href="#" data-action="message">{{_i}}Send a Direct Message{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="lists">{{_i}}Add or remove from Lists…{{/i}}</a></li> {{#chirp}}{{#user}}{{^isProtected}} <li class="feature-customtimelines is-selectable"><a href="#" data-action="customtimelines">{{_i}}Add to Collection…{{/i}}</a></li> {{/isProtected}}{{/user}}{{/chirp}} {{#chirp}}<li class="is-selectable"><a href="#" data-action="search-for-quoted">{{_i}}See who quoted this Tweet{{/i}}</a></li>{{/chirp}} {{/user}} {{#user}} {{^isMe}} <li class="drp-h-divider"></li> {{#chirp}} {{#hasMedia}} <li class="is-selectable"> <a class="js-flag-media-link {{#isFlagged}}is-hidden{{/isFlagged}}" href="#" data-action="flag-media">{{_i}}Flag media{{/i}}</a> <a class="js-flag-more-info-link {{^isFlagged}}is-hidden{{/isFlagged}}" href="https://support.twitter.com/articles/20069937" data-action target="_blank" rel="url">{{_i}}Flagged (learn more){{/i}}</a> </li> {{/hasMedia}} {{/chirp}} {{^isMuted}} <li class="is-selectable"><a href="#" data-action="mute" class="txt-ellipsis">{{_i}}Mute @{{screenName}}{{/i}}</a></li> {{/isMuted}} {{#isMuted}} <li class="is-selectable"><a href="#" data-action="unmute" class="txt-ellipsis">{{_i}}Unmute @{{screenName}}{{/i}}</a></li> {{/isMuted}} {{#chirp}} {{#isTweetDetailAction}} {{^isMutedConversation}} <li class="is-selectable"><a href="#" data-action="muteConversation" class="txt-ellipsis">{{_i}}Mute this conversation{{/i}}</a></li> {{/isMutedConversation}} {{#isMutedConversation}} <li class="is-selectable"><a href="#" data-action="unmuteConversation" class="txt-ellipsis">{{_i}}Unmute this conversation{{/i}}</a></li> {{/isMutedConversation}} {{/isTweetDetailAction}} {{/chirp}} <li class="is-selectable"><a href="#" data-action="block" class="txt-ellipsis">{{_i}}Block @{{screenName}}{{/i}}</a></li> {{#chirp}} <li class="is-selectable"><a href="#" data-action="report-tweet" class="txt-ellipsis">{{_i}}Report Tweet{{/i}}</a></li> {{/chirp}} {{^chirp}} <li class="is-selectable"><a href="#" class="txt-ellipsis" data-action="report-spam">{{_i}}Report @{{screenName}}{{/i}}</a></li> {{/chirp}} {{/isMe}} {{/user}} {{#chirp}} {{#isTranslatable}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="translate">{{_i}}Translate this Tweet{{/i}}</a></li> {{/isTranslatable}} {{#isRetweeted}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="undo-retweet">{{_i}}Undo Retweet{{/i}}</a></li> {{/isRetweeted}} {{#isOwnChirp}} {{^isRetweeted}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="destroy">{{_i}}Delete{{/i}}</a></li> {{/isRetweeted}} {{/isOwnChirp}} {{/chirp}} </ul>'
+	i.r(t), t.default = '<ul> {{#chirp}} {{#user}}{{^isProtected}} <li class="is-selectable"><a href="#" data-action="embed">{{_i}}Embed this Tweet{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="reference-to">{{_i}}Copy link to this Tweet{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="message-to">{{_i}}Share via Direct Message{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="email">{{_i}}Share via Email{{/i}}</a></li> <li class="drp-h-divider"></li> {{/isProtected}}{{/user}} {{/chirp}} {{#user}} <li class="is-selectable"><a href="#" data-action="mention" class="txt-ellipsis">{{_i}}Tweet to @{{screenName}}{{/i}}</a></li> {{> menus/follow_menuitem }} {{#showFavorite}} <li class="is-selectable"> <a href="#" data-action="favoriteOrUnfavorite"> {{_i}}Like from accounts…{{/i}} </a> </li> {{/showFavorite}} <li class="is-selectable"><a href="#" data-action="message">{{_i}}Send a Direct Message{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="lists">{{_i}}Add or remove from Lists…{{/i}}</a></li> {{#chirp}}{{#user}}{{^isProtected}} <li class="feature-customtimelines is-selectable"><a href="#" data-action="customtimelines">{{_i}}Add to Collection…{{/i}}</a></li> {{/isProtected}}{{/user}}{{/chirp}} {{#chirp}}{{#user}}{{^isProtected}} <li class="feature-bookmark is-selectable"><a href="#" data-action="bookmark" data-tweet-id="{{chirp.id}}" class="tweet-bookmark-menu-option">{{_i}}Bookmark tweet{{/i}}</a></li> {{/isProtected}}{{/user}}{{/chirp}} {{#chirp}}<li class="is-selectable"><a href="#" data-action="search-for-quoted">{{_i}}See who quoted this Tweet{{/i}}</a></li>{{/chirp}} {{/user}} {{#user}} {{^isMe}} <li class="drp-h-divider"></li> {{#chirp}} {{#hasMedia}} <li class="is-selectable"> <a class="js-flag-media-link {{#isFlagged}}is-hidden{{/isFlagged}}" href="#" data-action="flag-media">{{_i}}Flag media{{/i}}</a> <a class="js-flag-more-info-link {{^isFlagged}}is-hidden{{/isFlagged}}" href="https://support.twitter.com/articles/20069937" data-action target="_blank" rel="url">{{_i}}Flagged (learn more){{/i}}</a> </li> {{/hasMedia}} {{/chirp}} {{^isMuted}} <li class="is-selectable"><a href="#" data-action="mute" class="txt-ellipsis">{{_i}}Mute @{{screenName}}{{/i}}</a></li> {{/isMuted}} {{#isMuted}} <li class="is-selectable"><a href="#" data-action="unmute" class="txt-ellipsis">{{_i}}Unmute @{{screenName}}{{/i}}</a></li> {{/isMuted}} {{#chirp}} {{#isTweetDetailAction}} {{^isMutedConversation}} <li class="is-selectable"><a href="#" data-action="muteConversation" class="txt-ellipsis">{{_i}}Mute this conversation{{/i}}</a></li> {{/isMutedConversation}} {{#isMutedConversation}} <li class="is-selectable"><a href="#" data-action="unmuteConversation" class="txt-ellipsis">{{_i}}Unmute this conversation{{/i}}</a></li> {{/isMutedConversation}} {{/isTweetDetailAction}} {{/chirp}} <li class="is-selectable"><a href="#" data-action="block" class="txt-ellipsis">{{_i}}Block @{{screenName}}{{/i}}</a></li> {{#chirp}} <li class="is-selectable"><a href="#" data-action="report-tweet" class="txt-ellipsis">{{_i}}Report Tweet{{/i}}</a></li> {{/chirp}} {{^chirp}} <li class="is-selectable"><a href="#" class="txt-ellipsis" data-action="report-spam">{{_i}}Report @{{screenName}}{{/i}}</a></li> {{/chirp}} {{/isMe}} {{/user}} {{#chirp}} {{#isTranslatable}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="translate">{{_i}}Translate this Tweet{{/i}}</a></li> {{/isTranslatable}} {{#isRetweeted}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="undo-retweet">{{_i}}Undo Retweet{{/i}}</a></li> {{/isRetweeted}} {{#isOwnChirp}} {{^isRetweeted}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="destroy">{{_i}}Delete{{/i}}</a></li> {{/isRetweeted}} {{/isOwnChirp}} {{/chirp}} </ul>'
 }, function(e, t, i) {
 	"use strict";
 	i.r(t), t.default = '<ul> {{#user}} {{> menus/follow_menuitem }} <li class="is-selectable"><a href="#" data-action="lists">{{_i}}Add or remove from Lists…{{/i}}</a></li> {{^isMe}} <li class="drp-h-divider"></li> {{^isMuted}} <li class="is-selectable"><a href="#" data-action="mute">{{_i}}Mute @{{screenName}}{{/i}}</a></li> {{/isMuted}} {{#isMuted}} <li class="is-selectable"><a href="#" data-action="unmute">{{_i}}Unmute @{{screenName}}{{/i}}</a></li> {{/isMuted}} <li class="is-selectable"><a href="#" data-action="block">{{_i}}Block @{{screenName}}{{/i}}</a></li> <li class="is-selectable"><a href="#" data-action="report-tweet">{{_i}}Flag message{{/i}}</a></li> {{/isMe}} {{/user}} {{#chirp}} <li class="drp-h-divider"></li> <li class="is-selectable"><a href="#" data-action="destroy">{{_i}}Delete for you{{/i}}</a></li> {{/chirp}} </ul>'

@@ -874,7 +874,7 @@ const proxyRoutes = [
             
             return xhr.responseText;
         }
-    },
+    }
 ];
 
 // wrap the XMLHttpRequest

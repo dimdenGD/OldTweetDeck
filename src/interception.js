@@ -80,10 +80,6 @@ function parseTweet(res) {
             if(res.card && res.card.legacy && res.card.legacy.binding_values) {
                 tweet.retweeted_status.card = res.card.legacy;
             }
-            if(tweet.retweeted_status.full_text) {
-                // weird bug with "…" being removed for some reason
-                tweet.retweeted_status.full_text = tweet.retweeted_status.full_text.replace(/…/g, "...");
-            }
         } else {
             console.warn("No retweeted status", result);
         }
@@ -129,10 +125,6 @@ function parseTweet(res) {
                 if(result.views) {
                     tweet.quoted_status.ext.views = {r: {ok: {count: +result.views.count}}};
                 }
-                // weird bug with "…" being removed for some reason
-                if(tweet.quoted_status.full_text) {
-                    tweet.quoted_status.full_text = tweet.quoted_status.full_text.replace(/…/g, "...");
-                }
             }
         } else {
             console.warn("No quoted status", result);
@@ -156,10 +148,6 @@ function parseTweet(res) {
     }
     if(res.birdwatch_pivot) { // community notes
         tweet.birdwatch = res.birdwatch_pivot;
-    }
-    // weird bug with "…" being removed for some reason
-    if(tweet.full_text) {
-        tweet.full_text = tweet.full_text.replace(/…/g, "...");
     }
 
     if(tweet.favorited && tweet.favorite_count === 0) {
@@ -730,11 +718,6 @@ const proxyRoutes = [
                 if(!tweet.retweeted) tweet.retweeted = false;
                 if(!tweet.truncated) tweet.truncated = false;
                 if(!tweet.user_id) tweet.user_id = parseInt(tweet.user_id_str);
-
-                if(tweet.full_text) {
-                    // weird bug with "…" being removed for some reason
-                    tweet.full_text = tweet.full_text.replace(/…/g, "...");
-                }
             }
 
             for(let id in data.globalObjects.users) {
@@ -797,60 +780,6 @@ const proxyRoutes = [
                         }
                         entry.content = newContent;
                     }
-                }
-            }
-
-            return data;
-        }
-    },
-    // Home timeline
-    {
-        path: "/1.1/statuses/home_timeline.json",
-        method: 'GET',
-        afterRequest: xhr => {
-            let data;
-            try {
-                data = JSON.parse(xhr.responseText);
-            } catch(e) {
-                console.error(e);
-                return data;
-            }
-            if (data.errors && data.errors[0]) {
-                return data;
-            }
-            for(let i in data) {
-                let tweet = data[i];
-
-                if(tweet.full_text) {
-                    // weird bug with "…" being removed for some reason
-                    tweet.full_text = tweet.full_text.replace(/…/g, "...");
-                }
-            }
-
-            return data;
-        }
-    },
-    // List timeline
-    {
-        path: "/1.1/lists/statuses.json",
-        method: 'GET',
-        afterRequest: xhr => {
-            let data;
-            try {
-                data = JSON.parse(xhr.responseText);
-            } catch(e) {
-                console.error(e);
-                return data;
-            }
-            if (data.errors && data.errors[0]) {
-                return data;
-            }
-            for(let i in data) {
-                let tweet = data[i];
-
-                if(tweet.full_text) {
-                    // weird bug with "…" being removed for some reason
-                    tweet.full_text = tweet.full_text.replace(/…/g, "...");
                 }
             }
 

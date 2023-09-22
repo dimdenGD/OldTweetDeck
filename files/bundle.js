@@ -732,8 +732,18 @@ document.body.addEventListener("click", function (e) {
 			updateEntities: function(e, t) {
 				var i, n, s, r, a, o = twttrTxt.modifyIndicesFromUnicodeToUTF16;
 				if (t.convertedToUTF16) return t;
-				// weird bug that adds mentions randomly
-				for (t.convertedToUTF16 = !0, t.media && t.media.length ? o(e, t.media) : t.media = [], t.urls && t.urls.length ? o(e, t.urls) : t.urls = [], t.hashtags && t.hashtags.length ? o(e, t.hashtags) : t.hashtags = S.extractHashtagEntities(e), t.user_mentions && t.user_mentions.length ? o(e, t.user_mentions) : t.user_mentions = [], t.cashtags = twttrTxt.extractCashtagsWithIndices(e), n = 0, s = (i = S.extractMentionEntities(e)).length; n < s; n++) r = i[n], (a = S.getEntityOverlap(r, t)) ? r.list_slug && r.indices[0] === a.indices[0] && (a.indices = r.indices, a.list_slug = r.list_slug) : (false&&t.user_mentions.push(r));
+				t.convertedToUTF16 = true,
+				t.media && t.media.length ? o(e, t.media) : t.media = [],
+				t.urls && t.urls.length ? o(e, t.urls) : t.urls = [],
+				t.hashtags && t.hashtags.length ? o(e, t.hashtags) : t.hashtags = S.extractHashtagEntities(e),
+				t.user_mentions && t.user_mentions.length ? o(e, t.user_mentions) : t.user_mentions = [],
+				t.cashtags = twttrTxt.extractCashtagsWithIndices(e);
+				for (n = 0, s = (i = S.extractMentionEntities(e)).length; n < s; n++) {
+					r = i[n];
+					(a = S.getEntityOverlap(r, t)) ?
+						r.list_slug && r.indices[0] === a.indices[0] && (a.indices = r.indices, a.list_slug = r.list_slug) :
+						(false && t.user_mentions.push(r)); // weird bug that adds mentions randomly
+				}
 				return t
 			},
 			extractMentionEntities: function(e) {
@@ -754,6 +764,7 @@ document.body.addEventListener("click", function (e) {
 				return null
 			},
 			linkify: function(e, t) {
+				console.log(e, t);
 				var i, n, s, r, a, o, l = "",
 					c = [].concat(t.urls, t.media, t.user_mentions, t.hashtags, t.cashtags).filter(Boolean);
 				c.sort(function(e, t) {
@@ -781,6 +792,7 @@ document.body.addEventListener("click", function (e) {
 						escapedSymbol: escape("$")
 					}, a = TD.ui.template.render("text/search_link", o)), l = a + S.cleanWithEmoji(s) + l, e = u === c.length - 1 && r.isImplicitMention ? "" : i
 				}
+				console.log((e + l).trim());
 				return (S.cleanWithEmoji(e) + l).trim()
 			},
 			extractTweetIdFromPermalink: function(e) {

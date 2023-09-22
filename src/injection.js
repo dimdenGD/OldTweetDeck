@@ -26,11 +26,11 @@
         ]);
         
         if(
-            remote_interception_js_req.value.ok || 
-            remote_vendor_js_req.value.ok || 
-            remote_bundle_js_req.value.ok || 
-            remote_bundle_css_req.value.ok || 
-            remote_twitter_text_req.value.ok
+            (remote_interception_js_req.value && remote_interception_js_req.value.ok) || 
+            (remote_vendor_js_req.value && remote_vendor_js_req.value.ok) ||
+            (remote_bundle_js_req.value && remote_bundle_js_req.value.ok) ||
+            (remote_bundle_css_req.value && remote_bundle_css_req.value.ok) ||
+            (remote_twitter_text_req.value && remote_twitter_text_req.value.ok)
         ) {
             const [
                 remote_interception_js,
@@ -47,6 +47,7 @@
             ]);
 
             if (
+                remote_interception_js_req.value &&
                 remote_interception_js_req.value.ok &&
                 remote_interception_js.status === "fulfilled" &&
                 remote_interception_js.value.length > 30
@@ -55,6 +56,7 @@
                 console.log("Using remote interception.js");
             }
             if (
+                remote_vendor_js_req.value &&
                 remote_vendor_js_req.value.ok &&
                 remote_vendor_js.status === "fulfilled" &&
                 remote_vendor_js.value.length > 30
@@ -63,6 +65,7 @@
                 console.log("Using remote vendor.js");
             }
             if (
+                remote_bundle_js_req.value &&
                 remote_bundle_js_req.value.ok &&
                 remote_bundle_js.status === "fulfilled" &&
                 remote_bundle_js.value.length > 30
@@ -71,6 +74,7 @@
                 console.log("Using remote bundle.js");
             }
             if (
+                remote_bundle_css_req.value &&
                 remote_bundle_css_req.value.ok &&
                 remote_bundle_css.status === "fulfilled" &&
                 remote_bundle_css.value.length > 30
@@ -79,6 +83,7 @@
                 console.log("Using remote bundle.css");
             }
             if (
+                remote_twitter_text_req.value &&
                 remote_twitter_text_req.value.ok &&
                 remote_twitter_text.status === "fulfilled" &&
                 remote_twitter_text.value.length > 30

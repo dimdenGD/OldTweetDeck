@@ -764,7 +764,6 @@ document.body.addEventListener("click", function (e) {
 				return null
 			},
 			linkify: function(e, t) {
-				console.log(e, t);
 				var i, n, s, r, a, o, l = "",
 					c = [].concat(t.urls, t.media, t.user_mentions, t.hashtags, t.cashtags).filter(Boolean);
 				c.sort(function(e, t) {
@@ -792,7 +791,6 @@ document.body.addEventListener("click", function (e) {
 						escapedSymbol: escape("$")
 					}, a = TD.ui.template.render("text/search_link", o)), l = a + S.cleanWithEmoji(s) + l, e = u === c.length - 1 && r.isImplicitMention ? "" : i
 				}
-				console.log((e + l).trim());
 				return (S.cleanWithEmoji(e) + l).trim()
 			},
 			extractTweetIdFromPermalink: function(e) {

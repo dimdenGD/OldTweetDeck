@@ -38,6 +38,31 @@ function expandTweet(e, tweet_id) {
 	
 	xhr.send();
 }
+function follow(screen_name) {
+	return new Promise(function (resolve, reject) {
+		var xhr = new XMLHttpRequest();
+		xhr.open("POST", `https://api.twitter.com/1.1/friendships/create.json`, true);
+		xhr.setRequestHeader("X-Twitter-Active-User", "yes");
+		xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
+		xhr.setRequestHeader("X-Twitter-Client-Language", "en");
+		xhr.setRequestHeader("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
+		xhr.setRequestHeader("X-Csrf-Token", (function () {
+			var csrf = document.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
+			return csrf ? csrf[1] : "";
+		})());
+		xhr.withCredentials = true;
+
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState === 4 && xhr.status === 200) {
+				resolve();
+			} else {
+				reject();
+			}
+		};
+		
+		xhr.send('screen_name='+screen_name);
+	});
+}
 document.body.addEventListener("click", function (e) {
 	if(e.target.classList.contains("tweet-bookmark-menu-option")) {
 		var tweetId = e.target.dataset.tweetId;

@@ -65,8 +65,10 @@ API 제한에 도달했습니다. 일정 시간이 지난 후에 원래대로 �
 * 트윗 확장이 링크를 비활성화 하는 문제 해결
 #### 3.1.7
 * 리밋을 우회하는 설정이 추가되었습니다! 사용하려면:
+
 ![](https://github-production-user-asset-6210df.s3.amazonaws.com/26517362/269732181-f3eb8979-a452-4080-bc50-a96d1cc41ed6.png)
 ![](https://github-production-user-asset-6210df.s3.amazonaws.com/26517362/269732138-785187b2-fbdd-456f-b53e-007b9ab0b68f.png)
+
 리밋 우회와 관련하여 유의해야 할 사항:
 * 속도 제한을 받은 후에 우회를 활성화한 경우 OldTweetDeck은 작동하지만 웹의 Twitter는 한동안 속도 제한을 받을 수 있습니다.
 * 분명히, 이것을 사용하는 것은 안하는 것보다 더 위험합니다. 자신의 위험을 무릅쓰고 사용해야 합니다.

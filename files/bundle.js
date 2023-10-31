@@ -22185,7 +22185,9 @@ document.body.addEventListener("click", function (e) {
 		v = i(19),
 		T = y(i(840)),
 		w = i(841),
-		b = i(168);
+		b = i(168),
+		tweetUtil = i(230),
+		configUtil = i(360);
 
 	function y(e) {
 		return e && e.__esModule ? e : {
@@ -22225,7 +22227,8 @@ document.body.addEventListener("click", function (e) {
 		this.htmlText = TD.util.transform(this.text, this.entities);
 		let cleanText = this.text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
 		if(cleanText.endsWith("…")) {
-			if(this.text.length >= 275 && this.text.length < 400) {
+			var tweetLength = tweetUtil.getTweetLength(this.text.trim(), configUtil.getConfiguration());
+			if(tweetLength >= 275 && tweetLength < 400) {
 				let id = this.retweetedStatus ? this.retweetedStatus.id : this.id;
 				this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')">Expand tweet</a>`;
 			};

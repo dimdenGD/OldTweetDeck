@@ -22,7 +22,13 @@ Note: Do not delete the extension files (unzipped archive for Chromium, zip file
 8. [Donate to encourage continued support](https://www.patreon.com/dimdendev)
 
 ### Firefox
+
+#### Stable
+
+Get the extension on [Firefox Add-Ons](https://addons.mozilla.org/en-US/firefox/addon/oldtweetdeck/)
+
 #### Nightly / Developer Edition
+
 1. Go to [Release page](https://github.com/dimdenGD/OldTweetDeck/releases) and download `OldTweetDeckFirefox.zip`
 2. Go to Firefox Configuration Editor (`about:config`)
 3. Change the preference `xpinstall.signatures.required` to false
@@ -31,12 +37,6 @@ Note: Do not delete the extension files (unzipped archive for Chromium, zip file
 6. Select zip file you downloaded
 7. Go to tweetdeck.twitter.com and enjoy old TweetDeck
 8. [Donate to encourage continued support](https://www.patreon.com/dimdendev)
-
-#### Stable
-**It's not recommended to use this extension on Stable version.**
-1. Go to `about:debugging#/runtime/this-firefox`
-2. Press "Load Temporary Add-on" and select zip file you downloaded
-3. **Installing this way on Firefox will remove it after closing browser.**
   
 ### Safari
 NOT SUPPORTED  

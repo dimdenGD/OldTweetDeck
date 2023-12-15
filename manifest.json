@@ -12,7 +12,8 @@
     "https://tweetdeck.twitter.com/*",
     "https://abs.twimg.com/*",
     "https://api.twitter.com/*",
-    "https://upload.twitter.com/*"
+    "https://upload.twitter.com/*",
+    "https://tweetdeck.com/"
   ],
   "background": {
     "scripts": ["src/background.js"]

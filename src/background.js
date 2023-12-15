@@ -55,6 +55,16 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["blocking"]
 );
 
+chrome.webRequest.onBeforeRequest.addListener(
+    function() {
+        return {
+            redirectUrl: 'https://twitter.com/i/tweetdeck'
+        }
+    },
+    {urls: ["https://tweetdeck.com/*"]},
+    ["blocking"]
+);
+
 const isFirefox = typeof browser !== "undefined";
 
 // Store the URL of the tab that initiated the request.

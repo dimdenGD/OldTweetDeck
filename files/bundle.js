@@ -38698,21 +38698,28 @@ document.body.addEventListener("click", function (e) {
 							fromScrollbarDrag: T.mouseIsDownOnScrollBar
 						}), r = 0), T.mouseIsDownOnScrollBar ? d < 250 ? "down" !== u && t.ui.moreTweetsState.mouseScrollToTop() : t.ui.moreTweetsState.mouseScrollAwayFromTop() : "down" !== u && d < 250 && (D.util.metric("column:ui:scroll:upward:impression"), m && D.util.metric("column:ui:scroll:upward:with-mouse"), t.ui.moreTweetsState.upwardScroll(), t.doUpwardScroll(), r = 0)
 					}
-				}(t, e, n),
-				a = function(e, t) {
+				}(t, e, n);
+				var a = function (e, t) {
 					var i = t.closest(".scroll-h"),
 						n = {
 							direction: "",
 							time: 0
 						};
-					return function(s) {
+			
+					return function (s) {
 						var r, a = Math.abs(s.originalEvent.wheelDeltaX),
 							o = Math.abs(s.originalEvent.wheelDeltaY),
-							c = (0, l.default)(s.currentTarget);
+							c = $(s.currentTarget);
+			
 						if (s.originalEvent.wheelDeltaY || s.originalEvent.wheelDeltaX) {
 							s.preventDefault();
 							var u = "";
-							a > o ? u = "h" : a < o && (u = "v"), u !== n.direction && Date.now() < n.time + 100 || (n.direction = u, n.time = Date.now(), "v" === u ? c.is(".js-column-scroller") ? (r = f[e] - s.originalEvent.wheelDeltaY, t.scrollTop(r), f[e] = t.scrollTop()) : c.scrollTop(c.scrollTop() - s.originalEvent.wheelDeltaY) : "h" === u && i.scrollLeft(h.scrollLeft() - s.originalEvent.wheelDeltaX))
+							a > o ? u = "h" : a < o && (u = "v");
+			
+							u !== n.direction && Date.now() < n.time + 100 || (n.direction = u, n.time = Date.now(),
+								"v" === u ? c.is(".js-column-scroller") ? (r = f[e] - s.originalEvent.wheelDeltaY * 0.5, t.scrollTop(r), f[e] = t.scrollTop()) :
+								c.scrollTop(c.scrollTop() - s.originalEvent.wheelDeltaY * 0.5) :
+								"h" === u && i.scrollLeft(h.scrollLeft() - s.originalEvent.wheelDeltaX))
 						}
 					}
 				}(t, n);

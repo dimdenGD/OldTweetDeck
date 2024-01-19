@@ -253,6 +253,22 @@ const proxyRoutes = [
                 PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? 1 : 0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
+        responseHeaderOverride: {
+            // slow it down a bit
+            "x-rate-limit-limit": (value) => {
+                if (value == "500") {
+                    return "100";
+                }
+                return value;
+            },
+            "x-rate-limit-remaining": (value, headers) => {
+                if (headers["x-rate-limit-limit"] == "500" && value > 250) {
+                    return (+value - 400).toString();
+                } else {
+                    return value;
+                }
+            },
+        },
         afterRequest: (xhr) => {
             let data;
             try {
@@ -1250,6 +1266,34 @@ XMLHttpRequest = function () {
                 }
             }
             return xhr.responseText;
+        },
+        getAllResponseHeaders() {
+            let headers = this.getAllResponseHeaders();
+
+            if (this.proxyRoute && this.proxyRoute.responseHeaderOverride) {
+                let splitHeaders = headers.split("\r\n");
+                let objHeaders = {};
+                for (let header of splitHeaders) {
+                    let splitHeader = header.split(": ");
+                    let headerName = splitHeader[0];
+                    let headerValue = splitHeader[1];
+                    objHeaders[headerName.toLowerCase()] = headerValue;
+                }
+                for (let i in splitHeaders) {
+                    let header = splitHeaders[i];
+                    let splitHeader = header.split(": ");
+                    let headerName = splitHeader[0];
+                    let headerValue = splitHeader[1];
+                    if (this.proxyRoute.responseHeaderOverride[headerName.toLowerCase()]) {
+                        splitHeaders[i] = `${headerName}: ${this.proxyRoute.responseHeaderOverride[
+                            headerName.toLowerCase()
+                        ](headerValue, objHeaders)}`;
+                    }
+                }
+                headers = splitHeaders.join("\r\n");
+            }
+
+            return headers;
         },
     });
 };

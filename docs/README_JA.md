@@ -74,6 +74,12 @@ TweetDeckのファイルが更新された場合は、タブを再読み込み�
 API制限に達しているため読み込めていません。しばらくしてAPI制限が解除されるとまた表示されます。  
 
 ## 更新履歴
+### 3.2.1
+* いいねを読み込めるように修正
+* いいねが動作するように修正
+* コレクションを読み込めるように修正
+* メンションを読み込めるように修正
+
 ### 3.2.0
 * ホームタイムラインを読み込めるように修正
 * リストを読み込めるように修正
@@ -199,4 +205,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [294882a](https://github.com/dimdenGD/OldTweetDeck/commit/294882a3d5de029b2b1158d331c8549c941e34ac)  
-* 更新履歴: release/tag [v3.2.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.2.0)
+* 更新履歴: release/tag [v3.2.1](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.2.1)

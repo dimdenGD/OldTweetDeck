@@ -701,9 +701,9 @@ const proxyRoutes = [
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
     },
-    // Liking
+    // Liking / unliking
     {
-        path: "/1.1/favorites/create.json",
+        path: /\/1\.1\/favorites\/.*\.json/,
         method: "POST",
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
@@ -712,9 +712,19 @@ const proxyRoutes = [
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
     },
-    // Unliking
+    // Collections
     {
-        path: "/1.1/favorites/destroy.json",
+        path: /\/1\.1\/collections\/.*\.json/,
+        method: "GET",
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
+    },
+    {
+        path: /\/1\.1\/collections\/.*\.json/,
         method: "POST",
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";

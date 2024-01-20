@@ -21435,10 +21435,10 @@ document.body.addEventListener("click", function (e) {
 			type: P.INBOX
 		}, {
 			type: P.ME
-		}, {
+		}, /*{
 			type: P.NETWORKACTIVITY,
 			service: "twitter"
-		}, {
+		}, */{
 			type: P.ANALYTICS,
 			service: "twitter"
 		}, {

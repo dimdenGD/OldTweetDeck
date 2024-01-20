@@ -21740,7 +21740,7 @@ document.body.addEventListener("click", function (e) {
 				if (t.type !== P.TRENDS) return t;
 				var i = P.trendsColumnEnabled && TD.settings.getShowTrendingColumnNewPill();
 				return (0, s.default)({}, t, {
-					newColumnType: i && !e,
+					newColumnType: 0,
 					premiumColumnType: P.trendsColumnEnabled && e
 				})
 			})

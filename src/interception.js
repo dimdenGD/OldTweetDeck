@@ -701,6 +701,28 @@ const proxyRoutes = [
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
     },
+    // Liking
+    {
+        path: "/1.1/favorites/create.json",
+        method: "POST",
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
+    },
+    // Unliking
+    {
+        path: "/1.1/favorites/destroy.json",
+        method: "POST",
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
+    },
     // Search
     {
         path: "/1.1/search/universal.json",

@@ -1,40 +1,36 @@
 {
-  "name": "OldTweetDeck",
-  "description": "Returns old TweetDeck, for free!",
-  "version": "3.2.0",
-  "manifest_version": 2,
-  "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
-  "permissions": [
-    "webRequest",
-    "webRequestBlocking",
-    "webNavigation",
-    "https://twitter.com/*",
-    "https://tweetdeck.twitter.com/*",
-    "https://abs.twimg.com/*",
-    "https://api.twitter.com/*",
-    "https://upload.twitter.com/*",
-    "https://tweetdeck.com/"
-  ],
-  "background": {
-    "scripts": ["src/background.js"]
-  },
-  "web_accessible_resources": [
-    "images/*",
-    "files/*",
-    "src/*"
-  ],
-  "icons": {
-    "16": "/images/logo16.png",
-    "32": "/images/logo32.png",
-    "48": "/images/logo48.png",
-    "128": "/images/logo128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://twitter.com/i/tweetdeck"],
-      "js": ["src/notifications.js", "src/injection.js"],
-      "all_frames": true,
-      "run_at": "document_start"
-    }
-  ]
+    "name": "OldTweetDeck",
+    "description": "Returns old TweetDeck, for free!",
+    "version": "3.2.0",
+    "manifest_version": 2,
+    "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
+    "permissions": [
+        "webRequest",
+        "webRequestBlocking",
+        "webNavigation",
+        "https://twitter.com/*",
+        "https://tweetdeck.twitter.com/*",
+        "https://abs.twimg.com/*",
+        "https://api.twitter.com/*",
+        "https://upload.twitter.com/*",
+        "https://tweetdeck.com/"
+    ],
+    "background": {
+        "scripts": ["src/background.js"]
+    },
+    "web_accessible_resources": ["images/*", "files/*", "src/*"],
+    "icons": {
+        "16": "/images/logo16.png",
+        "32": "/images/logo32.png",
+        "48": "/images/logo48.png",
+        "128": "/images/logo128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://twitter.com/i/tweetdeck"],
+            "js": ["src/notifications.js", "src/injection.js"],
+            "all_frames": true,
+            "run_at": "document_start"
+        }
+    ]
 }

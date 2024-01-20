@@ -677,8 +677,9 @@ const proxyRoutes = [
         //     }
         // },
     },
+    // Mentions timeline
     {
-        path: "/1.1/activity/by_friends.json",
+        path: "/1.1/statuses/mentions_timeline.json",
         method: "GET",
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["Content-Type"] = "application/json";
@@ -687,18 +688,6 @@ const proxyRoutes = [
             xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
-        // afterRequest: (xhr) => {
-        //     let data;
-        //     try {
-        //         data = JSON.parse(xhr.responseText);
-        //     } catch (e) {
-        //         console.error(e);
-        //         return [];
-        //     }
-        //     if (data.errors && data.errors[0]) {
-        //         return [];
-        //     }
-        // },
     },
     // Search
     {

@@ -31,11 +31,12 @@ function getFollows(cursor = -1, count = 5000) {
 	});
 }
 
-let follows = JSON.parse(localStorage.OTDfollows || "[]");
+let followsData = JSON.parse(localStorage.OTDfollowsData || "{}");
 
 function updateFollows() {
-    let lastUpdate = localStorage.OTDlastFollowsUpdate;
-    if(lastUpdate && Date.now() - +lastUpdate < 1000 * 60 * 60 * 12) return;
+    let id = getCurrentUserId() ?? localStorage.twitterAccountID;
+    if(followsData[id] && followsData[id].lastUpdate && Date.now() - +followsData[id].lastUpdate < 1000 * 60 * 60 * 6) return;
+    if(!followsData[id]) followsData[id] = {};
     let newfollows = [];
     let cursor = -1;
     let count = 5000;
@@ -44,9 +45,9 @@ function updateFollows() {
         let res = await getFollows(cursor, count);
         newfollows = newfollows.concat(res.ids);
         if(res.next_cursor_str === "0" || i++ > 10) {
-            localStorage.OTDfollows = JSON.stringify(follows);
-            follows = newfollows;
-            localStorage.OTDlastFollowsUpdate = Date.now();
+            followsData[id].lastUpdate = Date.now();
+            followsData[id].data = newfollows;
+            localStorage.OTDfollowsData = JSON.stringify(followsData);
             return;
         }
         cursor = res.next_cursor_str;
@@ -56,7 +57,7 @@ function updateFollows() {
     get();
 }
 
-updateFollows();
+setTimeout(updateFollows, 1000);
 setInterval(updateFollows, 1000 * 60);
 
 function parseNoteTweet(result) {
@@ -323,11 +324,14 @@ const proxyRoutes = [
             } 
 
             let currentUserId = getCurrentUserId();
+            let follows = followsData[currentUserId];
+            if(follows) follows = follows.data;
+            else follows = [];
             let filtered = data.filter(t => 
                 !t.in_reply_to_user_id_str || // not a reply
                 t.user.id_str === currentUserId || // my tweet
                 (
-                    // reply to someone i follow
+                    // reply to someone i follow from someone i follow
                     follows.includes(t.in_reply_to_user_id_str) && 
                     t.user.following
                 ) ||

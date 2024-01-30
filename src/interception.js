@@ -322,7 +322,21 @@ const proxyRoutes = [
                 return data;
             } 
 
-            let filtered = data.filter(t => !t.in_reply_to_user_id_str || (follows.includes(t.in_reply_to_user_id_str) && t.user.following));
+            let currentUserId = getCurrentUserId();
+            let filtered = data.filter(t => 
+                !t.in_reply_to_user_id_str || // not a reply
+                t.user.id_str === currentUserId || // my tweet
+                (
+                    // reply to someone i follow
+                    follows.includes(t.in_reply_to_user_id_str) && 
+                    t.user.following
+                ) ||
+                (
+                    // reply to me from someone i follow
+                    t.in_reply_to_user_id_str === currentUserId &&
+                    t.user.following
+                )
+            );
 
             if(filtered.length === 0) return data;
             else return filtered;

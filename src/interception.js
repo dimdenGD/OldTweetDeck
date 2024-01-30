@@ -342,8 +342,7 @@ const proxyRoutes = [
                 )
             );
 
-            if(filtered.length === 0) return data;
-            else return filtered;
+            return filtered;
         }
         // responseHeaderOverride: {
         //     // slow it down a bit

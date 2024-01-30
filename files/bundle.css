@@ -15051,7 +15051,7 @@ h6 {
 }
 .mdl-links {
     position: absolute;
-    bottom: 5px;
+    padding-bottom: 10px;
     right: 15px;
     left: 15px;
     font-size: 12px;

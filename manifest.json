@@ -1,7 +1,7 @@
 {
     "name": "OldTweetDeck",
     "description": "Returns old TweetDeck, for free!",
-    "version": "3.2.1",
+    "version": "3.2.2",
     "manifest_version": 2,
     "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
     "permissions": [

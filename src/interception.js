@@ -5,6 +5,60 @@ const PUBLIC_TOKENS = [
 const NEW_API = "https://twitter.com/i/api/graphql";
 const cursors = {};
 
+function getFollows(cursor = -1, count = 5000) {
+	return new Promise(function (resolve, reject) {
+		var xhr = new XMLHttpRequest();
+		xhr.open("GET", `https://api.twitter.com/1.1/friends/ids.json?cursor=${cursor}&stringify_ids=true&count=${count}`, true);
+		xhr.setRequestHeader("X-Twitter-Active-User", "yes");
+		xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
+		xhr.setRequestHeader("X-Twitter-Client-Language", "en");
+		xhr.setRequestHeader("Authorization", "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA");
+		xhr.setRequestHeader("X-Csrf-Token", (function () {
+			var csrf = document.cookie.match(/(?:^|;\s*)ct0=([0-9a-f]+)\s*(?:;|$)/);
+			return csrf ? csrf[1] : "";
+		})());
+		xhr.withCredentials = true;
+
+		xhr.onreadystatechange = function () {
+			if (xhr.readyState === 4 && xhr.status === 200) {
+				resolve(JSON.parse(xhr.responseText));
+			} else if (xhr.readyState === 4 && xhr.status !== 200) {
+                reject(xhr);
+            }
+		};
+		
+		xhr.send();
+	});
+}
+
+let follows = JSON.parse(localStorage.OTDfollows || "[]");
+
+function updateFollows() {
+    let lastUpdate = localStorage.OTDlastFollowsUpdate;
+    if(lastUpdate && Date.now() - +lastUpdate < 1000 * 60 * 60 * 12) return;
+    let newfollows = [];
+    let cursor = -1;
+    let count = 5000;
+    let i = 0;
+    let get = async () => {
+        let res = await getFollows(cursor, count);
+        newfollows = newfollows.concat(res.ids);
+        if(res.next_cursor_str === "0" || i++ > 10) {
+            localStorage.OTDfollows = JSON.stringify(follows);
+            follows = newfollows;
+            localStorage.OTDlastFollowsUpdate = Date.now();
+            return;
+        }
+        cursor = res.next_cursor_str;
+        get();
+    };
+
+    get();
+}
+
+updateFollows();
+setInterval(updateFollows, 1000 * 60);
+
 function parseNoteTweet(result) {
     let text, entities;
     if (result.note_tweet.note_tweet_results.result) {
@@ -252,6 +306,27 @@ const proxyRoutes = [
             xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
+        afterRequest: (xhr) => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
+            if (data.errors && data.errors[0]) {
+                return [];
+            }
+
+            if(localStorage.OTDshowAllRepliesInHome === '1') {
+                return data;
+            } 
+
+            let filtered = data.filter(t => !t.in_reply_to_user_id_str || (follows.includes(t.in_reply_to_user_id_str) && t.user.following));
+
+            if(filtered.length === 0) return data;
+            else return filtered;
+        }
         // responseHeaderOverride: {
         //     // slow it down a bit
         //     "x-rate-limit-limit": (value) => {

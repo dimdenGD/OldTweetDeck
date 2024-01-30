@@ -38,6 +38,7 @@ function expandTweet(e, tweet_id) {
 	
 	xhr.send();
 }
+
 function follow(screen_name) {
 	return new Promise(function (resolve, reject) {
 		var xhr = new XMLHttpRequest();
@@ -11412,7 +11413,7 @@ document.body.addEventListener("click", function (e) {
 	i.r(t), t.default = '<li class="list-filter cf"> {{_i}}Muting {{getDisplayType}} {{>text/global_filter_value}}{{/i}} <input type="button" name="remove-filter" value="{{_i}}Remove{{/i}}" data-id="{{id}}" class="js-remove-filter small Button--danger"> </li>'
 }, function(e, t, i) {
 	"use strict";
-	i.r(t), t.default = '<fieldset id="general_settings"> <legend>{{_i}}General Settings{{/i}}</legend> <div class="control-group"> <div> <i class="js-streaming-updates icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="streaming-updates"></i> <span class="margin-l--4">{{_i}}Stream Tweets in realtime{{/i}}</span> </div> <div> <i class="js-show-startup-notifications icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="show-startup-notifications"></i> <span class="margin-l--4">{{_i}}Show notifications on startup{{/i}}</span> </div> <div> <i class="js-display-sensitive-media icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="display-sensitive-media"></i> <span class="margin-l--4">{{_i}}Display media that may contain sensitive content{{/i}}</span> </div> <div> <i class="js-auto-play-gifs icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="auto-play-gifs"></i> <span class="margin-l--4">{{_i}}Autoplay GIFs{{/i}}</span> </div> <div> <i class="js-enable-rate-limit-bypass icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="enable-rate-limit-bypass"></i> <span class="margin-l--4">{{_i}}Enable rate limit bypass (OldTweetDeck){{/i}}</span> </div> <div class="divider-bar"></div> <div class="cf"> <div class="obj-left js-theme"> <label class="fixed-width-label txt-uppercase touch-larger-label"><b>{{_i}}Theme{{/i}}</b></label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-theme-radio touch-larger-label" name="theme" value="dark"> {{_i}}Dark{{/i}} </label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-theme-radio touch-larger-label" name="theme" value="light"> {{_i}}Light{{/i}} </label> </div> <div class="obj-left js-column-size"> <label class="fixed-width-label txt-uppercase touch-larger-label"><b>{{_i}}Columns{{/i}}</b></label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-column-size-radio touch-larger-label" name="column-size" value="narrow"> {{_i}}Narrow{{/i}} </label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-column-size-radio touch-larger-label" name="column-size" value="medium"> {{_i}}Medium{{/i}} </label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-column-size-radio touch-larger-label" name="column-size" value="wide"> {{_i}}Wide{{/i}} </label> </div> <div class="obj-left js-font-size"> <label class="fixed-width-label txt-uppercase touch-larger-label"><b>{{_i}}Font size{{/i}}</b></label> <label class="txt-size--12 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="smallest"> {{_i}}Smallest{{/i}} </label> <label class="txt-size--13 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="small"> {{_i}}Small{{/i}} </label> <label class="txt-size--14 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="medium"> {{_i}}Medium{{/i}} </label> <label class="txt-size--15 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="large"> {{_i}}Large{{/i}} </label> <label class="txt-size--16 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="largest"> {{_i}}Largest{{/i}} </label> </div> </div> </div> <div class="mdl-links"> {{> app_links}} </div> </fieldset>'
+	i.r(t), t.default = '<fieldset id="general_settings"> <legend>{{_i}}General Settings{{/i}}</legend> <div class="control-group"> <div> <i class="js-streaming-updates icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="streaming-updates"></i> <span class="margin-l--4">{{_i}}Stream Tweets in realtime{{/i}}</span> </div> <div> <i class="js-show-startup-notifications icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="show-startup-notifications"></i> <span class="margin-l--4">{{_i}}Show notifications on startup{{/i}}</span> </div> <div> <i class="js-display-sensitive-media icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="display-sensitive-media"></i> <span class="margin-l--4">{{_i}}Display media that may contain sensitive content{{/i}}</span> </div> <div> <i class="js-auto-play-gifs icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="auto-play-gifs"></i> <span class="margin-l--4">{{_i}}Autoplay GIFs{{/i}}</span> </div> <div> <i class="js-enable-rate-limit-bypass icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="enable-rate-limit-bypass"></i> <span class="margin-l--4">{{_i}}Enable rate limit bypass (OldTweetDeck){{/i}}</span> </div> <div> <i class="js-show-all-replies-in-home icon icon-small icon-toggle-off color-twitter-blue js-toggle-switch is-actionable align-top" id="show-all-replies-in-home"></i> <span class="margin-l--4">{{_i}}Show all replies in home column (OldTweetDeck){{/i}}</span> </div> <div class="divider-bar"></div> <div class="cf"> <div class="obj-left js-theme"> <label class="fixed-width-label txt-uppercase touch-larger-label"><b>{{_i}}Theme{{/i}}</b></label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-theme-radio touch-larger-label" name="theme" value="dark"> {{_i}}Dark{{/i}} </label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-theme-radio touch-larger-label" name="theme" value="light"> {{_i}}Light{{/i}} </label> </div> <div class="obj-left js-column-size"> <label class="fixed-width-label txt-uppercase touch-larger-label"><b>{{_i}}Columns{{/i}}</b></label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-column-size-radio touch-larger-label" name="column-size" value="narrow"> {{_i}}Narrow{{/i}} </label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-column-size-radio touch-larger-label" name="column-size" value="medium"> {{_i}}Medium{{/i}} </label> <label class="fixed-width-label radio"> <input type="radio" class="js-settings-radio js-column-size-radio touch-larger-label" name="column-size" value="wide"> {{_i}}Wide{{/i}} </label> </div> <div class="obj-left js-font-size"> <label class="fixed-width-label txt-uppercase touch-larger-label"><b>{{_i}}Font size{{/i}}</b></label> <label class="txt-size--12 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="smallest"> {{_i}}Smallest{{/i}} </label> <label class="txt-size--13 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="small"> {{_i}}Small{{/i}} </label> <label class="txt-size--14 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="medium"> {{_i}}Medium{{/i}} </label> <label class="txt-size--15 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="large"> {{_i}}Large{{/i}} </label> <label class="txt-size--16 fixed-width-label radio"> <input type="radio" class="js-settings-radio js-font-size-radio" name="font-size" value="largest"> {{_i}}Largest{{/i}} </label> </div> </div> </div> <div class="mdl-links"> {{> app_links}} </div> </fieldset>'
 }, function(e, t, i) {
 	"use strict";
 	i.r(t), t.default = '\x3c!-- Services --\x3e <fieldset id="services_settings" > <legend>{{_i}}Services Settings{{/i}}</legend> <div id="streaming-form" class="control-group"> <label for="link-shortening" class="control-label">{{_i}}Link Shortening{{/i}}</label> <div class="controls"> <select name="link-shortening" class="js-link-shortening"> <option value="twitter">Twitter</option> <option value="bitly">Bit.ly</option> </select> </div> </div> <div id="bitly-form" class="js-bitly-form"></div> </fieldset>'
@@ -16995,6 +16996,7 @@ document.body.addEventListener("click", function (e) {
 			sensitiveContentInputId: "display-sensitive-media",
 			autoplayGifsInputId: "auto-play-gifs",
 			enableRateLimitBypassInputId: "enable-rate-limit-bypass",
+			showAllRepliesInHomeInputId: "show-all-replies-in-home",
 			toggleSwitchSelector: ".js-toggle-switch",
 			radioInputSelector: ".js-settings-radio",
 			themeInputName: "theme",
@@ -17007,13 +17009,14 @@ document.body.addEventListener("click", function (e) {
 			showNotificationsSelector: ".js-show-startup-notifications",
 			displaySensitiveContentSelector: ".js-display-sensitive-media",
 			autoplayGifsSelector: ".js-auto-play-gifs",
-			enableRateLimitBypassSelector: ".js-enable-rate-limit-bypass"
+			enableRateLimitBypassSelector: ".js-enable-rate-limit-bypass",
+			showAllRepliesInHomeSelector: ".js-show-all-replies-in-home"
 		}), this.componentDidInitialize = function() {
 			this.on("click", {
 				toggleSwitchSelector: this.handleToggleSwitchClick.bind(this)
 			}), this.on("change", {
 				radioInputSelector: this.handleRadioInputChange
-			}), this.on(document, "dataSettingsValues", this.loadSettings), this.loadSettings(), this.initialRender(), this.$columnWidth = this.select("columnWidthSelector"), this.$fontSize = this.select("fontSizeSelector"), this.$theme = this.select("themeSelector"), this.$streamTweets = this.select("streamTweetsSelector"), this.$showNotifications = this.select("showNotificationsSelector"), this.$displaySensitiveContent = this.select("displaySensitiveContentSelector"), this.$autoplayGifs = this.select("autoplayGifsSelector"), this.$enableRateLimitBypass = this.select("enableRateLimitBypassSelector")
+			}), this.on(document, "dataSettingsValues", this.loadSettings), this.loadSettings(), this.initialRender(), this.$columnWidth = this.select("columnWidthSelector"), this.$fontSize = this.select("fontSizeSelector"), this.$theme = this.select("themeSelector"), this.$streamTweets = this.select("streamTweetsSelector"), this.$showNotifications = this.select("showNotificationsSelector"), this.$displaySensitiveContent = this.select("displaySensitiveContentSelector"), this.$autoplayGifs = this.select("autoplayGifsSelector"), this.$enableRateLimitBypass = this.select("enableRateLimitBypassSelector"), this.$showAllRepliesInHome = this.select("showAllRepliesInHomeSelector")
 		}, this.loadSettings = function() {
 			this.mergeState({
 				streamTweets: TD.settings.getUseStream(),
@@ -17021,6 +17024,7 @@ document.body.addEventListener("click", function (e) {
 				displaySensitiveMedia: TD.settings.getDisplaySensitiveMedia(),
 				autoplayGifs: TD.settings.getAutoPlayGifs(),
 				enableRateLimitBypass: localStorage.OTDuseDifferentToken === '1',
+				showAllRepliesInHome: localStorage.OTDshowAllRepliesInHome === '1',
 				theme: TD.settings.getTheme(),
 				columnWidth: TD.settings.getColumnWidth(),
 				fontSize: TD.settings.getFontSize()
@@ -17052,6 +17056,11 @@ document.body.addEventListener("click", function (e) {
 				case this.attr.enableRateLimitBypassInputId:
 					localStorage.OTDuseDifferentToken = i ? '1' : '0', this.mergeState({
 						enableRateLimitBypass: i
+					});
+					break;
+				case this.attr.showAllRepliesInHomeInputId:
+					localStorage.OTDshowAllRepliesInHome = i ? '1' : '0', this.mergeState({
+						showAllRepliesInHome: i
 					});
 					break;
 			}
@@ -17087,6 +17096,7 @@ document.body.addEventListener("click", function (e) {
 			this.$displaySensitiveContent.removeClass(n ? "icon-toggle-off" : "icon-toggle-on").addClass(n ? "icon-toggle-on" : "icon-toggle-off"), 
 			this.$autoplayGifs.removeClass(s ? "icon-toggle-off" : "icon-toggle-on").addClass(s ? "icon-toggle-on" : "icon-toggle-off"), 
 			this.$enableRateLimitBypass.removeClass(localStorage.OTDuseDifferentToken === '1' ? "icon-toggle-off" : "icon-toggle-on").addClass(localStorage.OTDuseDifferentToken === '1' ? "icon-toggle-on" : "icon-toggle-off"),
+			this.$showAllRepliesInHome.removeClass(localStorage.OTDshowAllRepliesInHome === '1' ? "icon-toggle-off" : "icon-toggle-on").addClass(localStorage.OTDshowAllRepliesInHome === '1' ? "icon-toggle-on" : "icon-toggle-off"),
 			this.$theme.find("[value=" + r + "]").prop("checked", !0), 
 			this.$columnWidth.find("[value=" + a + "]").prop("checked", !0), 
 			this.$fontSize.find("[value=" + o + "]").prop("checked", !0)

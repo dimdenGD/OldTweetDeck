@@ -22235,7 +22235,7 @@ document.body.addEventListener("click", function (e) {
 		this.htmlText = TD.util.transform(this.text, this.entities);
 		let cleanText = this.text.replace(/\shttps:\/\/t.co\/[a-zA-Z0-9\-]{8,10}$/, "");
 		if(cleanText.endsWith("…")) {
-			if(this.text.length >= 140 && this.text.length < 400) {
+			if(this.text.length >= 100 && this.text.length < 400) {
 				let id = this.retweetedStatus ? this.retweetedStatus.id : this.id;
 				this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')">Expand tweet</a>`;
 			};

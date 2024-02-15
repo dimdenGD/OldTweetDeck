@@ -1640,7 +1640,6 @@ const proxyRoutes = [
             }
             xhr.storage.ids = ids;
             localStorage.OTDcolumns = JSON.stringify(columns);
-            localStorage.OTDcolumnIds = JSON.stringify(ids);
             console.log('columns push', json, ids);
             return body;
         },

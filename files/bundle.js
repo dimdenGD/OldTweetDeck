@@ -14243,6 +14243,7 @@ document.body.addEventListener("click", function (e) {
 	}).statics({
 		FOR_VERSION: "3.5",
 		shouldShow: function() {
+			return false;
 			var e = TD.components.NewFeaturesSplash.FOR_VERSION,
 				t = TD.settings.getPreviousSplashVersion();
 			return 1 === TD.util.versionComparator(e, t) && (-1 !== TD.util.versionComparator(TD.version, e) && ((0, r.default)(document).trigger("metric", {
@@ -20241,7 +20242,6 @@ document.body.addEventListener("click", function (e) {
 		else {
 			s.assert((0, c.default)(e), "don't know how to handle response");
 			var l = n["x-td-mtime"];
-			console.log(n);
 			s.assert(l, "require x-td-mtime header in object PUT"), s.verboseLog("_processTSResult", t, e), a = t.commit(i, l)
 		}
 		return a

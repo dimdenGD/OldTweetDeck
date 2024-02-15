@@ -4,7 +4,31 @@ const PUBLIC_TOKENS = [
 ];
 const NEW_API = "https://twitter.com/i/api/graphql";
 const cursors = {};
+
+const generateID = () => {
+    return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+}
+
 let verifiedUser = localStorage.OTDverifiedUser ? JSON.parse(localStorage.OTDverifiedUser) : null;
+let feeds = localStorage.OTDfeeds ? JSON.parse(localStorage.OTDfeeds) : {};
+let columns = localStorage.OTDcolumns ? JSON.parse(localStorage.OTDcolumns) : {};
+let settings = localStorage.OTDsettings ? JSON.parse(localStorage.OTDsettings) : null;
+
+function cleanUp() {
+    let ids = localStorage.OTDcolumnIds ? JSON.parse(localStorage.OTDcolumnIds) : [];
+    for(let columnId in columns) {
+        if(!ids.includes(columnId)) {
+            delete columns[columnId];
+        }
+    }
+    localStorage.OTDcolumns = JSON.stringify(columns);
+    for(let id in feeds) {
+        if(!localStorage.OTDcolumns.includes(id)) {
+            delete feeds[id];
+        }
+    }
+    localStorage.OTDfeeds = JSON.stringify(feeds);
+}
 
 function getFollows(cursor = -1, count = 5000) {
 	return new Promise(function (resolve, reject) {
@@ -1491,12 +1515,12 @@ const proxyRoutes = [
             xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow`;
         },
         afterRequest: (xhr) => {
-            const state = localStorage.OTD_tweetdeck_state ? JSON.parse(localStorage.OTD_tweetdeck_state) : {
+            const state = {
                 client: {
-                    columns: [],
+                    columns: localStorage.OTDcolumnIds ? JSON.parse(localStorage.OTDcolumnIds) : [],
                     mtime: new Date().toISOString(),
                     name: "blackbird",
-                    settings: {
+                    settings: settings ?? {
                         account_whitelist: [`twitter:${verifiedUser.id_str}`],
                         default_account: `twitter:${verifiedUser.id_str}`,
                         recent_searches: [],
@@ -1515,15 +1539,23 @@ const proxyRoutes = [
                         version: 2
                     },
                 },
-                columns: {},
+                columns: columns ?? {},
                 decider: {},
-                feeds: {},
-                messages: []
+                feeds: feeds ?? {},
+                messages: [],
+                new: true
             };
+            if(!settings) {
+                settings = state.client.settings;
+                localStorage.OTDsettings = JSON.stringify(settings);
+            }
+            cleanUp();
+            console.log('state', state);
 
             return state;
         },
     },
+    // emulate sending state data
     {
         path: "/1.1/tweetdeck/clients/blackbird",
         method: "POST",
@@ -1536,8 +1568,84 @@ const proxyRoutes = [
             xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_push`;
             xhr.modMethod = "GET";
         },
+        beforeSendBody: (xhr, body) => {
+            let json = JSON.parse(body);
+            console.log('state push', json);
+            if(json.columns) {
+                localStorage.OTDcolumnIds = JSON.stringify(json.columns);
+            }
+            if(json.settings && settings) {
+                for(let key in json.settings) {
+                    settings[key] = json.settings[key];
+                }
+                localStorage.OTDsettings = JSON.stringify(settings);
+            }
+            cleanUp();
+            return body;
+        },
         afterRequest: (xhr) => {
             return "";
+        }
+    },
+    // emulate sending feeds
+    {
+        path: "/1.1/tweetdeck/feeds",
+        method: "POST",
+        responseHeaderOverride: {
+            "X-Td-Mtime": () => {
+                return new Date().toISOString();
+            },
+        },
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_feeds_push`;
+            xhr.modMethod = "GET";
+        },
+        beforeSendBody: (xhr, body) => {
+            let json = JSON.parse(body);
+            let ids = [];
+            for(let i = 0; i < json.length; i++) {
+                const id = generateID();
+                ids.push(id);
+                feeds[id] = json[i];
+            }
+            xhr.storage.ids = ids;
+            localStorage.OTDfeeds = JSON.stringify(feeds);
+            console.log('feeds push', json, ids);
+            return body;
+        },
+        afterRequest: (xhr) => {
+            return xhr.storage.ids;
+        }
+    },
+    // emulate sending columns
+    {
+        path: "/1.1/tweetdeck/columns",
+        method: "POST",
+        responseHeaderOverride: {
+            "X-Td-Mtime": () => {
+                return new Date().toISOString();
+            },
+        },
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_columns_push`;
+            xhr.modMethod = "GET";
+        },
+        beforeSendBody: (xhr, body) => {
+            let json = JSON.parse(body);
+            let ids = [];
+            for(let i = 0; i < json.length; i++) {
+                const id = generateID();
+                ids.push(id);
+                columns[id] = json[i];
+            }
+            xhr.storage.ids = ids;
+            localStorage.OTDcolumns = JSON.stringify(columns);
+            localStorage.OTDcolumnIds = JSON.stringify(ids);
+            console.log('columns push', json, ids);
+            return body;
+        },
+        afterRequest: (xhr) => {
+            return xhr.storage.ids;
         }
     },
     // getting user
@@ -1647,7 +1755,7 @@ XMLHttpRequest = function () {
                 }
                 headers = Object.entries(objHeaders).map(([name, value]) => `${name}: ${value}`).join("\r\n");
             }
-            
+
             return headers;
         },
     });

@@ -17628,7 +17628,19 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<span class="inline-block">Using OldTweetDeck by <a href="https://dimden.dev/" target="_blank">dimden</a></span> <span class="aria-hidden">&middot;</span> <a href="https://dimden.dev/donate" target="_blank">{{_i}}Please Donate!{{/i}}</a> <span class="aria-hidden">&middot;</span> <span class="inline-block">{{version}}</span>');
+                `<span class="inline-block">Using OldTweetDeck by <a href="https://dimden.dev/" target="_blank">dimden</a></span> <span class="aria-hidden">&middot;</span> <a href="https://dimden.dev/donate" target="_blank">{{_i}}Please Donate!{{/i}}</a> <span class="aria-hidden">&middot;</span> <span class="inline-block">{{version}}</span>
+				<br><br>
+				<button class="Button--primary" onclick="importState()">
+					<span class="label">
+						Import state
+					</span>
+				</button>
+				<button class="Button--primary" onclick="exportState()">
+					<span class="label">
+						Export state
+					</span>
+				</button>
+				`);
     },
     function (e, t, i) {
         "use strict";

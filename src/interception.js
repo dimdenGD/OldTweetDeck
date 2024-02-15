@@ -14,6 +14,47 @@ let feeds = localStorage.OTDfeeds ? JSON.parse(localStorage.OTDfeeds) : {};
 let columns = localStorage.OTDcolumns ? JSON.parse(localStorage.OTDcolumns) : {};
 let settings = localStorage.OTDsettings ? JSON.parse(localStorage.OTDsettings) : null;
 
+function exportState() {
+	const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify({
+        feeds, 
+        columns,
+        settings,
+        columnIds: localStorage.OTDcolumnIds ? JSON.parse(localStorage.OTDcolumnIds) : []
+    })], {type: 'application/json'}));
+    a.download = 'OTDState.json';
+    a.click();
+}
+
+function importState() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.json';
+    input.onchange = async () => {
+        const file = input.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+            const text = e.target.result;
+            try {
+                const data = JSON.parse(text);
+                if(!data.feeds || !data.columns || !data.settings || !data.columnIds) {
+                    throw new Error("Invalid file");
+                }
+                localStorage.OTDfeeds = JSON.stringify(data.feeds);
+                localStorage.OTDcolumns = JSON.stringify(data.columns);
+                localStorage.OTDsettings = JSON.stringify(data.settings);
+                localStorage.OTDcolumnIds = JSON.stringify(data.columnIds);
+                location.reload();
+            } catch(e) {
+                alert("Error parsing file");
+            }
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
 function cleanUp() {
     let ids = localStorage.OTDcolumnIds ? JSON.parse(localStorage.OTDcolumnIds) : [];
     for(let columnId in columns) {

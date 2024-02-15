@@ -8119,11 +8119,11 @@ document.body.addEventListener("click", function (e) {
 		}
 		return i
 	}, h.flushDataFromStore = function(e, t) {
-		t = (t || []).concat(f), h.wipe(e, t)
+		// t = (t || []).concat(f), h.wipe(e, t)
 	}, h.flushBackend = function(e, t) {
 		return h.flushDataFromStore(p[e], t)
 	}, h.wipeAll = function() {
-		[localStorage, sessionStorage].forEach(h.wipe)
+		// [localStorage, sessionStorage].forEach(h.wipe)
 	}, h.wipe = function(e, t) {
 		var i = {};
 		(t = (0, a.default)((t || []).concat(m))).forEach(function(t) {

@@ -32948,7 +32948,6 @@ document.body.addEventListener("click", function (e) {
                 }),
                 (f.prototype.getApiid = function () {
                     var e = this.getPrivate("apiid");
-					console.log(e);
                     return t.assert(e, "missing apiid", this), e;
                 }),
                 (f.prototype.hasApiid = function () {

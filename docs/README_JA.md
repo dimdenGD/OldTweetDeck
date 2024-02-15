@@ -223,4 +223,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [294882a](https://github.com/dimdenGD/OldTweetDeck/commit/294882a3d5de029b2b1158d331c8549c941e34ac)  
-* 更新履歴: release/tag [v3.2.3](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.2.3)
+* 更新履歴: release/tag [v3.3.1](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.3.1)

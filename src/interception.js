@@ -4,6 +4,7 @@ const PUBLIC_TOKENS = [
 ];
 const NEW_API = "https://twitter.com/i/api/graphql";
 const cursors = {};
+let verifiedUser = localStorage.OTDverifiedUser ? JSON.parse(localStorage.OTDverifiedUser) : null;
 
 function getFollows(cursor = -1, count = 5000) {
 	return new Promise(function (resolve, reject) {
@@ -232,7 +233,7 @@ function getCurrentUserId() {
     let accounts = TD.storage.accountController.getAll();
     let screen_name = TD.storage.accountController.getUserIdentifier();
     let account = accounts.find((account) => account.state.username === screen_name);
-    return account.state.userId;
+    return account?.state?.userId ?? verifiedUser?.id_str ?? localStorage.twitterAccountID;
 }
 
 function generateParams(features, variables, fieldToggles) {
@@ -1486,19 +1487,73 @@ const proxyRoutes = [
     {
         path: "/1.1/tweetdeck/clients/blackbird/all",
         method: "GET",
-        afterRequest: (xhr) => {
-            // Save state to localstorage in case twitter shuts this api down so I can restore it for users later
-            if (xhr.status === 200 && xhr.responseText.length > 100) {
-                try {
-                    JSON.parse(xhr.responseText);
-                    localStorage.setItem("OTD_tweetdeck_state", xhr.responseText);
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-
-            return xhr.responseText;
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow`;
         },
+        afterRequest: (xhr) => {
+            const state = localStorage.OTD_tweetdeck_state ? JSON.parse(localStorage.OTD_tweetdeck_state) : {
+                client: {
+                    columns: [],
+                    mtime: new Date().toISOString(),
+                    name: "blackbird",
+                    settings: {
+                        account_whitelist: [`twitter:${verifiedUser.id_str}`],
+                        default_account: `twitter:${verifiedUser.id_str}`,
+                        recent_searches: [],
+                        display_sensitive_media: false,
+                        name_cache: {
+                            customTimelines: {},
+                            lists: {},
+                            users: {}
+                        },
+                        navbar_width: "full-size",
+                        previous_splash_version: "4.0.220811153004",
+                        show_search_filter_callout: false,
+                        show_trends_filter_callout: false,
+                        theme: "light",
+                        use_narrow_columns: null,
+                        version: 2
+                    },
+                },
+                columns: {},
+                decider: {},
+                feeds: {},
+                messages: []
+            };
+
+            return state;
+        },
+    },
+    {
+        path: "/1.1/tweetdeck/clients/blackbird",
+        method: "POST",
+        responseHeaderOverride: {
+            "x-td-mtime": () => {
+                return new Date().toISOString();
+            },
+        },
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_push`;
+            xhr.modMethod = "GET";
+        },
+        afterRequest: (xhr) => {
+            return "";
+        }
+    },
+    // getting user
+    {
+        path: "/1.1/account/verify_credentials.json",
+        method: "GET",
+        afterRequest: (xhr) => {
+            try {
+                let data = JSON.parse(xhr.responseText);
+                verifiedUser = data;
+                localStorage.OTDverifiedUser = JSON.stringify(data);
+            } catch (e) {
+                console.error(e);
+            }
+            return xhr.responseText;
+        }
     },
 ];
 
@@ -1529,7 +1584,7 @@ XMLHttpRequest = function () {
                 this.proxyRoute.beforeRequest(this);
             }
 
-            this.open(method, this.modUrl, async, username, password);
+            this.open(this.modMethod, this.modUrl, async, username, password);
         },
         setRequestHeader(name, value) {
             this.modReqHeaders[name] = value;
@@ -1587,20 +1642,12 @@ XMLHttpRequest = function () {
                     let headerValue = splitHeader[1];
                     objHeaders[headerName.toLowerCase()] = headerValue;
                 }
-                for (let i in splitHeaders) {
-                    let header = splitHeaders[i];
-                    let splitHeader = header.split(": ");
-                    let headerName = splitHeader[0];
-                    let headerValue = splitHeader[1];
-                    if (this.proxyRoute.responseHeaderOverride[headerName.toLowerCase()]) {
-                        splitHeaders[i] = `${headerName}: ${this.proxyRoute.responseHeaderOverride[
-                            headerName.toLowerCase()
-                        ](headerValue, objHeaders)}`;
-                    }
+                for(let header in this.proxyRoute.responseHeaderOverride) {
+                    objHeaders[header.toLowerCase()] = this.proxyRoute.responseHeaderOverride[header]();
                 }
-                headers = splitHeaders.join("\r\n");
+                headers = Object.entries(objHeaders).map(([name, value]) => `${name}: ${value}`).join("\r\n");
             }
-
+            
             return headers;
         },
     });

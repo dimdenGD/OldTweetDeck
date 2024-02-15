@@ -11440,7 +11440,7 @@ document.body.addEventListener("click", function (e) {
 	i.r(t), t.default = '<div class="{{spinnerClasses}}"> <img src="{{#asset}}/global/backgrounds/spinner_large_white.gif{{/asset}}" alt="{{_i}}Loading…{{/i}}"/> </div>'
 }, function(e, t, i) {
 	"use strict";
-	i.r(t), t.default = '<div class="release-notes-header nbfc"> <img class="release-notes-image pull-left" src="{{#asset}}/logos/64.png{{/asset}}" alt="{{_i}}TweetDeck logo{{/i}}"> <h1 class="release-notes-header-title">{{_i}}Welcome to TweetDeck{{/i}}</h1> </div> <div class="release-notes"> <div class="release-notes-section nbfc"> <img class="release-notes-image-bullet pull-left" src="{{#asset}}/global/backgrounds/td_whatsnew_01.png{{/asset}}" alt="{{_i}}Create Collections{{/i}}"> <h2>{{_i}}Create a custom Twitter experience{{/i}}</h2> <p>{{_i}}Organize and build Collections, keep track of Lists, searches, activity and more. Click the + in the sidebar.{{/i}}</p> </div> <div class="release-notes-section nbfc"> <img class="release-notes-image-bullet pull-left" src="{{#asset}}/global/backgrounds/td_whatsnew_02.png{{/asset}}" alt="{{_i}}Create filters{{/i}}"> <h2>{{_i}}Find exactly what you&rsquo;re looking for{{/i}}</h2> <p>{{_i}}Create searches to track topics, events and hashtags. Refine the results with filters at the top of each timeline.{{/i}}</p> </div> <div class="release-notes-section margin-bn nbfc"> <img class="release-notes-image-bullet pull-left" src="{{#asset}}/global/backgrounds/td_whatsnew_03.png{{/asset}}" alt="{{_i}}Multiple accounts{{/i}}"> <h2>{{_i}}Manage multiple accounts{{/i}}</h2> <p>{{_i}}Tweet, monitor and follow new accounts from all &mdash; or just one of your accounts. Add another account in <a href="#" data-action="openSettings"><i class="icon icon-user-switch icon-bot"></i> Accounts</a>.{{/i}}</p> </div> </div> <button class="js-done Button--primary obj-center margin-tl"><i class="add"></i>{{_i}}Get started{{/i}}</button>'
+	i.r(t), t.default = '<div class="release-notes-header nbfc"> <img class="release-notes-image pull-left" src="{{#asset}}/logos/64.png{{/asset}}" alt="{{_i}}TweetDeck logo{{/i}}"> <h1 class="release-notes-header-title">{{_i}}Welcome to OldTweetDeck{{/i}}</h1> </div> <div class="release-notes"> <div class="release-notes-section nbfc"> <img class="release-notes-image-bullet pull-left" src="{{#asset}}/global/backgrounds/td_whatsnew_01.png{{/asset}}" alt="{{_i}}Create Collections{{/i}}"> <h2>{{_i}}Create a custom Twitter experience{{/i}}</h2> <p>{{_i}}Organize and build Collections, keep track of Lists, searches, activity and more. Click the + in the sidebar.{{/i}}</p> </div> <div class="release-notes-section nbfc"> <img class="release-notes-image-bullet pull-left" src="{{#asset}}/global/backgrounds/td_whatsnew_02.png{{/asset}}" alt="{{_i}}Create filters{{/i}}"> <h2>{{_i}}Find exactly what you&rsquo;re looking for{{/i}}</h2> <p>{{_i}}Create searches to track topics, events and hashtags. Refine the results with filters at the top of each timeline.{{/i}}</p> </div> <div class="release-notes-section margin-bn nbfc"> <img class="release-notes-image-bullet pull-left" src="{{#asset}}/global/backgrounds/td_whatsnew_03.png{{/asset}}" alt="{{_i}}Multiple accounts{{/i}}"> <h2>{{_i}}Manage multiple accounts{{/i}}</h2> <p>{{_i}}Tweet, monitor and follow new accounts from all &mdash; or just one of your accounts. Add another account in <a href="#" data-action="openSettings"><i class="icon icon-user-switch icon-bot"></i> Accounts</a>.{{/i}}</p> </div> </div> <button class="js-done Button--primary obj-center margin-tl"><i class="add"></i>{{_i}}Get started{{/i}}</button>'
 }, function(e, t, i) {
 	"use strict";
 	i.r(t), t.default = '<div class="startflow-background pin-all anim anim-slower anim-fade-in"></div> <div class="js-startflow-chrome app-masthead anim anim-slow anim-delayed anim-fade-in {{#withLoading}}is-hidden{{/withLoading}}"> <div class="app-signin-wrap"> <h1 class="sprite sprite-logo" aria-label="TweetDeck"></h1> </div> </div> <div class="js-startflow-content startflow anim anim-slow anim-fade-in"> {{$content}}{{/content}} </div> <footer class="js-startflow-chrome txt-center privacy-info pin-bottom-full-width padding-v--6 anim anim-slow anim-delayed anim-fade-in {{#withLoading}}is-hidden{{/withLoading}}"> <p> {{> app_links}} </p> </footer>'
@@ -20241,6 +20241,7 @@ document.body.addEventListener("click", function (e) {
 		else {
 			s.assert((0, c.default)(e), "don't know how to handle response");
 			var l = n["x-td-mtime"];
+			console.log(n);
 			s.assert(l, "require x-td-mtime header in object PUT"), s.verboseLog("_processTSResult", t, e), a = t.commit(i, l)
 		}
 		return a
@@ -20477,8 +20478,8 @@ document.body.addEventListener("click", function (e) {
 						}
 					}
 				},
-				t = TD.net.ajax.request(TD.config.twitter_api_base + "/1.1/tweetdeck/clients", {
-					method: "POST",
+				t = TD.net.ajax.request(TD.config.twitter_api_base + "/1.1/help/settings.json?meow_post", {
+					method: "GET",
 					params: (0, c.default)(e)
 				});
 			return t.addCallbackWith(this, function(t) {

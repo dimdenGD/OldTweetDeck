@@ -745,7 +745,6 @@ abbr[title] {
 }
 .scroll-v {
     overflow-y: auto;
-    scrollbar-width: thin
 }
 .scroll-h {
     overflow-y: hidden;

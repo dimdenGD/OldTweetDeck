@@ -23,7 +23,7 @@ jobs:
         
       - name: Setup NPM packages
         run: npm install
-        
+
       - name: Pack extension
         run: npm run build
 

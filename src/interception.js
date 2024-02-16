@@ -71,10 +71,10 @@ function cleanUp() {
     localStorage.OTDfeeds = JSON.stringify(feeds);
 }
 
-function getFollows(cursor = -1, count = 5000) {
+function getFollows(id = getCurrentUserId(), cursor = -1, count = 5000) {
 	return new Promise(function (resolve, reject) {
 		var xhr = new XMLHttpRequest();
-		xhr.open("GET", `https://api.twitter.com/1.1/friends/ids.json?cursor=${cursor}&stringify_ids=true&count=${count}`, true);
+		xhr.open("GET", `https://api.twitter.com/1.1/friends/ids.json?user_id=${id}&cursor=${cursor}&stringify_ids=true&count=${count}`, true);
 		xhr.setRequestHeader("X-Twitter-Active-User", "yes");
 		xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
 		xhr.setRequestHeader("X-Twitter-Client-Language", "en");
@@ -99,21 +99,25 @@ function getFollows(cursor = -1, count = 5000) {
 
 let followsData = JSON.parse(localStorage.OTDfollowsData || "{}");
 
-function updateFollows() {
-    let id = getCurrentUserId() ?? localStorage.twitterAccountID;
+let updatingFollows = false;
+function updateFollows(id = getCurrentUserId()) {
     if(followsData[id] && followsData[id].lastUpdate && Date.now() - +followsData[id].lastUpdate < 1000 * 60 * 60 * 6) return;
+    if(updatingFollows) return;
+    updatingFollows = true;
+
     if(!followsData[id]) followsData[id] = {};
     let newfollows = [];
     let cursor = -1;
     let count = 5000;
     let i = 0;
     let get = async () => {
-        let res = await getFollows(cursor, count);
+        let res = await getFollows(id, cursor, count);
         newfollows = newfollows.concat(res.ids);
         if(res.next_cursor_str === "0" || i++ > 10) {
             followsData[id].lastUpdate = Date.now();
             followsData[id].data = newfollows;
             localStorage.OTDfollowsData = JSON.stringify(followsData);
+            updatingFollows = false;
             return;
         }
         cursor = res.next_cursor_str;
@@ -368,11 +372,13 @@ const proxyRoutes = [
         //     }
         // },
         beforeSendHeaders: (xhr) => {
+            xhr.storage.user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
             xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+            updateFollows(xhr.storage.user_id);
         },
         afterRequest: (xhr) => {
             let data;
@@ -390,13 +396,13 @@ const proxyRoutes = [
                 return data;
             } 
 
-            let currentUserId = getCurrentUserId();
-            let follows = followsData[currentUserId];
+            let userId = xhr.storage.user_id;
+            let follows = followsData[userId];
             if(follows) follows = follows.data;
             else follows = [];
             let filtered = data.filter(t => 
                 !t.in_reply_to_user_id_str || // not a reply
-                t.user.id_str === currentUserId || // my tweet
+                t.user.id_str === userId || // my tweet
                 (
                     // reply to someone i follow from someone i follow
                     follows.includes(t.in_reply_to_user_id_str) && 
@@ -404,7 +410,7 @@ const proxyRoutes = [
                 ) ||
                 (
                     // reply to me from someone i follow
-                    t.in_reply_to_user_id_str === currentUserId &&
+                    t.in_reply_to_user_id_str === userId &&
                     t.user.following
                 )
             );

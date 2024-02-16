@@ -18213,7 +18213,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<section class="js-login-form form-login startflow-panel-rounded" data-auth-type="twitter" aria-labelledby="login-form-title"> <h2 class="form-legend padding-axl" id="login-form-title"> {{_i}}Log in with your Twitter account{{/i}} </h2> <div class="margin-a--16"> {{> login/login_form_message}}</div> <div class="divider-bar margin-v--0 margin-h--16"></div> <div class="padding-axl"> {{_i}}Donate to OldTweetDeck developer:{{/i}} <a href="https://dimden.dev/donate" class="startflow-link" rel="url" target="_blank">{{_i}}dimden.dev/donate{{/i}} &raquo;</a></p> </div> </section>');
+                '<section class="js-login-form form-login startflow-panel-rounded" data-auth-type="twitter" aria-labelledby="login-form-title"> <h2 class="form-legend padding-axl" id="login-form-title"> {{_i}}Log in with your Twitter account{{/i}} </h2> <div class="margin-a--16"> {{> login/login_form_message}} <a href="{{twitterLoginUrl}}" class="Button Button--primary block txt-size--18 txt-center"> Log in </a> </div> <div class="divider-bar margin-v--0 margin-h--16"></div> <div class="padding-axl"> {{_i}}Donate to OldTweetDeck developer:{{/i}} <a href="https://dimden.dev/donate" class="startflow-link" rel="url" target="_blank">{{_i}}dimden.dev/donate{{/i}} &raquo;</a></p> </div> </section>');
     },
     function (e, t, i) {
         "use strict";

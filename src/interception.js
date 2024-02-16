@@ -400,7 +400,7 @@ const proxyRoutes = [
                 (
                     // reply to someone i follow from someone i follow
                     follows.includes(t.in_reply_to_user_id_str) && 
-                    t.user.following
+                    t.user.following && t.entities.user_mentions.every(user => follows.includes(user.id_str))
                 ) ||
                 (
                     // reply to me from someone i follow

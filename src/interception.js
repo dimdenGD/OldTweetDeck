@@ -1645,7 +1645,7 @@ const proxyRoutes = [
             let json = JSON.parse(body);
             let ids = [];
             for(let i = 0; i < json.length; i++) {
-                const id = generateID();
+                const id = json[i].id ?? generateID();
                 ids.push(id);
                 feeds[id] = json[i];
             }

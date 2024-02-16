@@ -13,10 +13,10 @@ jobs:
 
     steps:
       - name: Checkout Source Tree
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js environment
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
 
       - name: Install ZIP
         uses: montudor/action-zip@v1
@@ -32,12 +32,12 @@ jobs:
         working-directory: ${{ github.workspace }}
         
       - name: Upload for Firefox
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: OldTweetDeckFirefox
           path: ${{ github.workspace }}/OldTweetDeckFirefox
       - name: Upload for Chromium
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v4
         with:
           name: OldTweetDeckChrome
           path: ${{ github.workspace }}/OldTweetDeckChrome

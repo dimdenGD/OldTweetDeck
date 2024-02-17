@@ -74,6 +74,11 @@ TweetDeckのファイルが更新された場合は、タブを再読み込み�
 API制限に達しているため読み込めていません。しばらくしてAPI制限が解除されるとまた表示されます。  
 
 ## 更新履歴
+### 3.4.0
+* メインアカウント以外で他のユーザーのリプライが表示される問題を修正
+* フォロー中のユーザーが自分自身にリプライをしている場合、他のユーザーのリプライが表示される問題を修正
+* 複数アカウントでの"いいね"メニューが常にアカウントをプライベートアカウントとして表示し、"いいね"の状態が正しく表示されない問題を修正
+
 ### 3.3.3
 * カラムが消える問題を更に修正
 
@@ -230,4 +235,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [294882a](https://github.com/dimdenGD/OldTweetDeck/commit/294882a3d5de029b2b1158d331c8549c941e34ac)  
-* 更新履歴: release/tag [v3.3.3](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.3.3)
+* 更新履歴: release/tag [v3.4.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.4.0)

@@ -398,7 +398,7 @@ const proxyRoutes = [
 
             let userId = xhr.storage.user_id;
             let follows = followsData[userId];
-            if(follows) follows = follows.data;
+            if(follows && follows.data) follows = follows.data;
             else follows = [];
             let filtered = data.filter(t => 
                 !t.in_reply_to_user_id_str || // not a reply

@@ -28,7 +28,7 @@
 
 #### Nightly / Developer Edition
 
-1. [リリースページ](https://github.com/dimdenGD/OldTweetDeck/releases) から `OldTweetDeckChrome.zip` をダウンロードする
+1. [リリースページ](https://github.com/dimdenGD/OldTweetDeck/releases) から `OldTweetDeckFirefox.zip` をダウンロードする
 2. 高度な設定ページを開く (`about:config`)
 3. `xpinstall.signatures.required` の設定を false に変更する
 4. アドオンページを開く (`about:addons`)

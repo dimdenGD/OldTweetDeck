@@ -111,7 +111,7 @@
     }
 
     let challenge_js_script = document.createElement("script");
-    challenge_js_script.innerHTML = challenge_js.value.replaceAll('${chrome.runtime.id}', chrome.runtime.id);
+    challenge_js_script.innerHTML = challenge_js.value.replaceAll('SANDBOX_URL', chrome.runtime.getURL("sandbox.html"));
     document.head.appendChild(challenge_js_script);
 
     let interception_js_script = document.createElement("script");

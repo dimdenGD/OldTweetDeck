@@ -3,8 +3,18 @@ let solveCallbacks = {};
 
 let solverIframe = document.createElement('iframe');
 solverIframe.style.display = 'none';
-solverIframe.src = `chrome-extension://${chrome.runtime.id}/sandbox.html`;
-document.body.appendChild(solverIframe);
+solverIframe.src = "SANDBOX_URL";
+let injectedBody = document.getElementById('injected-body');
+if(injectedBody) injectedBody.appendChild(solverIframe);
+else {
+    let int = setInterval(() => {
+        injectedBody = document.getElementById('injected-body');
+        if(injectedBody) {
+            clearInterval(int);
+            injectedBody.appendChild(solverIframe);
+        }
+    }, 50);
+}
 
 function uuidV4() {
     const uuid = new Array(36);

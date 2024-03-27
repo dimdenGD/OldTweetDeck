@@ -400,6 +400,7 @@ const proxyRoutes = [
             let follows = followsData[userId];
             if(follows && follows.data) follows = follows.data;
             else follows = [];
+
             let filtered = data.filter(t => 
                 !t.in_reply_to_user_id_str || // not a reply
                 t.user.id_str === userId || // my tweet
@@ -709,9 +710,12 @@ const proxyRoutes = [
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            // xhr.modReqHeaders["Authorization"] =
+            //     "Bearer AAAAAAAAAAAAAAAAAAAAAG5LOQEAAAAAbEKsIYYIhrfOQqm4H8u7xcahRkU%3Dz98HKmzbeXdKqBfUDmElcqYl0cmmKY9KdS2UoNIz3Phapgsowi";
             xhr.modReqHeaders["Authorization"] =
                 PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? (Math.random() > 0.5 ? 1 : 0) : 0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+            // delete xhr.modReqHeaders["x-act-as-user-id"];
         },
         afterRequest: (xhr) => {
             let data;
@@ -908,34 +912,13 @@ const proxyRoutes = [
                 let params = new URLSearchParams(url.search);
                 let variables = {
                     rawQuery: params.get("q"),
-                    count: 40,
+                    count: 20,
                     querySource: "typed_query",
                     product: "Latest",
                 };
-                let features = {
-                    rweb_lists_timeline_redesign_enabled: false,
-                    responsive_web_graphql_exclude_directive_enabled: true,
-                    verified_phone_label_enabled: false,
-                    creator_subscriptions_tweet_preview_api_enabled: true,
-                    responsive_web_graphql_timeline_navigation_enabled: true,
-                    responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-                    tweetypie_unmention_optimization_enabled: true,
-                    responsive_web_edit_tweet_api_enabled: true,
-                    graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-                    view_counts_everywhere_api_enabled: true,
-                    longform_notetweets_consumption_enabled: true,
-                    responsive_web_twitter_article_tweet_consumption_enabled: false,
-                    tweet_awards_web_tipping_enabled: false,
-                    freedom_of_speech_not_reach_fetch_enabled: true,
-                    standardized_nudges_misinfo: true,
-                    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
-                    longform_notetweets_rich_text_read_enabled: true,
-                    longform_notetweets_inline_media_enabled: true,
-                    responsive_web_media_download_video_enabled: false,
-                    responsive_web_enhance_cards_enabled: false,
-                };
+                let features = {"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"tweetypie_unmention_optimization_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"rweb_video_timestamps_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_enhance_cards_enabled":false};
 
-                xhr.modUrl = `${NEW_API}/nK1dw4oV3k4w5TdtcAdSww/SearchTimeline?${generateParams(
+                xhr.modUrl = `${NEW_API}/l0dLMlz_fHji3FT8AfrvxA/SearchTimeline?${generateParams(
                     features,
                     variables
                 )}`;
@@ -1136,7 +1119,6 @@ const proxyRoutes = [
         },
         beforeSendBody: (xhr, body) => {
             let params = Object.fromEntries(new URLSearchParams(body));
-            console.log(params);
             let variables = {
                 tweet_text: params.status,
                 media: {
@@ -1815,7 +1797,20 @@ XMLHttpRequest = function () {
         setRequestHeader(name, value) {
             this.modReqHeaders[name] = value;
         },
-        send(body = null) {
+        async send(body = null) {
+            let parsedUrl = new URL(this.modUrl);
+            let method = this.modMethod;
+            if(!method) {
+                method = "GET";
+            } else {
+                method = method.toUpperCase();
+            }
+            this.setRequestHeader('X-Client-UUID', localStorage.device_id);
+            try {
+                this.setRequestHeader('x-client-transaction-id', await solveChallenge(parsedUrl.pathname, method));
+            } catch (e) {
+                console.error("Error solving challenge", e);
+            }
             if (this.proxyRoute && this.proxyRoute.beforeSendHeaders) {
                 this.proxyRoute.beforeSendHeaders(this);
             }

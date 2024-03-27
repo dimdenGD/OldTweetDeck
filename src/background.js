@@ -112,7 +112,8 @@ chrome.webRequest.onBeforeRequest.addListener(
                     path.startsWith("/responsive-web/client-web-legacy/") ||
                     path.startsWith("/responsive-web/client-web/")
                 ) &&
-                requestFrom === "https://twitter.com/i/tweetdeck"
+                requestFrom === "https://twitter.com/i/tweetdeck" &&
+                !path.includes('ondemand.s.')
             ) {
                 return {
                     cancel: true,

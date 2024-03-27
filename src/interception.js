@@ -1805,11 +1805,13 @@ XMLHttpRequest = function () {
             } else {
                 method = method.toUpperCase();
             }
-            this.setRequestHeader('X-Client-UUID', localStorage.device_id);
-            try {
-                this.setRequestHeader('x-client-transaction-id', await solveChallenge(parsedUrl.pathname, method));
-            } catch (e) {
-                console.error("Error solving challenge", e);
+            if(localStorage.device_id) this.setRequestHeader('X-Client-UUID', localStorage.device_id);
+            if(window.solveChallenge) {
+                try {
+                    this.setRequestHeader('x-client-transaction-id', await solveChallenge(parsedUrl.pathname, method));
+                } catch (e) {
+                    console.error("Error solving challenge", e);
+                }
             }
             if (this.proxyRoute && this.proxyRoute.beforeSendHeaders) {
                 this.proxyRoute.beforeSendHeaders(this);

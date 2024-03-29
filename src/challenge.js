@@ -3,7 +3,7 @@ let solveCallbacks = {};
 
 let solverIframe = document.createElement('iframe');
 solverIframe.style.display = 'none';
-solverIframe.src = "SANDBOX_URL";
+solverIframe.src = "SOLVER_URL";
 let injectedBody = document.getElementById('injected-body');
 if(injectedBody) injectedBody.appendChild(solverIframe);
 else {
@@ -105,7 +105,7 @@ window.addEventListener('message', e => {
         function sendInit() {
             solverIframe.contentWindow.postMessage({
                 action: 'init',
-                code: challengeData,
+                challenge: challengeData,
                 anims,
                 verificationCode: dom.querySelector('meta[name="twitter-site-verification"]').content,
             }, '*');

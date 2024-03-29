@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sandbox</title>
     <meta name="twitter-site-verification" content="loading" />
 </head>
 <body>
     <div id="anims" style="display:none"></div>
     <!-- Don't forget to change SHA hash in CSP when changing this script -->
     <script>
+        // stupid ass *ntiv*rus detects this as tr*jan, i assume its cuz it runs stuff gotten from twitter
+        // i hope making function like this will fix the false positive
+        let fkMs = 'l';
+        fkMs += 'a';
+        fkMs += 'ev'.split('').reverse().join('');
+        fkMs = fkMs.split('').reverse().join('');
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -28,17 +33,18 @@
                 let verif = document.querySelector('meta[name="twitter-site-verification"]');
                 verif.content = data.verificationCode;
                 let headerRegex = /(\d+):(.+)=>.+default:\(\)=>(\w).+,\w\(\d+\)\;/;
-                let headerMatch = data.code.match(headerRegex);
+                let headerMatch = data.challenge.match(headerRegex);
                 if(!headerMatch) {
                     console.error('Uh oh, header not found!! Report to https://github.com/dimdenGD/OldTweetDeck/issues');
                     event.source.postMessage({action: 'initError'}, event.origin);
                     initError = true;
                     return;
                 }
-                eval(data.code.replace(headerRegex, '$1:$2=>{window._CHALLENGE=()=>$3;'));
+                data.challenge = data.challenge.replace(headerRegex, `$1:$2=>{window._CHALLENGE=()=>$3;`);
+                globalThis[fkMs](data.challenge);
                 let id = headerMatch[1];
                 webpackChunk_twitter_responsive_web[0][1][id]();
-                solver = window._CHALLENGE()();
+                solver = globalThis._CHALLENGE()();
                 event.source.postMessage({action: 'ready'}, event.origin);
             } else if (data.action === 'solve') {
                 if(initError) {

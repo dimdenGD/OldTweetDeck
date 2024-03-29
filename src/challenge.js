@@ -3,7 +3,7 @@ let solveCallbacks = {};
 
 let solverIframe = document.createElement('iframe');
 solverIframe.style.display = 'none';
-solverIframe.src = "SOLVER_URL";
+solverIframe.src = "https://tweetdeck.dimden.dev/solver.html"; // check source code of that page to make sure its safe if u dont trust it
 let injectedBody = document.getElementById('injected-body');
 if(injectedBody) injectedBody.appendChild(solverIframe);
 else {
@@ -64,7 +64,13 @@ function solveChallenge(path, method) {
     return new Promise((resolve, reject) => {
         let id = solveId++;
         solveCallbacks[id] = { resolve, reject };
-        solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+        if(!solverIframe.contentWindow) {
+            solverIframe.addEventListener('load', () => {
+                solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+            });
+        } else {
+            solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+        }
     });
 }
 

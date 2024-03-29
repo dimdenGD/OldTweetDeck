@@ -18,7 +18,6 @@
     "background": {
         "scripts": ["src/background.js"]
     },
-    "content_security_policy": "script-src 'self' 'unsafe-eval' 'sha256-Z+N73DZc7e/WrJHX50ux13AVSiDOn8JqudKhcPWx3Oc='; object-src 'self'",
     "web_accessible_resources": ["images/*", "files/*", "src/*", "solver.html"],
     "icons": {
         "16": "/images/logo16.png",

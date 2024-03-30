@@ -1,9 +1,17 @@
 let solveId = 0;
 let solveCallbacks = {};
+let solverErrored = false;
 
 let solverIframe = document.createElement('iframe');
 solverIframe.style.display = 'none';
 solverIframe.src = "https://tweetdeck.dimden.dev/solver.html"; // check source code of that page to make sure its safe if u dont trust it
+fetch(solverIframe.src).catch(() => {
+    console.error("Cannot load solver iframe");
+    solverErrored = true;
+    for(let id in solveCallbacks) {
+        solveCallbacks[id].reject('Solver errored');
+    }
+});
 let injectedBody = document.getElementById('injected-body');
 if(injectedBody) injectedBody.appendChild(solverIframe);
 else {
@@ -62,14 +70,30 @@ async function readCryptoKey() {
 
 function solveChallenge(path, method) {
     return new Promise((resolve, reject) => {
+        if(solverErrored) {
+            reject('Solver errored');
+            return;
+        }
         let id = solveId++;
-        solveCallbacks[id] = { resolve, reject };
+        solveCallbacks[id] = { resolve, reject, time: Date.now() };
         if(!solverIframe.contentWindow) {
             solverIframe.addEventListener('load', () => {
                 solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+                setTimeout(() => {
+                    if(solveCallbacks[id]) {
+                        solveCallbacks[id].reject('Solver timed out');
+                        delete solveCallbacks[id];
+                    }
+                }, 300);
             });
         } else {
             solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+            setTimeout(() => {
+                if(solveCallbacks[id]) {
+                    solveCallbacks[id].reject('Solver timed out');
+                    delete solveCallbacks[id];
+                }
+            }, 300);
         }
     });
 }

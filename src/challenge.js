@@ -10,6 +10,7 @@ fetch(solverIframe.src).catch(() => {
     solverErrored = true;
     for(let id in solveCallbacks) {
         solveCallbacks[id].reject('Solver errored');
+        delete solveCallbacks[id];
     }
 });
 let injectedBody = document.getElementById('injected-body');
@@ -111,6 +112,13 @@ window.addEventListener('message', e => {
         let { id, error } = data;
         if(solveCallbacks[id]) {
             solveCallbacks[id].reject(error);
+            delete solveCallbacks[id];
+        }
+    } else if(data.action === 'initError') {
+        console.error('Solver init error:', data.error);
+        solverErrored = true;
+        for(let id in solveCallbacks) {
+            solveCallbacks[id].reject('Solver errored');
             delete solveCallbacks[id];
         }
     }

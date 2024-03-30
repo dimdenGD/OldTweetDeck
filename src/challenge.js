@@ -94,11 +94,18 @@ window.addEventListener('message', e => {
 
 (async () => {
     try {
-        let cryptoKey = await readCryptoKey();
-        if(cryptoKey) {
-            localStorage.device_id = cryptoKey.deviceId;
-        } else if(!localStorage.device_id) {
-            localStorage.device_id = uuidV4();
+        try {
+            let cryptoKey = await readCryptoKey();
+            if(cryptoKey) {
+                localStorage.device_id = cryptoKey.deviceId;
+            } else if(!localStorage.device_id) {
+                localStorage.device_id = uuidV4();
+            }
+        } catch(e) {
+            console.error(`Error during device id generation:`, e);
+            if(!localStorage.device_id) {
+                localStorage.device_id = uuidV4();
+            }
         }
 
         let homepageData = await fetch('https://twitter.com/').then(res => res.text());

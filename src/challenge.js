@@ -63,6 +63,9 @@ async function readCryptoKey() {
             
                     // Move to the next entry
                     cursor.continue();
+                } else {
+                    // No more entries
+                    reject('No crypto key found');
                 }
             };
         };

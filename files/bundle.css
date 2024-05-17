@@ -41650,3 +41650,7 @@ html.dark .modal-content {
 body:before {
     position: relative !important;
 }
+
+.js-mediatable .l-table {
+    height: 100% !important;
+}

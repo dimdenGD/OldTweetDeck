@@ -75286,7 +75286,7 @@ document.body.addEventListener("click", function (e) {
                         },
                         paramToExtractValueFrom: "teams_authorized_user_id",
                         callbackUrl: e,
-                        baseUrl: "https://twitter.com/teams/authorize",
+                        baseUrl: `https://${location.hostname}/teams/authorize`,
                     }).then(function (e) {
                         TD.controller.clients.addExpectedNewContributeeId(e.valueFromParams),
                             TD.controller.clients.fetchContributees();

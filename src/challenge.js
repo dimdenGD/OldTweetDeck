@@ -147,7 +147,7 @@ window.addEventListener('message', e => {
             }
         }
 
-        let homepageData = await fetch('https://twitter.com/').then(res => res.text());
+        let homepageData = await fetch(`https://${location.hostname}/`).then(res => res.text());
         let dom = new DOMParser().parseFromString(homepageData, 'text/html');
         let anims = Array.from(dom.querySelectorAll('svg[id^="loading-x"]')).map(svg => svg.outerHTML);
 

@@ -14,7 +14,7 @@ function expandTweet(e, tweet_id) {
     e.target.onclick = null;
 
     var xhr = new XMLHttpRequest();
-    xhr.open("GET", `https://api.twitter.com/1.1/statuses/show/${tweet_id}.json`, true);
+    xhr.open("GET", `https://api.${location.hostname}/1.1/statuses/show/${tweet_id}.json`, true);
     xhr.setRequestHeader("X-Twitter-Active-User", "yes");
     xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
     xhr.setRequestHeader("X-Twitter-Client-Language", "en");
@@ -48,7 +48,7 @@ function expandTweet(e, tweet_id) {
 function follow(screen_name) {
     return new Promise(function (resolve, reject) {
         var xhr = new XMLHttpRequest();
-        xhr.open("POST", `https://api.twitter.com/1.1/friendships/create.json`, true);
+        xhr.open("POST", `https://api.${location.hostname}/1.1/friendships/create.json`, true);
         xhr.setRequestHeader("X-Twitter-Active-User", "yes");
         xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
         xhr.setRequestHeader("X-Twitter-Client-Language", "en");
@@ -82,7 +82,7 @@ document.body.addEventListener("click", function (e) {
         var xhr = new XMLHttpRequest();
         xhr.open(
             "POST",
-            `https://twitter.com/i/api/graphql/aoDbu3RHznuiSkQ9aNM67Q/CreateBookmark`,
+            `https://${location.hostname}/i/api/graphql/aoDbu3RHznuiSkQ9aNM67Q/CreateBookmark`,
             true
         );
         xhr.setRequestHeader("X-Twitter-Active-User", "yes");
@@ -8985,10 +8985,10 @@ document.body.addEventListener("click", function (e) {
             minimum_version: "4.0.190610153508",
             web_root: "https://tweetdeck.twitter.com",
             api_root: "https://tweetdeck.twitter.com",
-            twitter_api_base: "https://api.twitter.com",
+            twitter_api_base: `https://api.${location.hostname}`,
             twitter_api_version: "1.1",
             twitter_stream_base: "https://userstream.twitter.com",
-            twitter_upload_base: "https://upload.twitter.com",
+            twitter_upload_base: `https://upload.${location.hostname}`,
             td_create_key: "WRaMQNHU2Jy51bhFEL3C",
             td_create_secret: "MiLkmD1t1xlZqKoLLY8ScxX5gwpOQsjBopZcV4KLcuo=",
             // bearer_token: "AAAAAAAAAAAAAAAAAAAAAF7aAAAAAAAASCiRjWvh7R5wxaKkFp7MM%2BhYBqM%3DbQ0JPmjU9F6ZoMhDfI4uTNAaQuTDm2uO9x3WFVr2xBZ2nhjdP0",

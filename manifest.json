@@ -1,7 +1,7 @@
 {
     "name": "OldTweetDeck",
     "description": "Returns old TweetDeck, for free!",
-    "version": "3.5.6",
+    "version": "3.6.0",
     "manifest_version": 2,
     "homepage_url": "https://github.com/dimdenGD/OldTweetDeck",
     "permissions": [
@@ -9,6 +9,8 @@
         "webRequestBlocking",
         "webNavigation",
         "https://twitter.com/*",
+        "https://x.com/*",
+        "https://*.x.com/*",
         "https://tweetdeck.twitter.com/*",
         "https://abs.twimg.com/*",
         "https://api.twitter.com/*",
@@ -27,7 +29,7 @@
     },
     "content_scripts": [
         {
-            "matches": ["https://twitter.com/i/tweetdeck"],
+            "matches": ["https://twitter.com/i/tweetdeck", "https://x.com/i/tweetdeck"],
             "js": ["src/notifications.js", "src/injection.js"],
             "all_frames": true,
             "run_at": "document_start"

@@ -74,7 +74,7 @@ function cleanUp() {
 function getFollows(id = getCurrentUserId(), cursor = -1, count = 5000) {
 	return new Promise(function (resolve, reject) {
 		var xhr = new XMLHttpRequest();
-		xhr.open("GET", `https://api.twitter.com/1.1/friends/ids.json?user_id=${id}&cursor=${cursor}&stringify_ids=true&count=${count}`, true);
+		xhr.open("GET", `https://api.${location.hostname}/1.1/friends/ids.json?user_id=${id}&cursor=${cursor}&stringify_ids=true&count=${count}`, true);
 		xhr.setRequestHeader("X-Twitter-Active-User", "yes");
 		xhr.setRequestHeader("X-Twitter-Auth-Type", "OAuth2Session");
 		xhr.setRequestHeader("X-Twitter-Client-Language", "en");
@@ -1613,7 +1613,7 @@ const proxyRoutes = [
         path: "/1.1/tweetdeck/clients/blackbird/all",
         method: "GET",
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow`;
+            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow`;
         },
         afterRequest: (xhr) => {
             const state = {
@@ -1666,7 +1666,7 @@ const proxyRoutes = [
             },
         },
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_push`;
+            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_push`;
             xhr.modMethod = "GET";
         },
         beforeSendBody: (xhr, body) => {
@@ -1698,7 +1698,7 @@ const proxyRoutes = [
             },
         },
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_feeds_push`;
+            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_feeds_push`;
             xhr.modMethod = "GET";
         },
         beforeSendBody: (xhr, body) => {
@@ -1728,7 +1728,7 @@ const proxyRoutes = [
             },
         },
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.twitter.com/1.1/help/settings.json?meow_columns_push`;
+            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_columns_push`;
             xhr.modMethod = "GET";
         },
         beforeSendBody: (xhr, body) => {
@@ -1805,7 +1805,7 @@ XMLHttpRequest = function () {
             } else {
                 method = method.toUpperCase();
             }
-            if(this.modUrl.includes("api.twitter.com") || this.modUrl.includes("twitter.com/i/api")) {
+            if(this.modUrl.includes("api.twitter.com") || this.modUrl.includes("api.x.com") || this.modUrl.includes("twitter.com/i/api") || this.modUrl.includes("x.com/i/api")) {
                 if(localStorage.device_id) this.setRequestHeader('X-Client-UUID', localStorage.device_id);
                 if(window.solveChallenge) {
                     try {

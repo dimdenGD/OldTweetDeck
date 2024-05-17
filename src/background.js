@@ -10,7 +10,7 @@ chrome.webRequest.onHeadersReceived.addListener(
             responseHeaders: headers
         }
     },
-    {urls: ["https://twitter.com/i/tweetdeck"]},
+    {urls: ["https://twitter.com/i/tweetdeck", "https://x.com/i/tweetdeck"]},
     extraInfoSpec
 );
 
@@ -21,7 +21,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
             requestHeaders: headers
         }
     },
-    {urls: ["https://twitter.com/i/api/graphql/*"]},
+    {urls: ["https://twitter.com/i/api/graphql/*", "https://x.com/i/api/graphql/*"]},
     extraInfoSpec.map(s => s.replace('response', 'request'))
 )
 
@@ -41,7 +41,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             };
         } catch(e) {}
     },
-    {urls: ["https://*.twitter.com/*"]},
+    {urls: ["https://*.twitter.com/*", "https://*.x.com/*"]},
     ["blocking"]
 );
 
@@ -51,7 +51,7 @@ chrome.webRequest.onBeforeRequest.addListener(
             redirectUrl: 'https://twitter.com/i/tweetdeck'
         }
     },
-    {urls: ["https://tweetdeck.twitter.com/*"]},
+    {urls: ["https://tweetdeck.twitter.com/*", "https://tweetdeck.x.com/*"]},
     ["blocking"]
 );
 
@@ -79,11 +79,9 @@ chrome.webNavigation.onCommitted.addListener(
         // Only needed in Chrome. See: https://developer.chrome.com/docs/extensions/reference/webRequest/#caching
         if (
             !isFirefox &&
-            urls[details.tabId]?.[details.frameId].startsWith(
-                "https://twitter.com/",
-            ) &&
+            (urls[details.tabId]?.[details.frameId].startsWith("https://twitter.com/") || urls[details.tabId]?.[details.frameId].startsWith("https://x.com/")) &&
             details.transitionType !== "reload" &&
-            details.url === "https://twitter.com/i/tweetdeck"
+            (details.url === "https://twitter.com/i/tweetdeck" || details.url === "https://x.com/i/tweetdeck")
         ) {
             flushCache();
         // Update stored URL
@@ -96,7 +94,7 @@ chrome.webNavigation.onCommitted.addListener(
         }
         urls[details.tabId][details.frameId] = details.url;
     },
-    { url: [{ hostSuffix: "twitter.com" }] },
+    { url: [{ hostSuffix: "twitter.com" }, { hostSuffix: "x.com" }] },
 );
 
 // Block requests for files related to Web App, except for main.{random}.js (which may be needed for API connection)
@@ -112,7 +110,7 @@ chrome.webRequest.onBeforeRequest.addListener(
                     path.startsWith("/responsive-web/client-web-legacy/") ||
                     path.startsWith("/responsive-web/client-web/")
                 ) &&
-                requestFrom === "https://twitter.com/i/tweetdeck" &&
+                (requestFrom === "https://twitter.com/i/tweetdeck" || requestFrom === "https://x.com/i/tweetdeck") &&
                 !path.includes('ondemand.s.')
             ) {
                 return {

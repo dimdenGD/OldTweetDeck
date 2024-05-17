@@ -39467,7 +39467,7 @@ html.dark .Drawer-neighbor {
 html.dark .Drawer {
     display: flex;
     flex-direction: column;
-    width: 608px;
+    /* width: 608px; */
     background-color: #fff;
 }
 html.dark .Drawer:not([dir="rtl"]) {

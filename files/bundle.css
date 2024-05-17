@@ -12933,6 +12933,7 @@ h6 {
 .tweet-detail-media .media-item-gif {
     -webkit-transform: none;
     transform: none;
+    height: auto;
 }
 .tweet-detail-media .media-item,
 .tweet-detail-media .media-preview {

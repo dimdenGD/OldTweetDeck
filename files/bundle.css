@@ -891,7 +891,7 @@ abbr[title] {
 .l-table {
     display: table;
     width: 100%;
-    height: 100%;
+    /* height: 100%; */
 }
 .l-row {
     display: table-row;
@@ -18354,7 +18354,7 @@ a.caldisabled {
 .Drawer {
     display: flex;
     flex-direction: column;
-    width: 608px;
+    /* width: 608px; */
     background-color: #fff;
 }
 .Drawer:not([dir="rtl"]) {
@@ -21189,7 +21189,7 @@ html.dark .needs-scroll-bottom-offset.scroll-styled-h {
 html.dark .l-table {
     display: table;
     width: 100%;
-    height: 100%;
+    /* height: 100%; */
 }
 html.dark .l-row {
     display: table-row;

@@ -14235,7 +14235,7 @@ document.body.addEventListener("click", function (e) {
                     n +
                     "=" +
                     e +
-                    ";path=/;domain=.twitter.com;max-age=15768000;secure;samesite=none";
+                    `;path=/;domain=.${location.hostname};max-age=15768000;secure;samesite=none`;
             };
         (t.setTweetDeckLegacyVersionCookie = function () {
             s("legacy");

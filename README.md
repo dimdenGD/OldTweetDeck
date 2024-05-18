@@ -23,7 +23,7 @@ Note: Do not delete the extension files (unzipped archive for Chromium, zip file
 4. Enable developer mode (there should be switch somewhere on that page)
 5. Press "Load unpacked" button
 6. Select folder with unzipped archive
-7. Go to https://twitter.com/i/tweetdeck and enjoy old TweetDeck
+7. Go to https://x.com/i/tweetdeck and enjoy old TweetDeck
 8. [Donate to encourage continued support](https://www.patreon.com/dimdendev)
 
 ### Firefox
@@ -36,7 +36,7 @@ Note: Do not delete the extension files (unzipped archive for Chromium, zip file
 4. Go to addons page(`about:addons`)
 5. Press "Install Add-on From File..." button
 6. Select zip file you downloaded
-7. Go to https://twitter.com/i/tweetdeck and enjoy old TweetDeck
+7. Go to https://x.com/i/tweetdeck and enjoy old TweetDeck
 8. [Donate to encourage continued support](https://www.patreon.com/dimdendev)
 
 #### Stable

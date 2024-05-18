@@ -21,7 +21,7 @@
 4. デベロッパーモードを有効にする (拡張機能ページの右上に切り替えスイッチがあります)
 5. "パッケージ化されていない拡張機能を読み込む"をクリックする
 6. Zipファイルを展開したフォルダを選択する
-7. https://twitter.com/i/tweetdeck にアクセスして昔のTweetDeckを楽しむ
+7. https://x.com/i/tweetdeck にアクセスして昔のTweetDeckを楽しむ
 8. [開発が継続できるように支援する](https://www.patreon.com/dimdendev)
 
 ### Firefox
@@ -34,7 +34,7 @@
 4. アドオンページを開く (`about:addons`)
 5. アドオンページ右上の歯車アイコン→"ファイルからアドオンをインストール..."をクリックする
 6. ダウンロードしたZipファイルを選択する
-7. https://twitter.com/i/tweetdeck にアクセスして昔のTweetDeckを楽しむ
+7. https://x.com/i/tweetdeck にアクセスして昔のTweetDeckを楽しむ
 8. [開発が継続できるように支援する](https://www.patreon.com/dimdendev)
 
 #### Stable

@@ -8,6 +8,10 @@ setTimeout(function () {
     document.getElementsByTagName("head")[0].appendChild(icon);
 }, 3000);
 
+if(location.hostname === 'twitter.com' && location.pathname === '/i/tweetdeck') {
+    location.replace(`https://x.com/i/tweetdeck`)
+}
+
 function expandTweet(e, tweet_id) {
     e.preventDefault();
     e.target.innerText = "Loading...";

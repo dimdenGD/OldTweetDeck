@@ -1,3 +1,23 @@
+let script = document.createElement('script');
+script.innerHTML = `
+Object.defineProperty(window, '__SCRIPTS_LOADED__', {
+    value: { main: true, vendor: true },
+    writable: false,
+    configurable: false 
+});
+`;
+if(document.head) {
+    document.head.appendChild(script);
+} else {
+    let observer = new MutationObserver(() => {
+        if(document.head) {
+            document.head.appendChild(script);
+            observer.disconnect();
+        }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
+}
+
 (async () => {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
     document.documentElement.innerHTML = html;

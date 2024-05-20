@@ -10,7 +10,7 @@ chrome.webRequest.onHeadersReceived.addListener(
             responseHeaders: headers
         }
     },
-    {urls: ["https://twitter.com/i/tweetdeck", "https://x.com/i/tweetdeck"]},
+    {urls: ["https://twitter.com/i/tweetdeck", "https://x.com/i/tweetdeck", "https://x.com/i/tweetdeck?*"]},
     extraInfoSpec
 );
 

@@ -8,7 +8,6 @@
         "webRequest",
         "webRequestBlocking",
         "webNavigation",
-        "scripting",
         "https://twitter.com/*",
         "https://x.com/*",
         "https://*.x.com/*",

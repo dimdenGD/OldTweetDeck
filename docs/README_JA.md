@@ -77,6 +77,9 @@ API制限に達しているため読み込めていません。しばらくし�
 OldTweetDeckが`x.com`上で動作しない問題を修正しました。  
 (訳者注: TweetDeckのURLが`twitter.com/i/tweetdeck`から`x.com/i/tweetdeck`に変わりました)
 
+### 3.6.4
+* Twitter側のコード変更によるOldTweetDeckが起動できない問題を修正
+
 ### 3.6.2
 * スタイル表示を修正
 * チーム機能を修正
@@ -259,5 +262,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 ## 日本語翻訳
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
-* README: commit [294882a](https://github.com/dimdenGD/OldTweetDeck/commit/294882a3d5de029b2b1158d331c8549c941e34ac)  
-* 更新履歴: release/tag [v3.6.2](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.2)
+* README: commit [387598b](https://github.com/dimdenGD/OldTweetDeck/commit/387598b72c617defcfbd3e51829b56828b0e85a8)  
+* 更新履歴: release/tag [v3.6.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.4)

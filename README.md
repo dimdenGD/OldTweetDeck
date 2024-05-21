@@ -58,7 +58,8 @@ If extension files were updated, you have to reinstall extension to get new upda
 
 ## Better TweetDeck
 
-I've made a fork of BetterTD that works with this extension, you can find it [here](https://github.com/dimdenGD/BetterTweetDeck/). Install it the same way as this extension, except get archive from [Releases](https://github.com/dimdenGD/BetterTweetDeck/releases) page instead of "Code" button.
+I've made a fork of BetterTD that works with this extension, you can find it [here](https://github.com/dimdenGD/BetterTweetDeck/releases).  
+Install it the same way as this extension.
 
 ## FAQ
 

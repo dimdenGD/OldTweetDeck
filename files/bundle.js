@@ -66860,8 +66860,8 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         var n = i(109),
             s = {
-                baseUrl: "https://twitter.com/i/safety/report_story",
-                completeUrl: "https://twitter.com/i/safety/report_story_complete",
+                baseUrl: "https://x.com/i/safety/report_story",
+                completeUrl: "https://x.com/i/safety/report_story_complete",
                 getReportUrl: function (e) {
                     return e.reportedTweetId ? s.getReportTweetUrl(e) : s.getReportUserUrl(e);
                 },

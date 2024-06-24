@@ -1,6 +1,7 @@
 ﻿# OldTweetDeck
 
-Returns old TweetDeck, for free!
+Returns old TweetDeck, for free!  
+Important: Do not use Search columns unless you have X Premium subscription. If you do search for something (not recommended), remove the column immediately after you're done.  
 
 > If you're interested in getting 2015-2018 Twitter back, you can also check out [OldTwitter](https://github.com/dimdenGD/OldTwitter) extension.
 

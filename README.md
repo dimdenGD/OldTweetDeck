@@ -1,7 +1,13 @@
 ﻿# OldTweetDeck
 
 Returns old TweetDeck, for free!  
-Important: Do not use Search columns unless you have X Premium subscription. If you do search for something (not recommended), remove the column immediately after you're done.  
+> [!IMPORTANT]
+> Do not use Search columns unless you have X Premium subscription.  
+> If you do search for something (not recommended), remove the column immediately after you're done.  
+
+> [!NOTE]
+> Since Twitter made likes private, the Likes tab aren't loading anymore.  
+> This can not be fixed due to the API to retrive likes are gone.
 
 > If you're interested in getting 2015-2018 Twitter back, you can also check out [OldTwitter](https://github.com/dimdenGD/OldTwitter) extension.
 
@@ -75,3 +81,7 @@ Ignore this warning.
 #### User or Search column aren't loading for me.
 
 You're getting rate limited. They'll comeback after some time.
+
+#### Likes tab aren't loading for me.
+
+This can not be fixed. Since Twitter made likes private, the API to retrive likes are gone.

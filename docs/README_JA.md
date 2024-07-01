@@ -1,6 +1,14 @@
 ﻿# OldTweetDeck
 昔のTweetDeckを取り戻しましょう！無料で！
 
+> [!IMPORTANT]
+> Xプレミアムのサブスクリプションを持っていない限り、検索カラムを使わないでください。  
+> もし何かしらの理由で検索カラムを使う場合(おすすめしません)は、検索し終わった後すぐにカラムを削除してください。
+
+> [!NOTE]
+> Twitterがいいねを非公開にしたため、いいねタブは読み込まれなくなりました。  
+> いいねを取得するAPIが存在しなくなったため、これは修正することができません。
+
 > また、2015〜2018年のTwitterを取り戻したい場合は [OldTwitter](https://github.com/dimdenGD/OldTwitter) 拡張機能もチェックしてみてください。
 
 ![スクリーンショット](https://lune.dimden.dev/9713d947d56.png)
@@ -72,6 +80,10 @@ TweetDeckのファイルが更新された場合は、タブを再読み込み�
 #### ユーザーカラムや検索カラムが読み込まれません
 
 API制限に達しているため読み込めていません。しばらくしてAPI制限が解除されるとまた表示されます。  
+
+#### いいねタブが読み込まれません
+
+Twitterがいいねを非公開にしたことに伴い、いいねを取得するAPIがなくなりました。そのため、修正することができません。
 
 ## 更新履歴
 OldTweetDeckが`x.com`上で動作しない問題を修正しました。  
@@ -262,5 +274,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 ## 日本語翻訳
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
-* README: commit [387598b](https://github.com/dimdenGD/OldTweetDeck/commit/387598b72c617defcfbd3e51829b56828b0e85a8)  
+* README: commit [5938c64](https://github.com/dimdenGD/OldTweetDeck/commit/5938c64ae71974f4523468967b5314199af847f2)  
 * 更新履歴: release/tag [v3.6.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.4)

@@ -7,7 +7,7 @@ Returns old TweetDeck, for free!
 
 > [!NOTE]
 > Since Twitter made likes private, the Likes tab aren't loading anymore.  
-> This can not be fixed since the API to retrive likes are gone. Same thing with Activity column.
+> This can not be fixed since the API to retrieve the likes is gone. Same thing with Activity column.
 
 > If you're interested in getting 2015-2018 Twitter back, you can also check out [OldTwitter](https://github.com/dimdenGD/OldTwitter) extension.
 

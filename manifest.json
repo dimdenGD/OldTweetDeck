@@ -8,13 +8,13 @@
         "webRequest",
         "webRequestBlocking",
         "webNavigation",
+        "cookies",
         "https://twitter.com/*",
+        "https://*.twitter.com/*",
         "https://x.com/*",
         "https://*.x.com/*",
-        "https://tweetdeck.twitter.com/*",
         "https://abs.twimg.com/*",
         "https://api.twitter.com/*",
-        "https://upload.twitter.com/*",
         "https://tweetdeck.com/"
     ],
     "background": {

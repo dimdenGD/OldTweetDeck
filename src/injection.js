@@ -164,4 +164,17 @@ if(document.head) {
         }
     }, 200);
     setTimeout(() => clearInterval(int), 10000);
+
+    let injInt;
+    function injectAccount() {
+        if(!document.querySelector('a[data-title="Accounts"]')) return;
+        clearInterval(injInt);
+
+        let accountsBtn = document.querySelector('a[data-title="Accounts"]');
+        accountsBtn.addEventListener("click", function() {
+            console.log("setting account cookie");
+            chrome.runtime.sendMessage({ action: "setcookie" }); 
+        });
+    }
+    setInterval(injectAccount, 1000);
 })();

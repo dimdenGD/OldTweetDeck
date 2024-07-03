@@ -86,8 +86,18 @@ API制限に達しているため読み込めていません。しばらくし�
 Twitterがいいねを非公開にしたことに伴い、いいねを取得するAPIがなくなりました。そのため、修正することができません。
 
 ## 更新履歴
-OldTweetDeckが`x.com`上で動作しない問題を修正しました。  
-(訳者注: TweetDeckのURLが`twitter.com/i/tweetdeck`から`x.com/i/tweetdeck`に変わりました)
+
+### 3.6.5
+現在、開発に割ける時間があまりないため、ベータリリースのようなものになります
+
+* アカウントをチームに追加できない問題をおそらく修正
+* リプライがスパム判定される問題をおそらく修正
+
+**開発者はウクライナ在住で、かなりひどい状況にあります。可能であれば[寄付](https://dimden.dev/donate/)をお願いいたします。**  
+**いつもご支援いただきありがとうございます。**
+
+<details>
+<summary>過去の更新履歴</summary>
 
 ### 3.6.4
 * Twitter側のコード変更によるOldTweetDeckが起動できない問題を修正
@@ -100,10 +110,9 @@ OldTweetDeckが`x.com`上で動作しない問題を修正しました。
 * ツイート作成パネルが正しく表示されない問題を修正
 * カラムが読み込まれない問題とツイートが送信されない問題を修正
 
-**この拡張機能の開発を続けるために[寄付](https://dimden.dev/donate/)をご検討ください**
-
-<details>
-<summary>過去の更新履歴</summary>
+### 3.6
+OldTweetDeckが`x.com`上で動作しない問題を修正しました。  
+(訳者注: TweetDeckのURLが`twitter.com/i/tweetdeck`から`x.com/i/tweetdeck`に変わりました)
 
 ### 3.5.5
 * 読み込まれない問題を修正
@@ -275,4 +284,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [26793aa](https://github.com/dimdenGD/OldTweetDeck/commit/26793aac1dfc85e3a1560e4a16ab346a05a0b0a4)  
-* 更新履歴: release/tag [v3.6.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.4)
+* 更新履歴: release/tag [v3.6.5](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.5)

@@ -18205,7 +18205,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<div class="js-login-error form-message form-error-message error txt-center padding-al margin-bxl {{^message}}is-hidden{{/message}}"> <p class="js-login-error-message">{{message}} More info: <a style="color:lightpink;font-weight:bold" href="https://twitter.com/d1mden" target="_blank">@d1mden</a></p> </div>');
+                '<div class="js-login-error form-message form-error-message error txt-center padding-al margin-bxl {{^message}}is-hidden{{/message}}"> <p class="js-login-error-message">{{message}} More info: <a style="color:lightpink;font-weight:bold" href="https://twitter.com/dimden" target="_blank">@dimden</a></p> </div>');
     },
     function (e, t, i) {
         "use strict";

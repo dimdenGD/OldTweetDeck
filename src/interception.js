@@ -1184,7 +1184,7 @@ const proxyRoutes = [
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
             if (xhr.modReqHeaders["x-act-as-user-id"]) {
                 xhr.storage.retweeter = xhr.modReqHeaders["x-act-as-user-id"];

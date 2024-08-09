@@ -87,6 +87,9 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
+### 3.6.8
+* リツイートができない問題を修正
+
 ### 3.6.5
 現在、開発に割ける時間があまりないため、ベータリリースのようなものになります
 
@@ -284,4 +287,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [26793aa](https://github.com/dimdenGD/OldTweetDeck/commit/26793aac1dfc85e3a1560e4a16ab346a05a0b0a4)  
-* 更新履歴: release/tag [v3.6.5](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.5)
+* 更新履歴: release/tag [v3.6.8](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.8)

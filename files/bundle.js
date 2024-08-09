@@ -32725,7 +32725,12 @@ document.body.addEventListener("click", function (e) {
             var h = {},
                 m = null;
             (h.getDecider = function (e) {
-                var t = "https://tweetdeck.twitter.com/decider?identifier=" + e;
+                var t;
+                if(window.chrome && window.chrome.runtime) {
+                    t = `${chrome.runtime.getURL('/files/decider.json')}?identifier=` + e;
+                } else {
+                    t = "https://tweetdeck.twitter.com/decider?identifier=" + e;
+                }
                 return h.drequest(
                     t,
                     {
@@ -32779,7 +32784,7 @@ document.body.addEventListener("click", function (e) {
                         (null === l || (0, c.default)(l)) && (l = h.getReq()),
                         i.request(g, n, l),
                         "/" == n.charAt(0) && (n = TD.config.api_root + n),
-                        !(0, a.default)(n, "http://") && !(0, a.default)(n, "https://"))
+                        !(0, a.default)(n, "http://") && !(0, a.default)(n, "https://") && !(0, a.default)(n, "moz-extension://") && !(0, a.default)(n, "chrome-extension://"))
                     )
                         return t.fail(new Error("Malformed url"));
                     l.headers = (0, r.default)(l.headers || {}, {

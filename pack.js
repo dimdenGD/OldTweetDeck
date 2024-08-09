@@ -40,7 +40,16 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
             strict_min_version: "90.0"
         }
     };
-    manifest.permissions.push("https://tweetdeck.dimden.dev/*", "https://raw.githubusercontent.com/*");
+    manifest.manifest_version = 2;
+    manifest.host_permissions.push("https://tweetdeck.dimden.dev/*", "https://raw.githubusercontent.com/*");
+    delete manifest.declarative_net_request;
+    manifest.permissions.push("webRequest", "webRequestBlocking", ...manifest.host_permissions);
+    delete manifest.host_permissions;
+    delete manifest.content_scripts.find(c => c.world === "MAIN").world;
+    manifest.background = {
+        scripts: ["src/background.js"],
+    }
+    manifest.web_accessible_resources = manifest.web_accessible_resources[0].resources;
 
     fs.unlinkSync('../OldTweetDeckFirefox/pack.js');
     fs.unlinkSync('../OldTweetDeckTempChrome/pack.js');

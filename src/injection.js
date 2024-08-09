@@ -18,7 +18,24 @@ if(document.head) {
     observer.observe(document.documentElement, { childList: true, subtree: true });
 }
 
-(async () => {
+let extId;
+let isFirefox = navigator.userAgent.indexOf('Firefox') > -1;
+if(!window.chrome) window.chrome = {};
+if(!window.chrome.runtime) window.chrome.runtime = {};
+window.chrome.runtime.getURL = url => {
+    if(!url.startsWith('/')) url = `/${url}`;
+    return `${isFirefox ? 'moz-extension://' : 'chrome-extension://'}${extId}${url}`;   
+}
+window.addEventListener('message', e => {
+    if(e.data.extensionId) {
+        console.log("got extensionId", e.data.extensionId);
+        extId = e.data.extensionId;
+        main();
+    }
+});
+window.postMessage('extensionId', '*');
+
+async function main() {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
     document.documentElement.innerHTML = html;
 
@@ -177,4 +194,4 @@ if(document.head) {
         });
     }
     setInterval(injectAccount, 1000);
-})();
+};

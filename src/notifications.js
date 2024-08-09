@@ -69,7 +69,8 @@ function minVersionCheck(ver, minVer) {
 async function showNotifications() {
     let notifsToDisplay = await getNotifications();
     if(notifsToDisplay.length === 0) return;
-    let currentVersion = chrome.runtime.getManifest().version;
+    let manifest = await fetch(chrome.runtime.getURL('/manifest.json')).then(r => r.json());
+    let currentVersion = manifest.version;
    
     for(let notif of notifsToDisplay) {
         if(!localStorage.OTDnotifsReadOnce && notif.ignoreOnInstall) {

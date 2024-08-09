@@ -32726,7 +32726,7 @@ document.body.addEventListener("click", function (e) {
                 m = null;
             (h.getDecider = function (e) {
                 var t;
-                if(window.chrome && window.chrome.runtime) {
+                if(window.chrome && window.chrome.runtime && window.chrome.runtime.getURL) {
                     t = `${chrome.runtime.getURL('/files/decider.json')}?identifier=` + e;
                 } else {
                     t = "https://tweetdeck.twitter.com/decider?identifier=" + e;

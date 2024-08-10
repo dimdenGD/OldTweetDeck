@@ -1843,9 +1843,6 @@ XMLHttpRequest = function () {
             if (key in xhr) {
                 xhr[key] = value;
             }
-            if(key === "onload") {
-                xhr.onloadFn = value;
-            }
             return value;
         },
         interceptResponseText(xhr) {

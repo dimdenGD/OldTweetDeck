@@ -4,6 +4,7 @@ const PUBLIC_TOKENS = [
 ];
 const NEW_API = `https://${location.hostname}/i/api/graphql`;
 const cursors = {};
+const OTD_INIT_TIME = Date.now();
 
 const generateID = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
@@ -1763,7 +1764,12 @@ XMLHttpRequest = function () {
                 this.proxyRoute.beforeRequest(this);
             }
 
-            this.open(this.modMethod, this.modUrl, async, username, password);
+            // both handlers must be set, because if openHandler never opens the request 'send' will always error
+            if(this.proxyRoute && this.proxyRoute.openHandler && this.proxyRoute.sendHandler) {
+                this.proxyRoute.openHandler(this, this.modMethod, this.modUrl, async, username, password);
+            } else {
+                this.open(this.modMethod, this.modUrl, async, username, password);
+            }
         },
         setRequestHeader(name, value) {
             this.modReqHeaders[name] = value;
@@ -1776,30 +1782,54 @@ XMLHttpRequest = function () {
             } else {
                 method = method.toUpperCase();
             }
-            if(this.modUrl.includes("api.twitter.com") || this.modUrl.includes("api.x.com") || this.modUrl.includes("twitter.com/i/api") || this.modUrl.includes("x.com/i/api")) {
+            if(
+                this.readyState === 1 &&
+                (
+                    this.modUrl.includes("api.twitter.com") || 
+                    this.modUrl.includes("api.x.com") || 
+                    this.modUrl.includes("twitter.com/i/api") ||
+                    this.modUrl.includes("x.com/i/api")
+                )
+            ) {
                 if(localStorage.device_id) this.setRequestHeader('X-Client-UUID', localStorage.device_id);
                 if(window.solveChallenge) {
                     try {
                         this.setRequestHeader('x-client-transaction-id', await solveChallenge(parsedUrl.pathname, method));
                     } catch (e) {
-                        console.error("Error solving challenge", e);
+                        if(localStorage.secureRequests && Date.now() - OTD_INIT_TIME > 3000) {
+                            throw e;
+                        }
                     }
                 }
             }
             if (this.proxyRoute && this.proxyRoute.beforeSendHeaders) {
                 this.proxyRoute.beforeSendHeaders(this);
             }
-            for (const [name, value] of Object.entries(this.modReqHeaders)) {
-                this.setRequestHeader(name, value);
+            try {
+                for (const [name, value] of Object.entries(this.modReqHeaders)) {
+                    this.setRequestHeader(name, value);
+                }
+            } catch(e) {
+                if(!String(e).includes('OPENED')) {
+                    console.error(e);
+                }
             }
             if (this.proxyRoute && this.proxyRoute.beforeSendBody) {
                 body = this.proxyRoute.beforeSendBody(this, body);
             }
-            this.send(body);
+            if(this.proxyRoute && this.proxyRoute.sendHandler) {
+                this.proxyRoute.sendHandler(this, body);
+            } else {
+                this.send(body);
+            }
         },
         get(xhr, key) {
             if (!key in xhr) return undefined;
+            if (key === "responseText" && xhr._responseText) return xhr._responseText;
             if (key === "responseText") return this.interceptResponseText(xhr);
+            if (key === "readyState" && xhr._readyState) return xhr._readyState;
+            if (key === "status" && xhr._status) return xhr._status;
+            if (key === "statusText" && xhr._statusText) return xhr._statusText;
 
             let value = xhr[key];
             if (typeof value === "function") {
@@ -1812,6 +1842,9 @@ XMLHttpRequest = function () {
         set(xhr, key, value) {
             if (key in xhr) {
                 xhr[key] = value;
+            }
+            if(key === "onload") {
+                xhr.onloadFn = value;
             }
             return value;
         },
@@ -1829,7 +1862,8 @@ XMLHttpRequest = function () {
         getAllResponseHeaders() {
             let headers = this.getAllResponseHeaders();
 
-            if (this.proxyRoute && this.proxyRoute.responseHeaderOverride) {
+            let override = this.responseHeaderOverride ? this.responseHeaderOverride : this.proxyRoute ? this.proxyRoute.responseHeaderOverride : undefined;
+            if (this.proxyRoute && override) {
                 let splitHeaders = headers.split("\r\n");
                 let objHeaders = {};
                 for (let header of splitHeaders) {
@@ -1838,10 +1872,10 @@ XMLHttpRequest = function () {
                     let headerValue = splitHeader[1];
                     objHeaders[headerName.toLowerCase()] = headerValue;
                 }
-                for(let header in this.proxyRoute.responseHeaderOverride) {
-                    objHeaders[header.toLowerCase()] = this.proxyRoute.responseHeaderOverride[header]();
+                for(let header in override) {
+                    objHeaders[header.toLowerCase()] = override[header]();
                 }
-                headers = Object.entries(objHeaders).map(([name, value]) => `${name}: ${value}`).join("\r\n");
+                headers = Object.entries(objHeaders).filter(([_, value]) => value).map(([name, value]) => `${name}: ${value}`).join("\r\n");
             }
 
             return headers;

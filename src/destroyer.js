@@ -51,6 +51,7 @@ RegExp.prototype.test = function() {
 setTimeout(() => {
     clearInterval(_destroyerInt);
     Array.prototype.push = _originalPush;
+    RegExp.prototype.test = _originalTest;
 }, 5000);
 
 // Step 6: Live OTD reaction: https://lune.dimden.dev/6743b45eb1de.png

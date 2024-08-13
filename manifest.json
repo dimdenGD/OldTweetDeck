@@ -46,7 +46,7 @@
         },
         {
             "matches": ["https://twitter.com/i/tweetdeck", "https://x.com/i/tweetdeck", "https://x.com/i/tweetdeck?*"],
-            "js": ["src/notifications.js", "src/injection.js"],
+            "js": ["src/destroyer.js", "src/notifications.js", "src/injection.js"],
             "all_frames": true,
             "run_at": "document_start",
             "world": "MAIN"

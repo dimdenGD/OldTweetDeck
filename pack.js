@@ -45,7 +45,12 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
     delete manifest.declarative_net_request;
     manifest.permissions.push("webRequest", "webRequestBlocking", ...manifest.host_permissions);
     delete manifest.host_permissions;
-    delete manifest.content_scripts.find(c => c.world === "MAIN").world;
+    for(let content_script of manifest.content_scripts) {
+        if(content_script.world === "MAIN") {
+            delete content_script.world;
+        }
+        content_script.js = content_script.js.filter(js => js !== "src/destroyer.js");
+    }
     manifest.background = {
         scripts: ["src/background.js"],
     }

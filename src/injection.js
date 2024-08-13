@@ -1,23 +1,3 @@
-let script = document.createElement('script');
-script.innerHTML = `
-Object.defineProperty(window, '__SCRIPTS_LOADED__', {
-    value: { main: true, vendor: true },
-    writable: false,
-    configurable: false 
-});
-`;
-if(document.head) {
-    document.head.appendChild(script);
-} else {
-    let observer = new MutationObserver(() => {
-        if(document.head) {
-            document.head.appendChild(script);
-            observer.disconnect();
-        }
-    });
-    observer.observe(document.documentElement, { childList: true, subtree: true });
-}
-
 let extId;
 let isFirefox = navigator.userAgent.indexOf('Firefox') > -1;
 if(!window.chrome) window.chrome = {};

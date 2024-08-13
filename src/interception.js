@@ -711,8 +711,6 @@ const proxyRoutes = [
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            // xhr.modReqHeaders["Authorization"] =
-            //     "Bearer AAAAAAAAAAAAAAAAAAAAAG5LOQEAAAAAbEKsIYYIhrfOQqm4H8u7xcahRkU%3Dz98HKmzbeXdKqBfUDmElcqYl0cmmKY9KdS2UoNIz3Phapgsowi";
             xhr.modReqHeaders["Authorization"] =
                 PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? (Math.random() > 0.5 ? 1 : 0) : 0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
@@ -863,12 +861,102 @@ const proxyRoutes = [
     {
         path: "/1.1/favorites/list.json",
         method: "GET",
+        beforeRequest: (xhr) => {
+            try {
+                let url = new URL(xhr.modUrl);
+                let params = new URLSearchParams(url.search);
+                let user_id = params.get("user_id") ?? getCurrentUserId();
+                let variables = {
+                    "userId": user_id,
+                    "count": 50,
+                    "includePromotedContent": false,
+                    "withSuperFollowsUserFields": true,
+                    "withDownvotePerspective": false,
+                    "withReactionsMetadata": false,
+                    "withReactionsPerspective": false,
+                    "withSuperFollowsTweetFields": true,
+                    "withClientEventToken": false,
+                    "withBirdwatchNotes": false,
+                    "withVoice": true,
+                    "withV2Timeline": true
+                };
+                let features = {
+                    "dont_mention_me_view_api_enabled": true,
+                    "interactive_text_enabled": true,
+                    "responsive_web_uc_gql_enabled": false,
+                    "vibe_tweet_context_enabled": false,
+                    "responsive_web_edit_tweet_api_enabled": false,
+                    "standardized_nudges_misinfo": false,
+                    "responsive_web_enhance_cards_enabled": false
+                };
+
+                let max_id = params.get("max_id");
+                if (max_id) {
+                    let bn = BigInt(params.get("max_id"));
+                    bn += BigInt(1);
+                    if (cursors[`${variables.userId}-${bn}-likes`]) {
+                        variables.cursor = cursors[`${variables.userId}-${bn}-likes`];
+                    }
+                }
+                xhr.storage.user_id = variables.userId;
+
+                xhr.modUrl = `${NEW_API}/vni8vUvtZvJoIsl49VPudg/Likes?${generateParams(
+                    features,
+                    variables
+                )}`;
+            } catch (e) {
+                console.error(e);
+            }
+        },
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            xhr.modReqHeaders["Authorization"] =
+                PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? (Math.random() > 0.5 ? 1 : 0) : 0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+            // delete xhr.modReqHeaders["x-act-as-user-id"];
+        },
+        afterRequest: (xhr) => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
+            if (data.errors && data.errors[0]) {
+                return [];
+            }
+            let instructions = data.data.user.result.timeline_v2.timeline.instructions;
+            let entries = instructions.find((e) => e.type === "TimelineAddEntries");
+            if (!entries) {
+                return [];
+            }
+            entries = entries.entries;
+
+            let tweets = entries
+                .filter(e => e.entryId.startsWith('tweet-') && e.content.itemContent.tweet_results.result)
+                .map(e => parseTweet(e.content.itemContent.tweet_results.result))
+                .filter(e => e);
+
+            if (tweets.length === 0) return tweets;
+
+            let cursor = entries.find(
+                (e) =>
+                    e.entryId.startsWith("sq-cursor-bottom-") ||
+                    e.entryId.startsWith("cursor-bottom-")
+            ).content.value;
+            if (cursor) {
+                cursors[`${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}-likes`] = cursor;
+            }
+
+            // i didn't know they return tweets unsorted???
+            tweets.sort(
+                (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+            );
+
+            return tweets;
         },
     },
     // Liking / unliking

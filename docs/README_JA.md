@@ -87,6 +87,28 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
+### 4.0.2
+* DMで画像が読み込まれない問題を修正
+* 自分のいいねカラムが読み込まれない問題を修正
+* Twitterによるブロックを改善
+   * これによりショートカットキーが機能しない、奇妙なスタイルになってしまうなどの問題が修正されるはずです。
+* コンソールで`localStorage.secureRequests = 1`を実行できるようになりました。
+   * これを実行することにより、リクエストの署名が必須になります。アカウントがより安全になりますが、TweetDeckを正しく読み込むために何度もページをリロードする必要があるかもしれません。
+
+### 4.0.1
+これはOldTweetDeckの新しいメジャーバージョンです。  
+ご存知の場合もあるかとは存じますが、Chromeは拡張機能においてManifest V2を廃止し、Manifest V3へ移行しようとしています。  
+OldTweetDeckはずっとManifest V2を使用していたため、Manifest V3を使用するようにコードを組み直しました。  
+これにより、Manifest V2の廃止後も引き続き拡張機能が動作するはずです。  
+この変更は少し試験的なものであるため、バグなどを発見した場合はご報告ください。  
+また、`OldTweetDeck v3.6.8`も現状まだ使える状態ですので、もし`v4.x`が動かない場合は引き続き`v3.6.8`をご利用いただけます。
+
+**開発者はウクライナ在住で、かなりひどい状況にあります。可能であれば[寄付](https://dimden.dev/donate/)をお願いいたします。**  
+**いつもご支援いただきありがとうございます。**
+
+<details>
+<summary>過去の更新履歴</summary>
+
 ### 3.6.8
 * リツイートができない問題を修正
 
@@ -95,12 +117,6 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 * アカウントをチームに追加できない問題をおそらく修正
 * リプライがスパム判定される問題をおそらく修正
-
-**開発者はウクライナ在住で、かなりひどい状況にあります。可能であれば[寄付](https://dimden.dev/donate/)をお願いいたします。**  
-**いつもご支援いただきありがとうございます。**
-
-<details>
-<summary>過去の更新履歴</summary>
 
 ### 3.6.4
 * Twitter側のコード変更によるOldTweetDeckが起動できない問題を修正
@@ -287,4 +303,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [26793aa](https://github.com/dimdenGD/OldTweetDeck/commit/26793aac1dfc85e3a1560e4a16ab346a05a0b0a4)  
-* 更新履歴: release/tag [v3.6.8](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v3.6.8)
+* 更新履歴: release/tag [v4.0.2](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.0.2)

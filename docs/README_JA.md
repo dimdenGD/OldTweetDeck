@@ -87,6 +87,9 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
+### 4.0.3
+* プロフィールが読み込まれない問題を修正
+
 ### 4.0.2
 * DMで画像が読み込まれない問題を修正
 * 自分のいいねカラムが読み込まれない問題を修正
@@ -303,4 +306,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [26793aa](https://github.com/dimdenGD/OldTweetDeck/commit/26793aac1dfc85e3a1560e4a16ab346a05a0b0a4)  
-* 更新履歴: release/tag [v4.0.2](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.0.2)
+* 更新履歴: release/tag [v4.0.3](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.0.3)

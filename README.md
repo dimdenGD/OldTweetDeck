@@ -76,7 +76,11 @@ Before opening an issue, try to reinstall extension.
 
 #### There is a warning: Manifest version 2 is deprecated, and support will be removed in 2023.
 
-Ignore this warning.
+Update to latest OldTweetDeck version.
+
+### 'Link another account you own' doesn't work.
+
+See https://github.com/dimdenGD/OldTweetDeck/issues/259#issuecomment-2281786253 for a workaround.
 
 #### User or Search column aren't loading for me.
 

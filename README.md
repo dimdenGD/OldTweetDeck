@@ -78,7 +78,7 @@ Before opening an issue, try to reinstall extension.
 
 Update to latest OldTweetDeck version.
 
-### 'Link another account you own' doesn't work.
+#### 'Link another account you own' doesn't work.
 
 See https://github.com/dimdenGD/OldTweetDeck/issues/259#issuecomment-2281786253 for a workaround.
 

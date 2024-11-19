@@ -1823,6 +1823,13 @@ const proxyRoutes = [
     {
         path: "/1.1/account/verify_credentials.json",
         method: "GET",
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["Content-Type"] = "application/json";
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
         afterRequest: (xhr) => {
             try {
                 let data = JSON.parse(xhr.responseText);

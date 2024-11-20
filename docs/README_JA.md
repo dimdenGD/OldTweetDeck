@@ -75,7 +75,11 @@ TweetDeckのファイルが更新された場合は、タブを再読み込み�
 
 #### Manifest version 2 is deprecated, and support will be removed in 2023. という警告が表示されました
 
-その警告は無視してください。  
+最新版のOldTweetDeckに更新して下さい。
+
+#### 「Link another account you own」からアカウントを追加できません
+
+一時的な解決策として https://github.com/dimdenGD/OldTweetDeck/issues/259#issuecomment-2281786253 を参考にして下さい。
    
 #### ユーザーカラムや検索カラムが読み込まれません
 
@@ -86,6 +90,9 @@ API制限に達しているため読み込めていません。しばらくし�
 Twitterがいいねを非公開にしたことに伴い、いいねを取得するAPIがなくなりました。そのため、修正することができません。
 
 ## 更新履歴
+
+### 4.0.4
+* OldTweetDeckが読み込まれない問題を修正
 
 ### 4.0.3
 * プロフィールが読み込まれない問題を修正
@@ -305,5 +312,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 ## 日本語翻訳
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
-* README: commit [26793aa](https://github.com/dimdenGD/OldTweetDeck/commit/26793aac1dfc85e3a1560e4a16ab346a05a0b0a4)  
-* 更新履歴: release/tag [v4.0.3](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.0.3)
+* README: commit [fd974f4](https://github.com/dimdenGD/OldTweetDeck/commit/fd974f4716e0d271ca3719ff71e342ca84fb9b98)  
+* 更新履歴: release/tag [v4.0.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.0.4)

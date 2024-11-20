@@ -88,4 +88,4 @@ You're getting rate limited. They'll comeback after some time.
 
 #### Likes tab aren't loading for me.
 
-This can not be fixed. Since Twitter made likes private, the API to retrive likes are gone.
+This can not be fixed. Since Twitter made likes private, the API to retrieve likes is gone.

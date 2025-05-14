@@ -712,7 +712,7 @@ const proxyRoutes = [
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
             xhr.modReqHeaders["Authorization"] =
-                PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? (Math.random() > 0.5 ? 1 : 0) : 0];
+                PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
             // delete xhr.modReqHeaders["x-act-as-user-id"];
         },
@@ -1031,7 +1031,7 @@ const proxyRoutes = [
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
             xhr.modReqHeaders["Authorization"] =
-                PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? (Math.random() > 0.5 ? 1 : 0) : 0];
+                PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
         afterRequest: (xhr) => {
@@ -1146,7 +1146,7 @@ const proxyRoutes = [
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
             xhr.modReqHeaders["Authorization"] =
-                PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? 1 : 0];
+                PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
         afterRequest: (xhr) => {
@@ -1856,7 +1856,36 @@ const proxyRoutes = [
         afterRequest: (xhr) => {
             return xhr.responseText.replaceAll("\\/\\/ton.twitter.com\\/1.1", "\\/\\/ton.x.com\\/i");
         }
-    }
+    },
+    // Translating tweets
+    {
+        path: "/1.1/translations/show.json",
+        method: "GET",
+        beforeRequest: (xhr) => {
+            let url = new URL(xhr.modUrl);
+            let params = new URLSearchParams(url.search);
+            let tweet_id = params.get("id");
+            let dest = params.get("dest");
+            xhr.modUrl = `https://${location.hostname}/i/api/1.1/strato/column/None/tweetId=${tweet_id},destinationLanguage=None,translationSource=Some(Google),feature=None,timeout=None,onlyCached=None/translation/service/translateTweet`;
+        },
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["Content-Type"] = "application/json";
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = navigator.language.split("-")[0];
+            xhr.modReqHeaders["Authorization"] =
+                PUBLIC_TOKENS[1];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
+        afterRequest: (xhr) => {
+            const response = JSON.parse(xhr.responseText);
+
+            return JSON.stringify({
+                text: response.translation,
+                entities: response.entities,
+                translated_lang: response.sourceLanguage,
+            });
+        }
+    },
 ];
 
 // wrap the XMLHttpRequest

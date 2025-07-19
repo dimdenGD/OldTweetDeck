@@ -334,6 +334,16 @@ function parseTweet(res) {
                     if(!tweet.quoted_status.user.profile_image_url && tweet.quoted_status.user.profile_image_url_https) {
                         tweet.quoted_status.user.profile_image_url = tweet.quoted_status.user.profile_image_url_https.replace("https://", "http://");
                     }
+                    if(!tweet.quoted_status.user.name && result?.core?.user_results?.result?.core?.name) {
+                        tweet.quoted_status.user.name = result.core.user_results.result.core.name;
+                    }
+                    if(!tweet.quoted_status.user.screen_name && result?.core?.user_results?.result?.core?.screen_name) {
+                        tweet.quoted_status.user.screen_name = result.core.user_results.result.core.screen_name;
+                    }
+                    if(!tweet.quoted_status.user.created_at && result?.core?.user_results?.result?.core?.created_at) {
+                        tweet.quoted_status.user.created_at = result.core.user_results.result.core.created_at;
+                    }
+                    
                     if (result.core.user_results.result.is_blue_verified) {
                         tweet.quoted_status.user.verified = true;
                         tweet.quoted_status.user.verified_type = "Blue";

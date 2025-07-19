@@ -7541,6 +7541,7 @@ document.body.addEventListener("click", function (e) {
                 );
             },
             logTweetProcessingError: function () {
+                console.error('logTweetProcessingError', arguments);
                 var e = arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {},
                     t = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : {};
                 TD.controller.stats.generic(

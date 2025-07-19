@@ -181,6 +181,15 @@ function parseTweet(res) {
         if(!tweet.user.profile_image_url && tweet.user.profile_image_url_https) {
             tweet.user.profile_image_url = tweet.user.profile_image_url_https.replace("https://", "http://");
         }
+        if(!tweet.user.name && res?.core?.user_results?.result?.core?.name) {
+            tweet.user.name = res.core.user_results.result.core.name;
+        }
+        if(!tweet.user.screen_name && res?.core?.user_results?.result?.core?.screen_name) {
+            tweet.user.screen_name = res.core.user_results.result.core.screen_name;
+        }
+        if(!tweet.user.created_at && res?.core?.user_results?.result?.core?.created_at) {
+            tweet.user.created_at = res.core.user_results.result.core.created_at;
+        }
 
         if (tweet.retweeted_status_result) {
             let result = tweet.retweeted_status_result.result;
@@ -218,6 +227,16 @@ function parseTweet(res) {
                     if(!result.legacy.quoted_status.user.profile_image_url && result.legacy.quoted_status.user.profile_image_url_https) {
                         result.legacy.quoted_status.user.profile_image_url = result.legacy.quoted_status.user.profile_image_url_https.replace("https://", "http://");
                     }
+                    if(!result.legacy.quoted_status.user.name && result?.quoted_status_result?.result?.core?.user_results?.result?.core?.name) {
+                        result.legacy.quoted_status.user.name = result.quoted_status_result.result.core.user_results.result.core.name;
+                    }
+                    if(!result.legacy.quoted_status.user.screen_name && result?.quoted_status_result?.result?.core?.user_results?.result?.core?.screen_name) {
+                        result.legacy.quoted_status.user.screen_name = result.quoted_status_result.result.core.user_results.result.core.screen_name;
+                    }
+                    if(!result.legacy.quoted_status.user.created_at && result?.quoted_status_result?.result?.core?.user_results?.result?.core?.created_at) {
+                        result.legacy.quoted_status.user.created_at = result.quoted_status_result.result.core.user_results.result.core.created_at;
+                    }
+                    
                     if (result.quoted_status_result.result.core.user_results.result.is_blue_verified) {
                         result.legacy.quoted_status.user.verified = true;
                         result.legacy.quoted_status.user.verified_type = "Blue";
@@ -241,6 +260,17 @@ function parseTweet(res) {
                 if(!tweet.retweeted_status.user.profile_image_url && tweet.retweeted_status.user.profile_image_url_https) {
                     tweet.retweeted_status.user.profile_image_url = tweet.retweeted_status.user.profile_image_url_https.replace("https://", "http://");
                 }
+                if(!tweet.retweeted_status.user.name && result?.core?.user_results?.result?.core?.name) {
+                    tweet.retweeted_status.user.name = result.core.user_results.result.core.name;
+                }
+                if(!tweet.retweeted_status.user.screen_name && result?.core?.user_results?.result?.core?.screen_name) {
+                    tweet.retweeted_status.user.screen_name = result.core.user_results.result.core.screen_name;
+                }
+                if(!tweet.retweeted_status.user.created_at && result?.core?.user_results?.result?.core?.created_at) {
+                    tweet.retweeted_status.user.created_at = result.core.user_results.result.core.created_at;
+                }
+                
+
                 if (result.core.user_results.result.is_blue_verified) {
                     tweet.retweeted_status.user.verified = true;
                     tweet.retweeted_status.user.verified_type = "Blue";

@@ -711,7 +711,7 @@ const proxyRoutes = [
             // i didn't know they return tweets unsorted???
             tweets.sort(
                 (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-            );
+            ).filter(t => !t.user.muting && !t.user.blocking);
 
             let cursor = list.find(
                 (e) =>

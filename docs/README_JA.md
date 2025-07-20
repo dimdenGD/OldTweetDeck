@@ -91,6 +91,15 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
+### 4.1.0
+* リストが表示できない問題を修正 (遅いバージョン)
+
+**開発者はウクライナ在住で、かなりひどい状況にあります。可能であれば[寄付](https://dimden.dev/donate/)をお願いいたします。**  
+**いつもご支援いただきありがとうございます。**
+
+<details>
+<summary>過去の更新履歴</summary>
+
 ### 4.0.7
 * ツイートが翻訳できない問題を修正
 * 検索カラムとユーザーカラムの安定性を少し向上
@@ -119,12 +128,6 @@ OldTweetDeckはずっとManifest V2を使用していたため、Manifest V3を�
 これにより、Manifest V2の廃止後も引き続き拡張機能が動作するはずです。  
 この変更は少し試験的なものであるため、バグなどを発見した場合はご報告ください。  
 また、`OldTweetDeck v3.6.8`も現状まだ使える状態ですので、もし`v4.x`が動かない場合は引き続き`v3.6.8`をご利用いただけます。
-
-**開発者はウクライナ在住で、かなりひどい状況にあります。可能であれば[寄付](https://dimden.dev/donate/)をお願いいたします。**  
-**いつもご支援いただきありがとうございます。**
-
-<details>
-<summary>過去の更新履歴</summary>
 
 ### 3.6.8
 * リツイートができない問題を修正
@@ -319,5 +322,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 ## 日本語翻訳
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
-* README: commit [fd974f4](https://github.com/dimdenGD/OldTweetDeck/commit/fd974f4716e0d271ca3719ff71e342ca84fb9b98)  
-* 更新履歴: release/tag [v4.0.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.0.4)
+* README: commit [ec304d3](https://github.com/dimdenGD/OldTweetDeck/commit/ec304d307ef39ffce89c0d275a7e8d7a3774ef83)  
+* 更新履歴: release/tag [v4.1.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.1.0)

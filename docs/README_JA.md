@@ -1,10 +1,6 @@
 ﻿# OldTweetDeck
 昔のTweetDeckを取り戻しましょう！無料で！
 
-> [!IMPORTANT]
-> Xプレミアムのサブスクリプションを持っていない限り、検索カラムを使わないでください。  
-> もし何かしらの理由で検索カラムを使う場合(おすすめしません)は、検索し終わった後すぐにカラムを削除してください。
-
 > [!NOTE]
 > Twitterがいいねを非公開にしたため、いいねタブは読み込まれなくなりました。  
 > いいねを取得するAPIが存在しなくなったため、これを修正することはできません。アクティビティタブにおいても同様です。
@@ -30,7 +26,6 @@
 5. "パッケージ化されていない拡張機能を読み込む"をクリックする
 6. Zipファイルを展開したフォルダを選択する
 7. https://x.com/i/tweetdeck にアクセスして昔のTweetDeckを楽しむ
-8. [開発が継続できるように支援する](https://www.patreon.com/dimdendev)
 
 ### Firefox
 
@@ -43,7 +38,6 @@
 5. アドオンページ右上の歯車アイコン→"ファイルからアドオンをインストール..."をクリックする
 6. ダウンロードしたZipファイルを選択する
 7. https://x.com/i/tweetdeck にアクセスして昔のTweetDeckを楽しむ
-8. [開発が継続できるように支援する](https://www.patreon.com/dimdendev)
 
 #### Stable
 
@@ -91,11 +85,12 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
+### 4.2.0
+* リストやユーザーカラムが表示できない問題を修正 (プライベートサポートバージョン)
+   * 4.2.0に更新後、設定からPatreonをリンクするとPatreonサポーター限定機能が利用できます
+
 ### 4.1.0
 * リストが表示できない問題を修正 (遅いバージョン)
-
-**開発者はウクライナ在住で、かなりひどい状況にあります。可能であれば[寄付](https://dimden.dev/donate/)をお願いいたします。**  
-**いつもご支援いただきありがとうございます。**
 
 <details>
 <summary>過去の更新履歴</summary>
@@ -322,5 +317,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 ## 日本語翻訳
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
-* README: commit [ec304d3](https://github.com/dimdenGD/OldTweetDeck/commit/ec304d307ef39ffce89c0d275a7e8d7a3774ef83)  
-* 更新履歴: release/tag [v4.1.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.1.0)
+* README: commit [714cdff](https://github.com/dimdenGD/OldTweetDeck/commit/714cdffc2bbd0e24ea6b7d9364a48670c3c64632)  
+* 更新履歴: release/tag [v4.2.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.2.0)

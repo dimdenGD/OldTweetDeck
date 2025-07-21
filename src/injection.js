@@ -1,5 +1,8 @@
 let extId;
 let isFirefox = navigator.userAgent.indexOf('Firefox') > -1;
+let cookie = null;
+let otdtoken = null;
+
 if(!window.chrome) window.chrome = {};
 if(!window.chrome.runtime) window.chrome.runtime = {};
 window.chrome.runtime.getURL = url => {
@@ -11,9 +14,16 @@ window.addEventListener('message', e => {
         console.log("got extensionId", e.data.extensionId);
         extId = e.data.extensionId;
         main();
+    } else if(e.data.cookie) {
+        cookie = e.data.cookie;
+    } else if(e.data.token) {
+        console.log("got otdtoken", e.data.token);
+        otdtoken = e.data.token;
     }
 });
 window.postMessage('extensionId', '*');
+window.postMessage('cookie', '*');
+window.postMessage('getotdtoken', '*');
 
 async function main() {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
@@ -150,6 +160,28 @@ async function main() {
     let twitter_text_script = document.createElement("script");
     twitter_text_script.innerHTML = twitter_text.value;
     document.head.appendChild(twitter_text_script);
+
+    (async () => {
+        try {
+            const additionalScripts = await fetch("https://oldtd.org/api/scripts", {
+                headers: otdtoken ? {
+                    Authorization: `Bearer ${otdtoken}`
+                } : undefined
+            }).then(r => r.json());
+            for(let script of additionalScripts) {
+                let scriptSource = await fetch(`https://oldtd.org/api/scripts/${script}`, {
+                    headers: otdtoken ? {
+                        Authorization: `Bearer ${otdtoken}`
+                    } : undefined
+                }).then(r => r.text());
+                let scriptElement = document.createElement("script");
+                scriptElement.innerHTML = scriptSource;
+                document.head.appendChild(scriptElement);
+            }
+        } catch(e) {
+            console.error(e);
+        }
+    })();
 
     let int = setTimeout(function() {
         let badBody = document.querySelector('body:not(#injected-body)');

@@ -41,7 +41,7 @@ function createModal(html, className, onclose, canclose) {
 }
 
 async function getNotifications() {
-    let notifs = await fetch('https://tweetdeck.dimden.dev/notifications.json?t='+Date.now()).then(r => r.json());
+    let notifs = await fetch('https://oldtd.org/notifications.json?t='+Date.now()).then(r => r.json());
     let readNotifs = localStorage.getItem('readNotifications') ? JSON.parse(localStorage.getItem('readNotifications')) : [];
     let notifsToDisplay = notifs.filter(notif => !readNotifs.includes(notif.id));
 

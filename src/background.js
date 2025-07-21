@@ -123,7 +123,7 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["blocking"],
 );
 
-chrome.runtime.onMessage.addListener(async (request, sender) => {
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
     if(request.action === 'setcookie') {
         chrome.cookies.getAll({url: "https://x.com"}, async cookies => {
             console.log('setcookie', cookies);
@@ -151,5 +151,11 @@ chrome.runtime.onMessage.addListener(async (request, sender) => {
                 });
             });
         });
+    } else if(request.action === 'getcookie') {
+        chrome.cookies.getAll({url: "https://x.com"}, async cookies => {
+            console.log('getcookie', cookies);
+            sendResponse(cookies);
+        });
+        return true;
     }
 });

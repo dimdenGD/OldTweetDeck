@@ -37482,7 +37482,7 @@ document.body.addEventListener("click", function (e) {
                     (this.isRetweeted = e.retweeted),
                     (this.retweetCount = e.retweet_count),
                     (this.likeCount = e.favorite_count),
-                    (this.replyCount = e.reply_count),
+                    (this.replyCount = e.reply_count ?? 0),
                     (this.currentUserRetweet = e.current_user_retweet),
                     (this.possiblySensitive = e.possibly_sensitive),
                     (this.inReplyToID = e.in_reply_to_status_id_str || e.in_reply_to_status_id);
@@ -37556,7 +37556,7 @@ document.body.addEventListener("click", function (e) {
                     (this.isRetweeted = r.retweeted),
                     (this.retweetCount = r.retweet_count),
                     (this.likeCount = r.favorite_count),
-                    (this.replyCount = r.reply_count),
+                    (this.replyCount = r.reply_count ?? 0),
                     (this.possiblySensitive = r.possibly_sensitive),
                     (this.inReplyToID = r.in_reply_to_status_id_str);
                 var a = (0, u.default)(r, "retweeted_status.legacy.self_thread.id_str", !1);

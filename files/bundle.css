@@ -9505,6 +9505,9 @@ abbr[title] {
 .icon-mention:before {
     content: "\F064";
 }
+.icon-bookmarks:before {
+    content: "\F093";
+}
 .icon-following:before {
     content: "\F176";
 }

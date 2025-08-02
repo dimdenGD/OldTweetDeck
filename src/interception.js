@@ -471,6 +471,7 @@ function generateParams(features, variables, fieldToggles) {
 }
 
 let counter = 0;
+let bookmarkTimes = {};
 const OriginalXHR = XMLHttpRequest;
 const proxyRoutes = [
     // Home timeline
@@ -950,6 +951,116 @@ const proxyRoutes = [
                         tweets.splice(index, 0, pinnedTweet);
                     }
                 }
+            }
+
+            return tweets;
+        },
+    },
+    // Bookmarks timeline
+    {
+        path: "/1.1/statuses/bookmarks.json",
+        method: "GET",
+        beforeRequest: (xhr) => {
+            try {
+                let url = new URL(xhr.modUrl);
+                let params = new URLSearchParams(url.search);
+                let variables = {
+                    "count": 40,
+                    "includePromotedContent":false
+                };
+                let features = {"graphql_timeline_v2_bookmark_timeline":true,"blue_business_profile_image_shape_enabled":true,"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"tweetypie_unmention_optimization_enabled":true,"vibe_api_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":false,"interactive_text_enabled":true,"responsive_web_text_conversations_enabled":false,"longform_notetweets_rich_text_read_enabled":true,"responsive_web_enhance_cards_enabled":false};
+
+                let max_id = params.get("max_id");
+                if (max_id) {
+                    let bn = BigInt(params.get("max_id"));
+                    bn += BigInt(1);
+                    if (cursors[`bookmarks-${bn}`]) {
+                        console.log(cursors[`bookmarks-${bn}`]);
+                        variables.cursor = cursors[`bookmarks-${bn}`];
+                    }
+                }
+
+                xhr.modUrl = `${NEW_API}/3OjEFzT2VjX-X7w4KYBJRg/Bookmarks?${generateParams(
+                    features,
+                    variables
+                )}`;
+            } catch (e) {
+                console.error(e);
+            }
+        },
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["Content-Type"] = "application/json";
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] =
+                PUBLIC_TOKENS[localStorage.OTDuseDifferentToken === "1" ? (Math.random() > 0.5 ? 1 : 0) : 1];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+            // delete xhr.modReqHeaders["x-act-as-user-id"];
+        },
+        // artificially slow down, because theres an invisible rate limit that gets hit after a few hours
+        responseHeaderOverride: {
+            "x-rate-limit-limit": (value) => {
+                return Math.floor(+value/5);
+            },
+            "x-rate-limit-remaining": (value) => {
+                return Math.floor(+value/5);
+            },
+        },
+        afterRequest: (xhr) => {
+            let data;
+            try {
+                data = JSON.parse(xhr.responseText);
+            } catch (e) {
+                console.error(e);
+                return [];
+            }
+            if (data.errors && data.errors[0]) {
+                return [];
+            }
+            let instructions = data.data.bookmark_timeline_v2.timeline.instructions;
+            let entries = instructions.find((e) => e.type === "TimelineAddEntries");
+            if (!entries) {
+                return [];
+            }
+            entries = entries.entries;
+            let tweets = [];
+            for (let entry of entries) {
+                if (entry.entryId.startsWith("tweet-")) {
+                    let result = entry.content.itemContent.tweet_results.result;
+                    let tweet = parseTweet(result);
+                    if (tweet) {
+                        tweets.push(tweet);
+                    }
+                } else if (entry.entryId.startsWith("profile-conversation-")) {
+                    let items = entry.content.items;
+                    for (let i = 0; i < items.length; i++) {
+                        let item = items[i];
+                        let result = item.item.itemContent.tweet_results.result;
+                        if (item.entryId.includes("-tweet-")) {
+                            let tweet = parseTweet(result);
+                            if (tweet && tweet.user.id_str === xhr.storage.user_id) {
+                                tweets.push(tweet);
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (tweets.length === 0) return tweets;
+
+            let i = 0;
+            for(let tweet of tweets) {
+                tweet.receiveTime = bookmarkTimes[tweet.id_str] ?? (Date.now() - i++);
+                bookmarkTimes[tweet.id_str] = tweet.receiveTime;
+            }
+
+            let cursor = entries.find(
+                (e) =>
+                    e.entryId.startsWith("sq-cursor-bottom-") ||
+                    e.entryId.startsWith("cursor-bottom-")
+            ).content.value;
+            if (cursor) {
+                cursors[`bookmarks-${tweets[tweets.length - 1].id_str}`] = cursor;
             }
 
             return tweets;

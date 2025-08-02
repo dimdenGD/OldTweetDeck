@@ -85,6 +85,15 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
+### 4.3.0
+* ブックマークカラムを追加しました！
+<img width="334" height="318" alt="image" src="https://github.com/user-attachments/assets/2dcb5fe2-c9c9-41d4-b57a-4cc64a0adab8" />
+<img width="443" height="496" alt="image" src="https://github.com/user-attachments/assets/d7d8f7aa-7aa0-44ff-930c-e73d57ae7516" />
+
+* また、リツイートがブックマーク出来ない問題を修正しました
+
+**[寄付する](https://patreon.com/OldTweetDeck)**
+
 ### 4.2.0
 * リストやユーザーカラムが表示できない問題を修正 (プライベートサポートバージョン)
    * 4.2.0に更新後、設定からPatreonをリンクするとPatreonサポーター限定機能が利用できます
@@ -318,4 +327,4 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [714cdff](https://github.com/dimdenGD/OldTweetDeck/commit/714cdffc2bbd0e24ea6b7d9364a48670c3c64632)  
-* 更新履歴: release/tag [v4.2.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.2.0)
+* 更新履歴: release/tag [v4.3.0](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.0)

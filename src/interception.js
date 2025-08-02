@@ -975,8 +975,10 @@ const proxyRoutes = [
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);
                     if (cursors[`bookmarks-${bn}`]) {
-                        console.log(cursors[`bookmarks-${bn}`]);
                         variables.cursor = cursors[`bookmarks-${bn}`];
+                    }
+                    if(bookmarkTimes[`${bn}`]) {
+                        xhr.storage.time = bookmarkTimes[`${bn}`];
                     }
                 }
 
@@ -1048,9 +1050,9 @@ const proxyRoutes = [
 
             if (tweets.length === 0) return tweets;
 
-            let i = 0;
-            for(let tweet of tweets) {
-                tweet.receiveTime = bookmarkTimes[tweet.id_str] ?? (Date.now() - i++);
+            for(let i = 0; i < tweets.length; i++) {
+                const tweet = tweets[i];
+                tweet.receiveTime = bookmarkTimes[tweet.id_str] ?? ((xhr.storage.time ?? Date.now()) - i);
                 bookmarkTimes[tweet.id_str] = tweet.receiveTime;
             }
 

@@ -36101,11 +36101,11 @@ document.body.addEventListener("click", function (e) {
                         type: P.LISTS,
                         service: "twitter",
                     },
-                    {
-                        type: P.CUSTOMTIMELINES,
-                        service: "twitter",
-                        class: "feature-customtimelines",
-                    },
+                    // {
+                    //     type: P.CUSTOMTIMELINES,
+                    //     service: "twitter",
+                    //     class: "feature-customtimelines",
+                    // },
                     {
                         type: P.TRENDS,
                         service: "twitter",
@@ -36113,6 +36113,10 @@ document.body.addEventListener("click", function (e) {
                     },
                     {
                         type: P.FAVORITES,
+                        service: "twitter",
+                    },
+                    {
+                        type: P.BOOKMARKS,
                         service: "twitter",
                     },
                     {
@@ -36159,10 +36163,6 @@ document.body.addEventListener("click", function (e) {
                     {
                         type: P.DATAMINR,
                         service: "dataminr",
-                    },
-                    {
-                        type: P.BOOKMARKS,
-                        service: "twitter",
                     },
                 ]),
                 (P.DISPLAY_ORDER_SINGLETONS = [

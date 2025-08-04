@@ -36657,6 +36657,7 @@ document.body.addEventListener("click", function (e) {
                             case "analytics":
                             case "whatshappening":
                                 i = P.makeColumn(t.type, []);
+                                break;
                             case "bookmarks":
                                 (n = e.columnController.getBookmarksFeeds(o)),
                                     (i = P.makeColumn("bookmarks", n));

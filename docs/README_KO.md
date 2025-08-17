@@ -55,7 +55,7 @@ API 제한에 도달했습니다. 일정 시간이 지난 후에 원래대로 �
   
 
 ## 업데이트 내역
-### 이 프로젝트를 계속 유지하기 위해 [기부](https://dimden.dev/donate/)를 고려해 주세요.
+### 이 프로젝트를 계속 유지하기 위해 [기부](https://patreon.com/OldTweetDeck)를 고려해 주세요.
 <details>
 <summary>업데이트 내역</summary>
 

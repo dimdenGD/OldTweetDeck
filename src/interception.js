@@ -207,7 +207,7 @@ function parseTweet(res) {
             tweet.user.verified = true;
         }
 
-        if (tweet.retweeted_status_result) {
+        if (tweet.retweeted_status_result?.result) {
             let result = tweet.retweeted_status_result.result;
             if (result.limitedActionResults) {
                 let limitation = result.limitedActionResults.limited_actions.find(

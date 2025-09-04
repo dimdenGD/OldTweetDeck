@@ -903,7 +903,7 @@ const proxyRoutes = [
                         let result = item.item.itemContent.tweet_results.result;
                         if (item.entryId.includes("-tweet-")) {
                             let tweet = parseTweet(result);
-                            if (tweet && tweet.user.id_str === xhr.storage.user_id) {
+                            if (tweet && tweet.user.id_str === xhr.storage.user_id && tweet.in_reply_to_user_id_str) {
                                 tweets.push(tweet);
                             }
                         }
@@ -1040,7 +1040,7 @@ const proxyRoutes = [
                         let result = item.item.itemContent.tweet_results.result;
                         if (item.entryId.includes("-tweet-")) {
                             let tweet = parseTweet(result);
-                            if (tweet && tweet.user.id_str === xhr.storage.user_id) {
+                            if (tweet && tweet.user.id_str === xhr.storage.user_id && tweet.in_reply_to_user_id_str) {
                                 tweets.push(tweet);
                             }
                         }

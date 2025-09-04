@@ -349,7 +349,7 @@ function parseTweet(res) {
             tweet.entities = note.entities;
             tweet.display_text_range = undefined; // no text range for long tweets
         }
-        if (tweet.quoted_status_result && tweet.quoted_status_result.result) {
+        if (tweet.quoted_status_result && tweet.quoted_status_result.result && !tweet.quoted_status_result.result.tombstone) {
             let result = tweet.quoted_status_result.result;
             if (!result.core && result.tweet) result = result.tweet;
             if (result.limitedActionResults) {

@@ -762,7 +762,7 @@ const proxyRoutes = [
                         if (t.entryId.includes("-tweet-")) {
                             let res = t.item.itemContent.tweet_results.result;
                             let tweet = parseTweet(res);
-                            if (!tweet) continue;
+                            if (!tweet || !tweet.in_reply_to_user_id_str) continue;
                             tweets.push(tweet);
                         }
                     }

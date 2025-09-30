@@ -599,7 +599,7 @@ const proxyRoutes = [
         //         console.error(e);
         //         return [];
         //     }
-        //     if (data.errors && data.errors[0]) {
+        //     if (data.errors && data.errors[0] && !data.data?.home?.home_timeline_urt?.instructions) {
         //         return [];
         //     }
         //     let instructions = data.data.home.home_timeline_urt.instructions;
@@ -739,7 +739,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.list?.tweets_timeline?.timeline?.instructions) {
                 return [];
             }
             let list = data.data.list.tweets_timeline.timeline.instructions.find(
@@ -879,7 +879,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.user?.result?.timeline_v2?.timeline?.instructions) {
                 return [];
             }
             let instructions = data.data.user.result.timeline_v2.timeline.instructions;
@@ -1016,7 +1016,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.bookmark_timeline_v2?.timeline?.instructions) {
                 return [];
             }
             let instructions = data.data.bookmark_timeline_v2.timeline.instructions;
@@ -1192,7 +1192,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.user?.result?.timeline_v2?.timeline?.instructions) {
                 return [];
             }
             let instructions = data.data.user.result.timeline_v2.timeline.instructions;
@@ -1309,7 +1309,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.search_by_raw_query?.search_timeline?.timeline?.instructions) {
                 return [];
             }
             let instructions = data.data.search_by_raw_query.search_timeline.timeline.instructions;
@@ -1702,7 +1702,7 @@ const proxyRoutes = [
                 console.error(e);
                 return {};
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.threaded_conversation_with_injections_v2?.instructions) {
                 return {};
             }
             let ic = data.data.threaded_conversation_with_injections_v2.instructions
@@ -1774,7 +1774,7 @@ const proxyRoutes = [
                 console.error(e);
                 return {};
             }
-            if (data.errors && data.errors[0]) {
+            if (data.errors && data.errors[0] && !data.data?.threaded_conversation_with_injections_v2?.instructions) {
                 return {};
             }
             let ic = data.data.threaded_conversation_with_injections_v2.instructions

@@ -1,3 +1,5 @@
 _metadata/
 node_modules/
 files/output/
+build/
+.DS_Store

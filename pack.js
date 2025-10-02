@@ -9,7 +9,7 @@ async function copyDir(src, dest) {
     const entries = await fsp.readdir(src, { withFileTypes: true });
     await fsp.mkdir(dest);
     for (let entry of entries) {
-        if(entry.name === '.git' || entry.name === '.github' || entry.name === '_metadata' || entry.name === 'node_modules') continue;
+        if(entry.name === '.git' || entry.name === '.github' || entry.name === '_metadata' || entry.name === 'node_modules' || entry.name === 'build') continue;
         const srcPath = path.join(src, entry.name);
         const destPath = path.join(dest, entry.name);
         if (entry.isDirectory()) {
@@ -20,20 +20,24 @@ async function copyDir(src, dest) {
     }
 }
 
-if(fs.existsSync('../OldTweetDeckTempChrome')) {
-    fs.rmSync('../OldTweetDeckTempChrome', { recursive: true });
+if(!fs.existsSync('./build')) {
+    fs.mkdirSync('./build');
 }
-if(fs.existsSync('../OldTweetDeckFirefox')) {
-    fs.rmSync('../OldTweetDeckFirefox', { recursive: true });
+
+if(fs.existsSync('./build/OldTweetDeckTempChrome')) {
+    fs.rmSync('./build/OldTweetDeckTempChrome', { recursive: true });
+}
+if(fs.existsSync('./build/OldTweetDeckFirefox')) {
+    fs.rmSync('./build/OldTweetDeckFirefox', { recursive: true });
 }
 
 console.log("Copying...");
-copyDir('./', '../OldTweetDeckFirefox').then(async () => {
-    await copyDir('./', '../OldTweetDeckTempChrome');
+copyDir('./', './build/OldTweetDeckFirefox').then(async () => {
+    await copyDir('./', './build/OldTweetDeckTempChrome');
     console.log("Copied!");
     console.log("Patching...");
 
-    let manifest = JSON.parse(await fsp.readFile('../OldTweetDeckTempChrome/manifest.json', 'utf8'));
+    let manifest = JSON.parse(await fsp.readFile('./build/OldTweetDeckTempChrome/manifest.json', 'utf8'));
     manifest.browser_specific_settings = {
         gecko: {
             id: "oldtweetdeck@dimden.dev",
@@ -56,25 +60,25 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
     }
     manifest.web_accessible_resources = manifest.web_accessible_resources[0].resources;
 
-    fs.unlinkSync('../OldTweetDeckFirefox/pack.js');
-    fs.unlinkSync('../OldTweetDeckTempChrome/pack.js');
-    fs.unlinkSync('../OldTweetDeckFirefox/README.md');
-    fs.unlinkSync('../OldTweetDeckTempChrome/README.md');
-    fs.unlinkSync('../OldTweetDeckFirefox/package.json');
-    fs.unlinkSync('../OldTweetDeckTempChrome/package.json');
-    fs.unlinkSync('../OldTweetDeckFirefox/package-lock.json');
-    fs.unlinkSync('../OldTweetDeckTempChrome/package-lock.json');
-    fs.unlinkSync('../OldTweetDeckFirefox/.gitignore');
-    fs.unlinkSync('../OldTweetDeckTempChrome/.gitignore');
-    fs.writeFileSync('../OldTweetDeckFirefox/manifest.json', JSON.stringify(manifest, null, 2));
+    fs.unlinkSync('./build/OldTweetDeckFirefox/pack.js');
+    fs.unlinkSync('./build/OldTweetDeckTempChrome/pack.js');
+    fs.unlinkSync('./build/OldTweetDeckFirefox/README.md');
+    fs.unlinkSync('./build/OldTweetDeckTempChrome/README.md');
+    fs.unlinkSync('./build/OldTweetDeckFirefox/package.json');
+    fs.unlinkSync('./build/OldTweetDeckTempChrome/package.json');
+    fs.unlinkSync('./build/OldTweetDeckFirefox/package-lock.json');
+    fs.unlinkSync('./build/OldTweetDeckTempChrome/package-lock.json');
+    fs.unlinkSync('./build/OldTweetDeckFirefox/.gitignore');
+    fs.unlinkSync('./build/OldTweetDeckTempChrome/.gitignore');
+    fs.writeFileSync('./build/OldTweetDeckFirefox/manifest.json', JSON.stringify(manifest, null, 2));
 
     console.log("Patched!");
 
     console.log("Zipping Firefox version...");
     try {
         const zip = new AdmZip();
-        const outputDir = "../OldTweetDeckFirefox.zip";
-        zip.addLocalFolder("../OldTweetDeckFirefox");
+        const outputDir = "./build/OldTweetDeckFirefox.zip";
+        zip.addLocalFolder("./build/OldTweetDeckFirefox");
         zip.writeZip(outputDir);
     } catch (e) {
         console.log(`Something went wrong ${e}`);
@@ -82,15 +86,15 @@ copyDir('./', '../OldTweetDeckFirefox').then(async () => {
     console.log("Zipping Chrome version...");
     try {
         const zip = new AdmZip();
-        const outputDir = "../OldTweetDeckChrome.zip";
-        zip.addLocalFolder("../OldTweetDeckTempChrome");
+        const outputDir = "./build/OldTweetDeckChrome.zip";
+        zip.addLocalFolder("./build/OldTweetDeckTempChrome");
         zip.writeZip(outputDir);
     } catch (e) {
         console.log(`Something went wrong ${e}`);
     }
     console.log("Zipped!");
     console.log("Deleting temporary folders...");
-    fs.rmSync('../OldTweetDeckTempChrome', { recursive: true });
-    fs.rmSync('../OldTweetDeckFirefox', { recursive: true });
+    fs.rmSync('./build/OldTweetDeckTempChrome', { recursive: true });
+    fs.rmSync('./build/OldTweetDeckFirefox', { recursive: true });
     console.log("Deleted!");
 });

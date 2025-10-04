@@ -157,13 +157,16 @@ window.addEventListener('message', e => {
         let dom = new DOMParser().parseFromString(homepageData, 'text/html');
         let anims = Array.from(dom.querySelectorAll('svg[id^="loading-x"]')).map(svg => svg.outerHTML);
 
+        let vendorCode = homepageData.match(/vendor.(\w+).js"/)[1];
         let challengeCode = homepageData.match(/"ondemand.s":"(\w+)"/)[1];
         let challengeData = await fetch(`https://abs.twimg.com/responsive-web/client-web/ondemand.s.${challengeCode}a.js`).then(res => res.text());
+        let vendorData = await fetch(`https://abs.twimg.com/responsive-web/client-web/vendor.${vendorCode}.js`).then(res => res.text());
 
         function sendInit() {
             solverIframe.contentWindow.postMessage({
                 action: 'init',
                 challenge: challengeData,
+                vendor: vendorData,
                 anims,
                 verificationCode: dom.querySelector('meta[name="twitter-site-verification"]').content,
             }, '*');

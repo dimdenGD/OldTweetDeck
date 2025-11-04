@@ -349,7 +349,7 @@ function parseTweet(res) {
             tweet.entities = note.entities;
             tweet.display_text_range = undefined; // no text range for long tweets
         }
-        if (tweet.quoted_status_result && tweet.quoted_status_result.result && !tweet.quoted_status_result.result.tombstone) {
+        if (tweet.quoted_status_result && tweet.quoted_status_result.result) {
             let result = tweet.quoted_status_result.result;
             if (!result.core && result.tweet) result = result.tweet;
             if (result.limitedActionResults) {
@@ -599,7 +599,7 @@ const proxyRoutes = [
         //         console.error(e);
         //         return [];
         //     }
-        //     if (data.errors && data.errors[0] && !data.data?.home?.home_timeline_urt?.instructions) {
+        //     if (data.errors && data.errors[0]) {
         //         return [];
         //     }
         //     let instructions = data.data.home.home_timeline_urt.instructions;
@@ -739,7 +739,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0] && !data.data?.list?.tweets_timeline?.timeline?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return [];
             }
             let list = data.data.list.tweets_timeline.timeline.instructions.find(
@@ -762,7 +762,7 @@ const proxyRoutes = [
                         if (t.entryId.includes("-tweet-")) {
                             let res = t.item.itemContent.tweet_results.result;
                             let tweet = parseTweet(res);
-                            if (!tweet || !tweet.in_reply_to_user_id_str) continue;
+                            if (!tweet) continue;
                             tweets.push(tweet);
                         }
                     }
@@ -879,7 +879,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0] && !data.data?.user?.result?.timeline_v2?.timeline?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return [];
             }
             let instructions = data.data.user.result.timeline_v2.timeline.instructions;
@@ -903,7 +903,7 @@ const proxyRoutes = [
                         let result = item.item.itemContent.tweet_results.result;
                         if (item.entryId.includes("-tweet-")) {
                             let tweet = parseTweet(result);
-                            if (tweet && tweet.user.id_str === xhr.storage.user_id && tweet.in_reply_to_user_id_str) {
+                            if (tweet && tweet.user.id_str === xhr.storage.user_id) {
                                 tweets.push(tweet);
                             }
                         }
@@ -1016,7 +1016,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0] && !data.data?.bookmark_timeline_v2?.timeline?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return [];
             }
             let instructions = data.data.bookmark_timeline_v2.timeline.instructions;
@@ -1040,7 +1040,7 @@ const proxyRoutes = [
                         let result = item.item.itemContent.tweet_results.result;
                         if (item.entryId.includes("-tweet-")) {
                             let tweet = parseTweet(result);
-                            if (tweet && tweet.user.id_str === xhr.storage.user_id && tweet.in_reply_to_user_id_str) {
+                            if (tweet && tweet.user.id_str === xhr.storage.user_id) {
                                 tweets.push(tweet);
                             }
                         }
@@ -1192,7 +1192,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0] && !data.data?.user?.result?.timeline_v2?.timeline?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return [];
             }
             let instructions = data.data.user.result.timeline_v2.timeline.instructions;
@@ -1309,7 +1309,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0] && !data.data?.search_by_raw_query?.search_timeline?.timeline?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return [];
             }
             let instructions = data.data.search_by_raw_query.search_timeline.timeline.instructions;
@@ -1702,7 +1702,7 @@ const proxyRoutes = [
                 console.error(e);
                 return {};
             }
-            if (data.errors && data.errors[0] && !data.data?.threaded_conversation_with_injections_v2?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return {};
             }
             let ic = data.data.threaded_conversation_with_injections_v2.instructions
@@ -1774,7 +1774,7 @@ const proxyRoutes = [
                 console.error(e);
                 return {};
             }
-            if (data.errors && data.errors[0] && !data.data?.threaded_conversation_with_injections_v2?.instructions) {
+            if (data.errors && data.errors[0]) {
                 return {};
             }
             let ic = data.data.threaded_conversation_with_injections_v2.instructions
@@ -2094,7 +2094,7 @@ const proxyRoutes = [
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
         afterRequest: (xhr) => {

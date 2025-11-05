@@ -739,10 +739,7 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
-                return [];
-            }
-            let list = data.data.list.tweets_timeline.timeline.instructions.find(
+            let list = data?.data?.list?.tweets_timeline?.timeline?.instructions?.find(
                 (i) => i.type === "TimelineAddEntries"
             );
             if (!list) return [];

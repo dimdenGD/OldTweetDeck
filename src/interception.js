@@ -470,6 +470,143 @@ function generateParams(features, variables, fieldToggles) {
     return params.toString();
 }
 
+function extractAssignedJSON(html, varName = "window.__INITIAL_STATE__") {
+    const assignPos = html.indexOf(varName);
+    if (assignPos === -1) {
+        console.error(html);
+        throw new Error(`Variable ${varName} not found`);
+    }
+  
+    let i = assignPos + varName.length;
+    while (i < html.length && /\s/.test(html[i])) i++;
+    if (html[i] !== '=') {
+      i = html.indexOf('=', i);
+      if (i === -1) throw new Error(`Assignment for ${varName} not found`);
+    }
+    i++; // skip '='
+    while (i < html.length && /\s/.test(html[i])) i++;
+  
+    const opener = html[i];
+    if (opener !== '{' && opener !== '[') {
+      throw new Error(`Expected JSON object/array after ${varName} = ...`);
+    }
+    const closer = opener === '{' ? '}' : ']';
+  
+    let depth = 0, inStr = false, quote = null, escaped = false;
+    const start = i;
+    for (; i < html.length; i++) {
+      const ch = html[i];
+  
+      if (inStr) {
+        if (escaped) {
+          escaped = false;
+        } else if (ch === '\\') {
+          escaped = true;
+        } else if (ch === quote) {
+          inStr = false;
+          quote = null;
+        }
+        continue;
+      }
+      if (ch === '"' || ch === "'") {
+        inStr = true;
+        quote = ch;
+        continue;
+      }
+      if (ch === opener) depth++;
+      else if (ch === closer) {
+        depth--;
+        if (depth === 0) break;
+      }
+    }
+    if (depth !== 0) throw new Error(`Unterminated JSON for ${varName}`);
+  
+    let jsonText = html.slice(start, i + 1);
+  
+    let j = i + 1;
+    while (j < html.length && /\s/.test(html[j])) j++;
+    if (html[j] === ';') j++;
+  
+    try {
+      return JSON.parse(stripBOM(jsonText));
+    } catch (e) {
+      const repaired = repairCommonJSONIssues(jsonText);
+      try {
+        return JSON.parse(repaired);
+      } catch (e2) {
+        const ctx = repaired.slice(0, 1200);
+        throw new Error(
+          `Found assignment, but JSON.parse failed twice. First: ${e.message}. Second: ${e2.message}. ` +
+          `Sample of repaired text start:\n${ctx}`
+        );
+      }
+    }
+  
+    function stripBOM(s) {
+      return s.charCodeAt(0) === 0xFEFF ? s.slice(1) : s;
+    }
+  
+    function repairCommonJSONIssues(s) {
+      s = stripBOM(s);
+  
+      let out = '';
+      let inStr = false;
+      let quote = null;
+      let escaped = false;
+  
+      for (let k = 0; k < s.length; k++) {
+        let ch = s[k];
+  
+        if (!inStr) {
+          if (ch === '"' || ch === "'") {
+            inStr = true;
+            quote = ch;
+            out += ch;
+            continue;
+          }
+          out += ch;
+          continue;
+        }
+  
+        if (escaped) {
+          escaped = false;
+          out += ch;
+          continue;
+        }
+        if (ch === '\\') {
+          escaped = true;
+          out += ch;
+          continue;
+        }
+        if (ch === quote) {
+          inStr = false;
+          quote = null;
+          out += ch;
+          continue;
+        }
+  
+        const code = ch.charCodeAt(0);
+  
+        if (code === 0x2028) { out += '\\u2028'; continue; }
+        if (code === 0x2029) { out += '\\u2029'; continue; }
+  
+        if (code >= 0x00 && code <= 0x1F) {
+          if (ch === '\n') { out += '\\n'; continue; }
+          if (ch === '\r') { out += '\\r'; continue; }
+          if (ch === '\t') { out += '\\t'; continue; }
+          if (ch === '\b') { out += '\\b'; continue; }
+          if (ch === '\f') { out += '\\f'; continue; }
+          out += '\\u' + code.toString(16).padStart(4, '0');
+          continue;
+        }
+  
+        out += ch;
+      }
+  
+      return out;
+    }
+}
+
 let counter = 0;
 let bookmarkTimes = {};
 const OriginalXHR = XMLHttpRequest;
@@ -2084,22 +2221,31 @@ const proxyRoutes = [
     {
         path: "/1.1/account/verify_credentials.json",
         method: "GET",
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://x.com/home/`;
+        },
         beforeSendHeaders: (xhr) => {
-            xhr.modReqHeaders["Content-Type"] = "application/json";
-            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
-            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            delete xhr.modReqHeaders["Content-Type"];
+            delete xhr.modReqHeaders["X-Twitter-Active-User"];
+            delete xhr.modReqHeaders["X-Twitter-Client-Language"];
+            delete xhr.modReqHeaders["X-Twitter-Auth-Type"];
+            delete xhr.modReqHeaders["Authorization"];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+            delete xhr.modReqHeaders["X-Csrf-Token"];
+
         },
         afterRequest: (xhr) => {
             try {
-                let data = JSON.parse(xhr.responseText);
-                verifiedUser = data;
-                localStorage.OTDverifiedUser = JSON.stringify(data);
+                const state = extractAssignedJSON(xhr.responseText);
+                const user_id = state.session.user_id;
+                const user = state.entities.users.entities[user_id];
+                verifiedUser = user;
+                localStorage.OTDverifiedUser = JSON.stringify(user);
+                return user;
             } catch (e) {
-                console.error(e);
+                console.error(`Failed to get user data`, e);
+                return null;
             }
-            return xhr.responseText;
         }
     },
     // DM messages

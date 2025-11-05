@@ -1010,11 +1010,11 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
-                return [];
-            }
-            let instructions = data.data.bookmark_timeline_v2.timeline.instructions;
-            let entries = instructions.find((e) => e.type === "TimelineAddEntries");
+            // if (data.errors && data.errors[0]) {
+            //     return [];
+            // }
+            let instructions = data?.data?.bookmark_timeline_v2?.timeline?.instructions;
+            let entries = instructions?.find((e) => e.type === "TimelineAddEntries");
             if (!entries) {
                 return [];
             }
@@ -1186,11 +1186,11 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
-                return [];
-            }
-            let instructions = data.data.user.result.timeline_v2.timeline.instructions;
-            let entries = instructions.find((e) => e.type === "TimelineAddEntries");
+            // if (data.errors && data.errors[0]) {
+            //     return [];
+            // }
+            let instructions = data?.data?.user?.result?.timeline_v2?.timeline?.instructions;
+            let entries = instructions?.find((e) => e.type === "TimelineAddEntries");
             if (!entries) {
                 return [];
             }
@@ -1303,11 +1303,11 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
-                return [];
-            }
-            let instructions = data.data.search_by_raw_query.search_timeline.timeline.instructions;
-            let entries = instructions.find((i) => i.entries);
+            // if (data.errors && data.errors[0]) {
+            //     return [];
+            // }
+            let instructions = data?.data?.search_by_raw_query?.search_timeline?.timeline?.instructions;
+            let entries = instructions?.find((i) => i.entries);
             if (!entries) {
                 return [];
             }

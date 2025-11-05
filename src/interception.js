@@ -2120,7 +2120,7 @@ const proxyRoutes = [
                 localStorage.OTDsettings = JSON.stringify(settings);
             }
             cleanUp();
-            console.log('state', state);
+            console.log('account state', state);
 
             return state;
         },

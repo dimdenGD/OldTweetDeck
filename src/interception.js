@@ -876,11 +876,8 @@ const proxyRoutes = [
                 console.error(e);
                 return [];
             }
-            if (data.errors && data.errors[0]) {
-                return [];
-            }
-            let instructions = data.data.user.result.timeline_v2.timeline.instructions;
-            let entries = instructions.find((e) => e.type === "TimelineAddEntries");
+            let instructions = data?.data?.user?.result?.timeline_v2?.timeline?.instructions;
+            let entries = instructions?.find((e) => e.type === "TimelineAddEntries");
             if (!entries) {
                 return [];
             }

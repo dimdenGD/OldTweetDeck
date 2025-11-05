@@ -85,10 +85,13 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
-### 4.3.2
-* セキュリティーヘッダージェネレーターを修正しました (検索カラムが修正され、より安全になるはずです)
+### 4.3.3
+* OldTweetDeckが読み込まれない問題を修正
 
 **[寄付する](https://patreon.com/OldTweetDeck)**
+
+### 4.3.2
+* セキュリティーヘッダージェネレーターを修正しました (検索カラムが修正され、より安全になるはずです)
 
 ### 4.3.1
 * トレンドカラムを修正しました
@@ -333,5 +336,6 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [714cdff](https://github.com/dimdenGD/OldTweetDeck/commit/714cdffc2bbd0e24ea6b7d9364a48670c3c64632)  
-* 更新履歴: release/tag [v4.3.2](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.2)
+* 更新履歴: release/tag [v4.3.3](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.3)
+
 

@@ -1,9 +1,9 @@
 ﻿# OldTweetDeck
 
-# ⚠️ WARNING: USING OLDTWEETDECK CURRENTLY CAUSES ACCOUNT SUSPENSION ⚠️
-# ⚠️ WARNING: USING OLDTWEETDECK CURRENTLY CAUSES ACCOUNT SUSPENSION ⚠️
-
 Returns old TweetDeck, for free!  
+
+> [!WARNING]
+> Unless you have X Premium, there's currently a ban risk for using the extension.
 
 > [!NOTE]
 > Since Twitter made likes private, the Likes tab aren't loading anymore.  
@@ -87,4 +87,5 @@ You're getting rate limited. They'll comeback after some time.
 #### Likes tab aren't loading for me.
 
 This can not be fixed. Since Twitter made likes private, the API to retrieve likes is gone.
+
 

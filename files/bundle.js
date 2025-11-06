@@ -7116,8 +7116,9 @@ document.body.addEventListener("click", function (e) {
                       default: e,
                   };
         }
-        var p = TD.config.twitter_api_base + "/graphql",
-            g = ["UpdateGryphonOnboardingState"];
+        // var p = TD.config.twitter_api_base + "/graphql",
+        var p = TD.config.twitter_api_base + "/g",
+        g = ["UpdateGryphonOnboardingState"];
 
         function v(e) {
             var t = e.query,
@@ -53328,14 +53329,18 @@ document.body.addEventListener("click", function (e) {
     },
     function (e, t) {
         e.exports = {
-            queryId: "AASdaEBxY4wb30U8CMOBSw",
-            operationName: "FetchAccountSyncState",
+            // queryId: "AASdaEBxY4wb30U8CMOBSw",
+            // operationName: "FetchAccountSyncState",
+            queryId: "",
+            operationName: "",
         };
     },
     function (e, t) {
         e.exports = {
-            queryId: "LpUitdk4MbdxT65XWXcHxg",
-            operationName: "UpdateGryphonOnboardingState",
+            // queryId: "LpUitdk4MbdxT65XWXcHxg",
+            // operationName: "UpdateGryphonOnboardingState",
+            queryId: "",
+            operationName: "",
         };
     },
     function (e, t, i) {

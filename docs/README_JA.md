@@ -21,6 +21,7 @@
 注意: 拡張機能ファイル(Chromiumの場合はZipファイルを展開したもの、Firefoxの場合はZipファイル)をインストール後に削除しないでください。
 
 ### Chromium (Chrome, Edge, Opera, Brave など) 
+
 1. [リリースページ](https://github.com/dimdenGD/OldTweetDeck/releases) から `OldTweetDeckChrome.zip` をダウンロードする
 2. Zipファイルを展開する
 3. 拡張機能ページを開く (`chrome://extensions`)
@@ -343,6 +344,3 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 以下の時点の内容を基に翻訳されています。  
 * README: commit [302b9ee](https://github.com/dimdenGD/OldTweetDeck/commit/302b9ee83ecbdefc589a23888aff051f9bfab75a)  
 * 更新履歴: release/tag [v4.3.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.4)
-
-
-

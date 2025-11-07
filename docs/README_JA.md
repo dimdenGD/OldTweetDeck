@@ -21,7 +21,7 @@
 注意: 拡張機能ファイル(Chromiumの場合はZipファイルを展開したもの、Firefoxの場合はZipファイル)をインストール後に削除しないでください。
 
 ### Chromium (Chrome, Edge, Opera, Brave など) 
-
+https://github.com/katabame/OldTweetDeck/blob/main/docs/README_JA.md
 1. [リリースページ](https://github.com/dimdenGD/OldTweetDeck/releases) から `OldTweetDeckChrome.zip` をダウンロードする
 2. Zipファイルを展開する
 3. 拡張機能ページを開く (`chrome://extensions`)
@@ -89,14 +89,13 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 ## 更新履歴
 
 ### 4.3.4
-* アカウントが凍結される原因を恐らく修正しました  
-    * Xプレミアムに登録されていない場合は自己責任でご利用ください
+* アカウントが凍結される原因を恐らく修正しました (Xプレミアムに登録されていない場合は自己責任でご利用ください)
+
+**[寄付する](https://patreon.com/OldTweetDeck)**
 
 ### 4.3.3
 **⚠️ 注意: 現在OldTweetDeckを利用するとアカウントが凍結されます ⚠️**
 * OldTweetDeckが読み込まれない問題を修正
-
-**[寄付する](https://patreon.com/OldTweetDeck)**
 
 ### 4.3.2
 * セキュリティーヘッダージェネレーターを修正しました (検索カラムが修正され、より安全になるはずです)
@@ -345,4 +344,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 以下の時点の内容を基に翻訳されています。  
 * README: commit [302b9ee](https://github.com/dimdenGD/OldTweetDeck/commit/302b9ee83ecbdefc589a23888aff051f9bfab75a)  
 * 更新履歴: release/tag [v4.3.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.4)
+
 

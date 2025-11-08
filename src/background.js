@@ -65,6 +65,27 @@ chrome.webRequest.onBeforeRequest.addListener(
     ["blocking"]
 );
 
+chrome.webRequest.onBeforeRequest.addListener(
+    function() {
+        return {
+            cancel: true
+        }
+    },
+    {urls: ["https://twitter.com/i/jot", "https://twitter.com/i/otdstub", "https://x.com/i/otdstub"]},
+    ["blocking"]
+);
+
+chrome.webRequest.onBeforeRequest.addListener(
+    function(details) {
+        let headers = details.requestHeaders.filter(header => header.name.toLowerCase() !== 'x-twitter-client-version');
+        return {
+            requestHeaders: headers
+        }
+    },
+    {urls: ["https://api.twitter.com/*", "https://api.x.com/*"]},
+    ["blocking"]
+);
+
 const isFirefox = typeof browser !== "undefined";
 
 // Store the URL of the tab that initiated the request.

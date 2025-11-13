@@ -35526,7 +35526,7 @@ document.body.addEventListener("click", function (e) {
                             TD.sync.controller.reset(),
                             TD.storage.Store.flushWebstorage();
                         var c = (0, d.default)(
-                                "Error initializing TweetDeck: " + s?.message
+                                "Error initializing TweetDeck: " + String(s)
                             ),
                             u = s.message ? "(" + s.message + ")" : "";
                         return (

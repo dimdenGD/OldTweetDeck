@@ -18249,7 +18249,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<div class="js-login-error form-message form-error-message error txt-center padding-al margin-bxl {{^message}}is-hidden{{/message}}"> <p class="js-login-error-message">{{message}} More info: <a style="color:lightpink;font-weight:bold" href="https://twitter.com/dimden" target="_blank">@dimden</a></p> </div>');
+                '<div class="js-login-error form-message form-error-message error txt-center padding-al margin-bxl {{^message}}is-hidden{{/message}}"> <p class="js-login-error-message">{{message}}</div>');
     },
     function (e, t, i) {
         "use strict";
@@ -35526,7 +35526,7 @@ document.body.addEventListener("click", function (e) {
                             TD.sync.controller.reset(),
                             TD.storage.Store.flushWebstorage();
                         var c = (0, d.default)(
-                                "Sorry, something went wrong. Please try again later."
+                                "Error initializing TweetDeck: " + s?.message
                             ),
                             u = s.message ? "(" + s.message + ")" : "";
                         return (

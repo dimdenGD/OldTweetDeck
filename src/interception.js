@@ -10,6 +10,20 @@ const generateID = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
+let originalCookie = Document.prototype.__lookupSetter__('cookie')
+
+Object.defineProperty(document, 'cookie', {
+    configurable: true,
+    enumerable: true,
+    get() {
+        return Document.prototype.__lookupGetter__('cookie').call(document);
+    },
+    set(value) {
+        if (value.trim().toLowerCase().startsWith('tweetdeck_version=')) return;
+        originalCookie.call(document, value)
+    }
+})
+
 let verifiedUser = localStorage.OTDverifiedUser ? JSON.parse(localStorage.OTDverifiedUser) : null;
 let feeds = localStorage.OTDfeeds ? JSON.parse(localStorage.OTDfeeds) : {};
 let columns = localStorage.OTDcolumns ? JSON.parse(localStorage.OTDcolumns) : {};
@@ -2082,7 +2096,7 @@ const proxyRoutes = [
         path: "/1.1/tweetdeck/clients/blackbird/all",
         method: "GET",
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow`;
+            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json`;
         },
         afterRequest: (xhr) => {
             const state = {
@@ -2135,7 +2149,7 @@ const proxyRoutes = [
             },
         },
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_push`;
+            xhr.modUrl = `https://${location.hostname}/i/otdstub?meow_push`;
             xhr.modMethod = "GET";
         },
         beforeSendBody: (xhr, body) => {
@@ -2167,7 +2181,7 @@ const proxyRoutes = [
             },
         },
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_feeds_push`;
+            xhr.modUrl = `https://${location.hostname}/i/otdstub?meow_feeds_push`;
             xhr.modMethod = "GET";
         },
         beforeSendBody: (xhr, body) => {
@@ -2197,7 +2211,7 @@ const proxyRoutes = [
             },
         },
         beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_columns_push`;
+            xhr.modUrl = `https://${location.hostname}/i/otdstub?meow_columns_push`;
             xhr.modMethod = "GET";
         },
         beforeSendBody: (xhr, body) => {
@@ -2293,6 +2307,31 @@ const proxyRoutes = [
             });
         }
     },
+    // stubs
+    {
+        path: '/web/dist/version.json',
+        method: 'GET',
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://${location.hostname}/i/otdstub?meow_version`
+        },
+        afterRequest: () => {
+            return JSON.stringify({ version: '4.0.220811153004', minimum: '4.0.190610153508' });
+        }
+    },
+    {
+        path: '/1.1/help/configuration.json',
+        method: 'GET',
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://${location.hostname}/i/otdstub?meow_configuration`
+        }
+    },
+    {
+        path: '/1.1/tweetdeck/dataminr/authtoken',
+        method: 'GET',
+        beforeRequest: (xhr) => {
+            xhr.modUrl = `https://${location.hostname}/i/otdstub?meow_dataminr`
+        }
+    }
 ];
 
 // wrap the XMLHttpRequest

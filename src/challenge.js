@@ -10,7 +10,7 @@ solverIframe.style.border = 'none';
 solverIframe.style.opacity = 0;
 solverIframe.style.pointerEvents = 'none';
 solverIframe.tabIndex = -1;
-solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?2"; // check source code of that page to make sure its safe if u dont trust it
+solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?3"; // check source code of that page to make sure its safe if u dont trust it
 fetch(solverIframe.src).catch(() => {
     console.error("Cannot load solver iframe");
     solverErrored = true;

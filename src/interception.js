@@ -2343,7 +2343,6 @@ const proxyRoutes = [
             return {"versions":{"feature_switches":"a6da3a3fb61e9c1423276a8df0da3258980b42cf","experiments":"a6da3a3fb61e9c1423276a8df0da3258980b42cf","settings":"a88b5266c59f52ccf8a8f1fd85f2b92a"},"config":{"live_engagement_in_column_8020":{"value":"live_engagement_enabled"},"tweetdeck_activity_streaming":{"value":false},"tweetdeck_content_render_search_tweets":{"value":true},"tweetdeck_live_engagements":{"value":true},"tweetdeck_scheduled_new_api":{"value":true},"tweetdeck_trends_column":{"value":true},"twitter_text_emoji_counting_enabled":{"value":true}},"impression_pointers":{}};
         },
     },
-    ,
     {
         path: "/i/jot",
         method: "GET",
@@ -2368,6 +2367,7 @@ XMLHttpRequest = function () {
             try {
                 let parsedUrl = new URL(url);
                 this.proxyRoute = proxyRoutes.find((route) => {
+                    if(!route) return false;
                     if (route.method.toUpperCase() !== method.toUpperCase()) return false;
                     if (typeof route.path === "string") {
                         return route.path === parsedUrl.pathname;

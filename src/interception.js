@@ -2350,13 +2350,20 @@ XMLHttpRequest = function () {
                 )
             ) {
                 if(localStorage.device_id) this.setRequestHeader('X-Client-UUID', localStorage.device_id);
+                if(Date.now() - OTD_INIT_TIME < 3000 && !window.solveChallenge) {
+                    console.log('waiting for challenge');
+                    let i = 0;
+                    while(!window.solveChallenge && i++ < 50) {
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                    }
+                }
                 if(window.solveChallenge) {
                     try {
                         this.setRequestHeader('x-client-transaction-id', await solveChallenge(parsedUrl.pathname, method));
                     } catch (e) {
-                        if(localStorage.secureRequests && Date.now() - OTD_INIT_TIME > 3000) {
+                        // if(localStorage.secureRequests) {
                             throw e;
-                        }
+                        // }
                     }
                 }
             }

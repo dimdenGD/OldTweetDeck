@@ -34300,7 +34300,7 @@ document.body.addEventListener("click", function (e) {
                                 },
                             },
                             t = TD.net.ajax.request(
-                                TD.config.twitter_api_base + "/1.1/help/settings.json?meow_post",
+                                TD.config.twitter_api_base + "/1.1/help/settings.json",
                                 {
                                     method: "GET",
                                     params: (0, c.default)(e),

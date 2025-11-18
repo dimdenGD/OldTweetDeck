@@ -2362,6 +2362,7 @@ XMLHttpRequest = function () {
                         this.setRequestHeader('x-client-transaction-id', await solveChallenge(parsedUrl.pathname, method));
                     } catch (e) {
                         // if(localStorage.secureRequests) {
+                            console.error(`Challenge error for ${method} ${parsedUrl.pathname}:`, e);
                             throw e;
                         // }
                     }

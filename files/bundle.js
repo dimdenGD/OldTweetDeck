@@ -7117,8 +7117,8 @@ document.body.addEventListener("click", function (e) {
                   };
         }
         // var p = TD.config.twitter_api_base + "/graphql",
-        var p = TD.config.twitter_api_base + "/g",
-        g = ["UpdateGryphonOnboardingState"];
+        var p = TD.config.twitter_api_base + "/graphql",
+        g = [""];
 
         function v(e) {
             var t = e.query,
@@ -32778,11 +32778,11 @@ document.body.addEventListener("click", function (e) {
                 m = null;
             (h.getDecider = function (e) {
                 var t;
-                if(window.chrome && window.chrome.runtime && window.chrome.runtime.getURL) {
-                    t = `${chrome.runtime.getURL('/files/decider.json')}?identifier=` + e;
-                } else {
+                // if(window.chrome && window.chrome.runtime && window.chrome.runtime.getURL) {
+                //     t = `${chrome.runtime.getURL('/files/decider.json')}?identifier=` + e;
+                // } else {
                     t = "https://tweetdeck.twitter.com/decider?identifier=" + e;
-                }
+                // }
                 return h.drequest(
                     t,
                     {
@@ -33728,7 +33728,7 @@ document.body.addEventListener("click", function (e) {
                             objects: t,
                             deltaIds: i,
                             respHeaders: {
-                                "x-td-mtime": e.xhr.getResponseHeader("x-td-mtime"),
+                                "x-td-mtime": e.xhr.getResponseHeader("x-td-mtime") ?? new Date().toISOString(),
                             },
                             pushid: n,
                         };
@@ -33744,7 +33744,7 @@ document.body.addEventListener("click", function (e) {
                         s.assert(null !== e, "Δid must not be null");
                     });
                 var l,
-                    d = n["x-td-mtime"];
+                    d = n["x-td-mtime"] ?? new Date().toISOString();
                 s.assert(d, "require x-td-mtime header in object PUT");
                 for (var h, m, f = this, p = 0; p < e.length; p++)
                     (l = e[p]),
@@ -33807,7 +33807,7 @@ document.body.addEventListener("click", function (e) {
                             object: i,
                             deltaId: n,
                             respHeaders: {
-                                "x-td-mtime": e.xhr.getResponseHeader("x-td-mtime"),
+                                "x-td-mtime": e.xhr.getResponseHeader("x-td-mtime") ?? new Date().toISOString(),
                             },
                         };
                     });
@@ -33824,7 +33824,7 @@ document.body.addEventListener("click", function (e) {
                         (a = t.newRemoteState(e.body));
                 else {
                     s.assert((0, c.default)(e), "don't know how to handle response");
-                    var l = n["x-td-mtime"];
+                    var l = n["x-td-mtime"] ?? new Date().toISOString();
                     s.assert(l, "require x-td-mtime header in object PUT"),
                         s.verboseLog("_processTSResult", t, e),
                         (a = t.commit(i, l));
@@ -34269,7 +34269,7 @@ document.body.addEventListener("click", function (e) {
                         return (
                             a.addCallback(function () {
                                 s.stateLog("createNewClient resp headers; ", i);
-                                var r = i["x-td-mtime"];
+                                var r = i["x-td-mtime"] ?? new Date().toISOString();
                                 return (
                                     s.assert(r, "require x-td-mtime header in client POST"),
                                     (t.mtime = r),
@@ -34308,7 +34308,7 @@ document.body.addEventListener("click", function (e) {
                             );
                         return (
                             t.addCallbackWith(this, function (t) {
-                                var i = t.xhr.getResponseHeader("x-td-mtime");
+                                var i = t.xhr.getResponseHeader("x-td-mtime") ?? new Date().toISOString();
                                 return (
                                     s.assert(i, "require x-td-mtime header in client POST"),
                                     (e.mtime = i),

@@ -607,6 +607,24 @@ function extractAssignedJSON(html, varName = "window.__INITIAL_STATE__") {
     }
 }
 
+function emulateResponse(xhr) {
+    xhr._status = 200;
+    xhr._readyState = 4;
+    xhr.responseHeaderOverride = {
+        "content-type": () => "application/json"
+    }
+    const loadEvent = new ProgressEvent('load');
+    loadEvent.lengthComputable = true;
+    loadEvent.loaded = 1;
+    loadEvent.total = 1;
+
+    if(xhr.onload) xhr.onload(loadEvent);
+    if(xhr.onloadend) xhr.onloadend(loadEvent);
+
+    const readyStateEvent = new Event('readystatechange');
+    if(xhr.onreadystatechange) xhr.onreadystatechange(readyStateEvent);
+}
+
 let counter = 0;
 let bookmarkTimes = {};
 const OriginalXHR = XMLHttpRequest;
@@ -1372,21 +1390,21 @@ const proxyRoutes = [
     {
         path: /\/1\.1\/collections\/.*\.json/,
         method: "GET",
-        beforeSendHeaders: (xhr) => {
-            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
-            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
-            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            xhr._status = 404;
+            return "";
         },
     },
     {
         path: /\/1\.1\/collections\/.*\.json/,
         method: "POST",
-        beforeSendHeaders: (xhr) => {
-            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
-            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
-            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            xhr._status = 404;
+            return "";
         },
     },
     // User profile
@@ -1962,6 +1980,13 @@ const proxyRoutes = [
 
             xhr.modUrl = originalUrl.toString();
         },
+        beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] =
+                PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
         afterRequest: (xhr) => {
             let data;
             try {
@@ -2077,146 +2102,6 @@ const proxyRoutes = [
             return data;
         },
     },
-    // TweetDeck state
-    {
-        path: "/1.1/tweetdeck/clients/blackbird/all",
-        method: "GET",
-        beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow`;
-        },
-        afterRequest: (xhr) => {
-            const state = {
-                client: {
-                    columns: localStorage.OTDcolumnIds ? JSON.parse(localStorage.OTDcolumnIds) : [],
-                    mtime: new Date().toISOString(),
-                    name: "blackbird",
-                    settings: settings ?? {
-                        account_whitelist: [`twitter:${verifiedUser.id_str}`],
-                        default_account: `twitter:${verifiedUser.id_str}`,
-                        recent_searches: [],
-                        display_sensitive_media: false,
-                        name_cache: {
-                            customTimelines: {},
-                            lists: {},
-                            users: {}
-                        },
-                        navbar_width: "full-size",
-                        previous_splash_version: "4.0.220811153004",
-                        show_search_filter_callout: false,
-                        show_trends_filter_callout: false,
-                        theme: "light",
-                        use_narrow_columns: null,
-                        version: 2
-                    },
-                },
-                columns: columns ?? {},
-                decider: {},
-                feeds: feeds ?? {},
-                messages: [],
-                new: true
-            };
-            if(!settings) {
-                settings = state.client.settings;
-                localStorage.OTDsettings = JSON.stringify(settings);
-            }
-            cleanUp();
-            console.log('account state', state);
-
-            return state;
-        },
-    },
-    // emulate sending state data
-    {
-        path: "/1.1/tweetdeck/clients/blackbird",
-        method: "POST",
-        responseHeaderOverride: {
-            "x-td-mtime": () => {
-                return new Date().toISOString();
-            },
-        },
-        beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_push`;
-            xhr.modMethod = "GET";
-        },
-        beforeSendBody: (xhr, body) => {
-            let json = JSON.parse(body);
-            console.log('state push', json);
-            if(json.columns) {
-                localStorage.OTDcolumnIds = JSON.stringify(json.columns);
-            }
-            if(json.settings && settings) {
-                for(let key in json.settings) {
-                    settings[key] = json.settings[key];
-                }
-                localStorage.OTDsettings = JSON.stringify(settings);
-            }
-            cleanUp();
-            return body;
-        },
-        afterRequest: (xhr) => {
-            return "";
-        }
-    },
-    // emulate sending feeds
-    {
-        path: "/1.1/tweetdeck/feeds",
-        method: "POST",
-        responseHeaderOverride: {
-            "X-Td-Mtime": () => {
-                return new Date().toISOString();
-            },
-        },
-        beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_feeds_push`;
-            xhr.modMethod = "GET";
-        },
-        beforeSendBody: (xhr, body) => {
-            let json = JSON.parse(body);
-            let ids = [];
-            for(let i = 0; i < json.length; i++) {
-                const id = json[i].id ?? generateID();
-                ids.push(id);
-                feeds[id] = json[i];
-            }
-            xhr.storage.ids = ids;
-            localStorage.OTDfeeds = JSON.stringify(feeds);
-            console.log('feeds push', json, ids);
-            return body;
-        },
-        afterRequest: (xhr) => {
-            return xhr.storage.ids;
-        }
-    },
-    // emulate sending columns
-    {
-        path: "/1.1/tweetdeck/columns",
-        method: "POST",
-        responseHeaderOverride: {
-            "X-Td-Mtime": () => {
-                return new Date().toISOString();
-            },
-        },
-        beforeRequest: (xhr) => {
-            xhr.modUrl = `https://api.${location.hostname}/1.1/help/settings.json?meow_columns_push`;
-            xhr.modMethod = "GET";
-        },
-        beforeSendBody: (xhr, body) => {
-            let json = JSON.parse(body);
-            let ids = [];
-            for(let i = 0; i < json.length; i++) {
-                const id = json[i].id ?? generateID();
-                ids.push(id);
-                columns[id] = json[i];
-            }
-            xhr.storage.ids = ids;
-            localStorage.OTDcolumns = JSON.stringify(columns);
-            console.log('columns push', json, ids);
-            return body;
-        },
-        afterRequest: (xhr) => {
-            return xhr.storage.ids;
-        }
-    },
     // getting user
     {
         path: "/1.1/account/verify_credentials.json",
@@ -2292,6 +2177,181 @@ const proxyRoutes = [
                 translated_lang: response.sourceLanguage,
             });
         }
+    },
+
+    // TweetDeck state
+    {
+        path: "/1.1/tweetdeck/clients/blackbird/all",
+        method: "GET",
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            const state = {
+                client: {
+                    columns: localStorage.OTDcolumnIds ? JSON.parse(localStorage.OTDcolumnIds) : [],
+                    mtime: new Date().toISOString(),
+                    name: "blackbird",
+                    settings: settings ?? {
+                        account_whitelist: [`twitter:${verifiedUser.id_str}`],
+                        default_account: `twitter:${verifiedUser.id_str}`,
+                        recent_searches: [],
+                        display_sensitive_media: false,
+                        name_cache: {
+                            customTimelines: {},
+                            lists: {},
+                            users: {}
+                        },
+                        navbar_width: "full-size",
+                        previous_splash_version: "4.0.220811153004",
+                        show_search_filter_callout: false,
+                        show_trends_filter_callout: false,
+                        theme: "light",
+                        use_narrow_columns: null,
+                        version: 2
+                    },
+                },
+                columns: columns ?? {},
+                decider: {},
+                feeds: feeds ?? {},
+                messages: [],
+                new: true
+            };
+            if(!settings) {
+                settings = state.client.settings;
+                localStorage.OTDsettings = JSON.stringify(settings);
+            }
+            cleanUp();
+            console.log('account state', state);
+
+            return state;
+        },
+    },
+    // emulate sending state data
+    {
+        path: "/1.1/tweetdeck/clients/blackbird",
+        method: "POST",
+        responseHeaderOverride: {
+            "x-td-mtime": () => {
+                return new Date().toISOString();
+            },
+        },
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        beforeSendBody: (xhr, body) => {
+            let json = JSON.parse(body);
+            console.log('state push', json);
+            if(json.columns) {
+                localStorage.OTDcolumnIds = JSON.stringify(json.columns);
+            }
+            if(json.settings && settings) {
+                for(let key in json.settings) {
+                    settings[key] = json.settings[key];
+                }
+                localStorage.OTDsettings = JSON.stringify(settings);
+            }
+            cleanUp();
+            return body;
+        },
+        afterRequest: (xhr) => {
+            return "";
+        }
+    },
+    // emulate sending feeds
+    {
+        path: "/1.1/tweetdeck/feeds",
+        method: "POST",
+        responseHeaderOverride: {
+            "X-Td-Mtime": () => {
+                return new Date().toISOString();
+            },
+        },
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        beforeSendBody: (xhr, body) => {
+            let json = JSON.parse(body);
+            let ids = [];
+            for(let i = 0; i < json.length; i++) {
+                const id = json[i].id ?? generateID();
+                ids.push(id);
+                feeds[id] = json[i];
+            }
+            xhr.storage.ids = ids;
+            localStorage.OTDfeeds = JSON.stringify(feeds);
+            console.log('feeds push', json, ids);
+            return body;
+        },
+        afterRequest: (xhr) => {
+            return xhr.storage.ids;
+        }
+    },
+    // emulate sending columns
+    {
+        path: "/1.1/tweetdeck/columns",
+        method: "POST",
+        responseHeaderOverride: {
+            "X-Td-Mtime": () => {
+                return new Date().toISOString();
+            },
+        },
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        beforeSendBody: (xhr, body) => {
+            let json = JSON.parse(body);
+            let ids = [];
+            for(let i = 0; i < json.length; i++) {
+                const id = json[i].id ?? generateID();
+                ids.push(id);
+                columns[id] = json[i];
+            }
+            xhr.storage.ids = ids;
+            localStorage.OTDcolumns = JSON.stringify(columns);
+            console.log('columns push', json, ids);
+            return body;
+        },
+        afterRequest: (xhr) => {
+            return xhr.storage.ids;
+        }
+    },
+    // tweetdeck stuff
+    {
+        path: "/decider",
+        method: "GET",
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            console.log("Got decider");
+            return {"decider":{"tweetdeck_subsequent_follows":true,"scheduler_write":true,"in_reply_to_indicator":true,"enable_cors_firefox":true,"create_moment":true,"simplified_edit_collection_flow":true,"suggest_refresh":true,"poll_streamed_feed_favorites":true,"disable_oauth_echo":true,"scheduler_read_visible":true,"upload_big_gifs":true,"cookie_force_migrate":true,"action_retweeted_retweet":true,"native_animated_gifs":true,"touchdeck_sidebar_v2":true,"account_settings_join_team_flow":true,"enable_rewrite_columns":true,"touchdeck_font_size_v2":true,"touchdeck_search_v2":true,"disable_typeahead_search_with_feather_v2":true,"dataminr_proxied_auth_flow":true,"disable_streaming":true,"abuse_emergency_filter_info":true,"poll_streamed_feed_home":true,"compose_quoted_tweet_as_attachment":true,"send_twitter_auth_type_header":true,"dataminr":true,"heartfave_animation":true,"touchdeck_column_options_v2":true,"tweets_emoji":true,"column_unread_bar":true,"with_video_upload":true,"continuous_pipeline_staging":true,"universal_search_timelines":true,"machine_translated_tweets":true,"hashflags":true,"scheduler_read_background":true,"cookie_streaming":true,"poll_streamed_feed_usertweets":true,"faster_notifications":true,"disable_scheduled_messages":true,"streamed_chirp_lookup_metrics":true,"tweet_up_to_four_images":true,"sample_failed_requests":true,"iq_tweets":true,"add_column_by_url_query_param":true,"use_twitter_api_sync":true,"track_search_engagement":true,"quote_tweet_read":true,"cookie_access_tweetdeck":true,"account_settings_redesign":true,"windows_migration_logged_in_2":true,"tweetstorms":true,"action_favorited_retweet":true,"tweetdeck_subsequent_likes":true,"touchdeck_tweet_controls_v3":true,"trends_tailored":true,"live_video_timelines":true,"slow_collection_refresh":true,"fetch_entire_blocklist":true,"report_flow_iframe":true,"tweet_hide_suffix":true,"windows_migration_warning_2":true,"version_poll_force_upgrade":true,"quote_tweet_write":true,"poll_cards_enabled":true,"version_poll":true,"migrate_chrome_app_session_to_web":true,"add_account":true,"disable_quote_tweet_unavailable_msg":true,"convert_new_oauth_account_to_contributor":true,"iq_rts":true,"migrate_mac_app_session_to_web_gt_3_9_482":true,"enable_cors_2":true,"windows_migration_logged_out_2":true,"simplified_replies":true,"scheduler_write_media":true,"multi_photo_media_grid":true,"touchdeck_modals_v2":true,"non_destructive_chirp_rerender":true,"touchdeck_dropdowns_v2":true,"umf_prompts":true,"cramming":true,"trends_regional":true,"cookie_td_cookie_migration":true,"universal_search_timelines_by_id":true,"add_account_via_xauth_2":true,"native_video":true,"chirp_lateness_metric":true,"upload_use_sru":true,"mute_conversation":true,"action_quoted_tweet":true,"dm_rounded_avatars":true,"compose_character_limit_do_not_count_attachments":true,"touchdeck_compose_v2":true,"autocomplete_remote_sources":true,"cards_enabled_detail_view":true}};
+        },
+    },
+    {
+        path: "/web/dist/version.json",
+        method: "GET",
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            console.log("Got version.json");
+            return {"version":"4.0.220811153004","minimum":"4.0.190610153508"};
+        },
+    },
+    {
+        path: "/1.1/help/settings.json",
+        method: "GET",
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            console.log("Got settings.json");
+            return {"versions":{"feature_switches":"a6da3a3fb61e9c1423276a8df0da3258980b42cf","experiments":"a6da3a3fb61e9c1423276a8df0da3258980b42cf","settings":"a88b5266c59f52ccf8a8f1fd85f2b92a"},"config":{"live_engagement_in_column_8020":{"value":"live_engagement_enabled"},"tweetdeck_activity_streaming":{"value":false},"tweetdeck_content_render_search_tweets":{"value":true},"tweetdeck_live_engagements":{"value":true},"tweetdeck_scheduled_new_api":{"value":true},"tweetdeck_trends_column":{"value":true},"twitter_text_emoji_counting_enabled":{"value":true}},"impression_pointers":{}};
+        },
+    },
+    ,
+    {
+        path: "/i/jot",
+        method: "GET",
+        openHandler: () => {},
+        sendHandler: emulateResponse,
+        afterRequest: (xhr) => {
+            return "";
+        },
     },
 ];
 
@@ -2395,7 +2455,7 @@ XMLHttpRequest = function () {
             if (key === "responseText") return this.interceptResponseText(xhr);
             if (key === "readyState" && xhr._readyState) return xhr._readyState;
             if (key === "status" && xhr._status) return xhr._status;
-            if (key === "statusText" && xhr._statusText) return xhr._statusText;
+            if (key === "statusText" && (xhr._statusText || xhr._status)) return xhr._statusText ? xhr._statusText : xhr._status+"";
 
             let value = xhr[key];
             if (typeof value === "function") {
@@ -2421,6 +2481,18 @@ XMLHttpRequest = function () {
                 }
             }
             return xhr.responseText;
+        },
+        getResponseHeader(name) {
+            let override = this.responseHeaderOverride ? this.responseHeaderOverride : this.proxyRoute ? this.proxyRoute.responseHeaderOverride : undefined;
+            console.log(override, name);
+            if(this.proxyRoute && override) {
+                for(let header in override) {
+                    if(header.toLowerCase() === name.toLowerCase()) {
+                        return override[header](this.getResponseHeader(header));
+                    }
+                }
+            }
+            return this.getResponseHeader(name);
         },
         getAllResponseHeaders() {
             let headers = this.getAllResponseHeaders();

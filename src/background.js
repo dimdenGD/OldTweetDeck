@@ -26,26 +26,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(
 )
 
 chrome.webRequest.onBeforeRequest.addListener(
-    function(details) {
-        try {
-            let parsedUrl = new URL(details.url);
-            let path = parsedUrl.pathname;
-            if(path === '/decider') {
-                return {
-                    redirectUrl: chrome.runtime.getURL('/files/decider.json')
-                }
-            } else if(path === '/web/dist/version.json') {
-                return {
-                    redirectUrl: chrome.runtime.getURL('/files/version.json')
-                }
-            };
-        } catch(e) {}
-    },
-    {urls: ["https://*.twitter.com/*", "https://*.x.com/*"]},
-    ["blocking"]
-);
-
-chrome.webRequest.onBeforeRequest.addListener(
     function() {
         return {
             redirectUrl: 'https://twitter.com/i/tweetdeck'

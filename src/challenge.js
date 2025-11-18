@@ -10,7 +10,7 @@ solverIframe.style.border = 'none';
 solverIframe.style.opacity = 0;
 solverIframe.style.pointerEvents = 'none';
 solverIframe.tabIndex = -1;
-solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?3"; // check source code of that page to make sure its safe if u dont trust it
+solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?4"; // check source code of that page to make sure its safe if u dont trust it
 fetch(solverIframe.src).catch(() => {
     console.error("Cannot load solver iframe");
     solverErrored = true;
@@ -98,7 +98,7 @@ function solveChallenge(path, method) {
                         solveCallbacks[id].reject('Solver timed out');
                         delete solveCallbacks[id];
                     }
-                }, 10000);
+                }, 20000);
             });
         } else {
             solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
@@ -107,7 +107,7 @@ function solveChallenge(path, method) {
                     solveCallbacks[id].reject('Solver timed out');
                     delete solveCallbacks[id];
                 }
-            }, 10000);
+            }, 20000);
         }
     });
 }

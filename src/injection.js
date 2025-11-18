@@ -3,6 +3,25 @@ let isFirefox = navigator.userAgent.indexOf('Firefox') > -1;
 let cookie = null;
 let otdtoken = null;
 
+// disable twitters service worker
+if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+            registration.unregister();
+        }
+    });
+    // clear cache of service worker
+    if (window.caches)
+        window.caches.keys().then((keyList) => {
+            return Promise.all(
+                keyList.map((key) => {
+                    return window.caches.delete(key);
+                })
+            );
+        });
+}
+
+
 if(!window.chrome) window.chrome = {};
 if(!window.chrome.runtime) window.chrome.runtime = {};
 window.chrome.runtime.getURL = url => {

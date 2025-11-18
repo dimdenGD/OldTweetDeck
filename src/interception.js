@@ -10,10 +10,42 @@ const generateID = () => {
     return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
 }
 
-let verifiedUser = localStorage.OTDverifiedUser ? JSON.parse(localStorage.OTDverifiedUser) : null;
-let feeds = localStorage.OTDfeeds ? JSON.parse(localStorage.OTDfeeds) : {};
-let columns = localStorage.OTDcolumns ? JSON.parse(localStorage.OTDcolumns) : {};
-let settings = localStorage.OTDsettings ? JSON.parse(localStorage.OTDsettings) : null;
+let verifiedUser;
+if(localStorage.OTDverifiedUser) {
+    try {
+        verifiedUser = JSON.parse(localStorage.OTDverifiedUser);
+    } catch(e) {
+        console.error(e);
+        verifiedUser = null;
+    }
+}
+let feeds;
+if(localStorage.OTDfeeds) {
+    try {
+        feeds = JSON.parse(localStorage.OTDfeeds);
+    } catch(e) {
+        console.error(e);
+        feeds = {};
+    }
+}
+let columns;
+if(localStorage.OTDcolumns) {
+    try {
+        columns = JSON.parse(localStorage.OTDcolumns);
+    } catch(e) {
+        console.error(e);
+        columns = {};
+    }
+}
+let settings;
+if(localStorage.OTDsettings) {
+    try {
+        settings = JSON.parse(localStorage.OTDsettings);
+    } catch(e) {
+        console.error(e);
+        settings = null;
+    }
+}
 
 function exportState() {
 	const a = document.createElement('a');

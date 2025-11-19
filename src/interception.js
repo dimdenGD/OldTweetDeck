@@ -2156,6 +2156,10 @@ const proxyRoutes = [
                 const state = extractAssignedJSON(xhr.responseText);
                 const user_id = state.session.user_id;
                 const user = state.entities.users.entities[user_id];
+                if(!user) {
+                    console.error(`User not found: ${JSON.stringify(state)}`);
+                    throw new Error('User not found');
+                }
                 verifiedUser = user;
                 localStorage.OTDverifiedUser = JSON.stringify(user);
                 return user;

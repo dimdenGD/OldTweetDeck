@@ -15,7 +15,7 @@ if(localStorage.OTDverifiedUser) {
     try {
         verifiedUser = JSON.parse(localStorage.OTDverifiedUser);
     } catch(e) {
-        console.error(e);
+        console.warn(`Error parsing OTDverifiedUser.`, e);
         verifiedUser = null;
     }
 }
@@ -24,7 +24,7 @@ if(localStorage.OTDfeeds) {
     try {
         feeds = JSON.parse(localStorage.OTDfeeds);
     } catch(e) {
-        console.error(`Error parsing OTDfeeds. That's mostly fine though.`, e);
+        console.warn(`Error parsing OTDfeeds.`, e);
         feeds = {};
     }
 }
@@ -33,7 +33,7 @@ if(localStorage.OTDcolumns) {
     try {
         columns = JSON.parse(localStorage.OTDcolumns);
     } catch(e) {
-        console.error(`Error parsing OTDcolumns. That's mostly fine though.`, e);
+        console.warn(`Error parsing OTDcolumns.`, e);
         columns = {};
     }
 }
@@ -42,7 +42,7 @@ if(localStorage.OTDsettings) {
     try {
         settings = JSON.parse(localStorage.OTDsettings);
     } catch(e) {
-        console.error(`Error parsing OTDsettings. That's mostly fine though.`, e);
+        console.warn(`Error parsing OTDsettings.`, e);
         settings = null;
     }
 }

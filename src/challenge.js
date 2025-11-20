@@ -147,7 +147,7 @@ window.addEventListener('message', e => {
                 localStorage.device_id = uuidV4();
             }
         } catch(e) {
-            console.error(`Error during device id generation:`, e);
+            console.warn(`Error during device id generation:`, e);
             if(!localStorage.device_id) {
                 localStorage.device_id = uuidV4();
             }

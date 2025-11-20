@@ -24,7 +24,7 @@ if(localStorage.OTDfeeds) {
     try {
         feeds = JSON.parse(localStorage.OTDfeeds);
     } catch(e) {
-        console.error(e);
+        console.error(`Error parsing OTDfeeds. That's mostly fine though.`, e);
         feeds = {};
     }
 }
@@ -33,7 +33,7 @@ if(localStorage.OTDcolumns) {
     try {
         columns = JSON.parse(localStorage.OTDcolumns);
     } catch(e) {
-        console.error(e);
+        console.error(`Error parsing OTDcolumns. That's mostly fine though.`, e);
         columns = {};
     }
 }
@@ -42,7 +42,7 @@ if(localStorage.OTDsettings) {
     try {
         settings = JSON.parse(localStorage.OTDsettings);
     } catch(e) {
-        console.error(e);
+        console.error(`Error parsing OTDsettings. That's mostly fine though.`, e);
         settings = null;
     }
 }

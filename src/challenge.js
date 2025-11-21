@@ -95,6 +95,12 @@ function solveChallenge(path, method) {
                 solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
                 setTimeout(() => {
                     if(solveCallbacks[id]) {
+                        // try again
+                        solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+                    }
+                }, 5000);
+                setTimeout(() => {
+                    if(solveCallbacks[id]) {
                         solveCallbacks[id].reject('Solver timed out');
                         delete solveCallbacks[id];
                     }
@@ -102,6 +108,12 @@ function solveChallenge(path, method) {
             });
         } else {
             solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+            setTimeout(() => {
+                if(solveCallbacks[id]) {
+                    // try again
+                    solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+                }
+            }, 5000);
             setTimeout(() => {
                 if(solveCallbacks[id]) {
                     solveCallbacks[id].reject('Solver timed out');

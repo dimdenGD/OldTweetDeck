@@ -10,7 +10,7 @@ solverIframe.style.border = 'none';
 solverIframe.style.opacity = 0;
 solverIframe.style.pointerEvents = 'none';
 solverIframe.tabIndex = -1;
-solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?1"; // check source code of that page to make sure its safe if u dont trust it
+solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?4"; // check source code of that page to make sure its safe if u dont trust it
 fetch(solverIframe.src).catch(() => {
     console.error("Cannot load solver iframe");
     solverErrored = true;
@@ -95,19 +95,31 @@ function solveChallenge(path, method) {
                 solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
                 setTimeout(() => {
                     if(solveCallbacks[id]) {
+                        // try again
+                        solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+                    }
+                }, 5000);
+                setTimeout(() => {
+                    if(solveCallbacks[id]) {
                         solveCallbacks[id].reject('Solver timed out');
                         delete solveCallbacks[id];
                     }
-                }, 300);
+                }, 20000);
             });
         } else {
             solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
             setTimeout(() => {
                 if(solveCallbacks[id]) {
+                    // try again
+                    solverIframe.contentWindow.postMessage({ action: 'solve', id, path, method }, '*');
+                }
+            }, 5000);
+            setTimeout(() => {
+                if(solveCallbacks[id]) {
                     solveCallbacks[id].reject('Solver timed out');
                     delete solveCallbacks[id];
                 }
-            }, 500);
+            }, 20000);
         }
     });
 }
@@ -147,7 +159,7 @@ window.addEventListener('message', e => {
                 localStorage.device_id = uuidV4();
             }
         } catch(e) {
-            console.error(`Error during device id generation:`, e);
+            console.warn(`Error during device id generation:`, e);
             if(!localStorage.device_id) {
                 localStorage.device_id = uuidV4();
             }

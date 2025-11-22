@@ -17,7 +17,7 @@ window.addEventListener('message', e => {
     } else if(e.data.cookie) {
         cookie = e.data.cookie;
     } else if(e.data.token) {
-        console.log("got otdtoken", e.data.token);
+        console.log("got otdtoken");
         otdtoken = e.data.token;
     }
 });

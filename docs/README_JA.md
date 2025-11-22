@@ -88,13 +88,17 @@ Twitterがいいねを非公開にしたことに伴い、いいねを取得す�
 
 ## 更新履歴
 
-### 4.3.4
-* アカウントが凍結される原因を恐らく修正しました (Xプレミアムに登録されていない場合は自己責任でご利用ください)
+### 4.3.5
+* より安全なOldTweetDeck: よりステルスなリクエスト, セキュリティーヘッダーの強制, より少ないAPIコール
+* スケジュールカラムを修正
+* 永遠にページが読み込まれる問題を修正
 
 **[寄付する](https://patreon.com/OldTweetDeck)**
 
+### 4.3.4
+* アカウントが凍結される原因を恐らく修正しました (Xプレミアムに登録されていない場合は自己責任でご利用ください)
+
 ### 4.3.3
-**⚠️ 注意: 現在OldTweetDeckを利用するとアカウントが凍結されます ⚠️**
 * OldTweetDeckが読み込まれない問題を修正
 
 ### 4.3.2
@@ -343,4 +347,5 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
 * README: commit [302b9ee](https://github.com/dimdenGD/OldTweetDeck/commit/302b9ee83ecbdefc589a23888aff051f9bfab75a)  
-* 更新履歴: release/tag [v4.3.4](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.4)
+* 更新履歴: release/tag [v4.3.5](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.5)
+

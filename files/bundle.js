@@ -48441,6 +48441,7 @@ document.body.addEventListener("click", function (e) {
                     }
                 }),
                 (this.handleAccessDenied = function (e, t) {
+                    return;
                     var i = t.account.getKey();
                     if (!this.state.badAccounts[i]) {
                         var n = this.addBadAccountFromEventData(this.state, t);
@@ -48449,6 +48450,7 @@ document.body.addEventListener("click", function (e) {
                     }
                 }),
                 (this.handleStateChanged = function (e) {
+                    return;
                     var t = this.getBadAccount(e);
                     t
                         ? this.trigger("uiShowAccountAccessDeniedBanner", t.eventData)
@@ -67598,6 +67600,7 @@ document.body.addEventListener("click", function (e) {
                         this.trigger("uiMessageBannerContainerHidden");
                     }),
                     (this.showAccessDeniedMessage = function (e, t) {
+                        return;
                         var i;
                         (i = t.isLoginAccount
                             ? this.getLoginAccountAccessDeniedMessageData(t)

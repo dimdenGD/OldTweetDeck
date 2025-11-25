@@ -1,6 +1,7 @@
 let solveId = 0;
 let solveCallbacks = {};
 let solverErrored = false;
+let ready = false;
 
 let solverIframe = document.createElement('iframe');
 solverIframe.style.position = 'absolute';
@@ -146,6 +147,8 @@ window.addEventListener('message', e => {
             solveCallbacks[id].reject('Solver errored');
             delete solveCallbacks[id];
         }
+    } else if(data.action === 'ready') {
+        ready = true;
     }
 });
 
@@ -172,9 +175,12 @@ window.addEventListener('message', e => {
         let vendorCode = homepageData.match(/vendor.(\w+).js"/)[1];
         let challengeCode = homepageData.match(/"ondemand.s":"(\w+)"/)[1];
         let challengeData = await fetch(`https://abs.twimg.com/responsive-web/client-web/ondemand.s.${challengeCode}a.js`).then(res => res.text());
+        console.log(`Successfully fetched challenge data (${challengeCode} / ${challengeData.length})`);
         let vendorData = await fetch(`https://abs.twimg.com/responsive-web/client-web/vendor.${vendorCode}.js`).then(res => res.text());
+        console.log(`Successfully fetched vendor data (${vendorCode} / ${vendorData.length})`);
 
         function sendInit() {
+            console.log('Sending init');
             solverIframe.contentWindow.postMessage({
                 action: 'init',
                 challenge: challengeData,
@@ -185,7 +191,17 @@ window.addEventListener('message', e => {
         }
         if(solverIframe.contentWindow) {
             sendInit();
+            setTimeout(() => {
+                if(!ready) {
+                    sendInit();
+                }
+            }, 2500);
         } else {
+            setTimeout(() => {
+                if(!ready) {
+                    sendInit();
+                }
+            }, 2500);
             solverIframe.addEventListener('load', () => sendInit());
         }
     } catch (e) {

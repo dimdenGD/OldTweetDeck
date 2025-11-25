@@ -665,64 +665,46 @@ const proxyRoutes = [
     {
         path: "/1.1/statuses/home_timeline.json",
         method: "GET",
-        // beforeRequest: (xhr) => {
-        //     try {
-        //         let url = new URL(xhr.modUrl);
-        //         let params = new URLSearchParams(url.search);
-        //         let variables = {
-        //             includePromotedContent: false,
-        //             latestControlAvailable: true,
-        //             count: 40,
-        //             requestContext: "launch",
-        //         };
-        //         let features = {
-        //             responsive_web_graphql_exclude_directive_enabled: true,
-        //             verified_phone_label_enabled: false,
-        //             responsive_web_home_pinned_timelines_enabled: true,
-        //             creator_subscriptions_tweet_preview_api_enabled: true,
-        //             responsive_web_graphql_timeline_navigation_enabled: true,
-        //             responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-        //             c9s_tweet_anatomy_moderator_badge_enabled: true,
-        //             tweetypie_unmention_optimization_enabled: true,
-        //             responsive_web_edit_tweet_api_enabled: true,
-        //             graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-        //             view_counts_everywhere_api_enabled: true,
-        //             longform_notetweets_consumption_enabled: true,
-        //             responsive_web_twitter_article_tweet_consumption_enabled: false,
-        //             tweet_awards_web_tipping_enabled: false,
-        //             freedom_of_speech_not_reach_fetch_enabled: true,
-        //             standardized_nudges_misinfo: true,
-        //             tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
-        //             longform_notetweets_rich_text_read_enabled: true,
-        //             longform_notetweets_inline_media_enabled: true,
-        //             responsive_web_media_download_video_enabled: false,
-        //             responsive_web_enhance_cards_enabled: false,
-        //         };
+        beforeRequest: (xhr) => {
+            try {
+                let url = new URL(xhr.modUrl);
+                let params = new URLSearchParams(url.search);
+                let variables = {"count":40,"includePromotedContent":true,"latestControlAvailable":true};
+                let features = {"rweb_video_screen_enabled":false,"profile_label_improvements_pcf_label_in_post_enabled":true,"responsive_web_profile_redirect_enabled":false,"rweb_tipjar_consumption_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"premium_content_api_read_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"responsive_web_grok_analyze_button_fetch_trends_enabled":false,"responsive_web_grok_analyze_post_followups_enabled":true,"responsive_web_jetfuel_frame":true,"responsive_web_grok_share_attachment_enabled":true,"articles_preview_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"responsive_web_grok_show_grok_translated_post":false,"responsive_web_grok_analysis_button_from_backend":true,"creator_subscriptions_quote_tweet_preview_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_grok_image_annotation_enabled":true,"responsive_web_grok_imagine_annotation_enabled":true,"responsive_web_grok_community_note_auto_translation_is_enabled":false,"responsive_web_enhance_cards_enabled":false};
 
-        //         let max_id = params.get("max_id");
-        //         if (max_id) {
-        //             let bn = BigInt(params.get("max_id"));
-        //             bn += BigInt(1);
-        //             if (cursors[`home-${bn}`]) {
-        //                 variables.cursor = cursors[`home-${bn}`];
-        //             }
-        //         }
-        //         xhr.modUrl = `${NEW_API}/Qe2CCi4SE0Dvsb1TYrDfKQ/HomeLatestTimeline?${generateParams(
-        //             features,
-        //             variables
-        //         )}`;
-        //     } catch (e) {
-        //         console.error(e);
-        //     }
-        // },
+                let max_id = params.get("max_id");
+                if (max_id) {
+                    let bn = BigInt(params.get("max_id"));
+                    bn += BigInt(1);
+                    if (cursors[`home-${bn}`]) {
+                        variables.cursor = cursors[`home-${bn}`];
+                    }
+                }
+                xhr.modUrl = `${NEW_API}/cWF3cqWadLlIXA6KJWhcew/HomeLatestTimeline?${generateParams(
+                    features,
+                    variables
+                )}`;
+            } catch (e) {
+                console.error(e);
+            }
+        },
         beforeSendHeaders: (xhr) => {
             xhr.storage.user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
             updateFollows(xhr.storage.user_id);
+        },
+        // artificially slow down, because theres an invisible rate limit that gets hit after a few hours
+        responseHeaderOverride: {
+            "x-rate-limit-limit": (value) => {
+                return Math.floor(+value/5);
+            },
+            "x-rate-limit-remaining": (value) => {
+                return Math.floor(+value/5);
+            },
         },
         afterRequest: (xhr) => {
             let data;
@@ -735,142 +717,88 @@ const proxyRoutes = [
             if (data.errors && data.errors[0]) {
                 return [];
             }
+            let instructions = data.data.home.home_timeline_urt.instructions;
+            let entries = instructions.find((i) => i.type === "TimelineAddEntries");
+            if (!entries) {
+                return [];
+            }
+            entries = entries.entries;
+            let tweets = [];
+            for (let e of entries) {
+                // thats a lot of trash https://lune.dimden.dev/0bf524e52eb.png
+                if (e.entryId.startsWith("tweet-")) {
+                    let res = e.content.itemContent.tweet_results.result;
+                    let tweet = parseTweet(res);
+                    if (!tweet) continue;
+                    if (
+                        tweet.source &&
+                        (tweet.source.includes("Twitter for Advertisers") ||
+                            tweet.source.includes("advertiser-interface"))
+                    )
+                        continue;
+                    if (tweet.user.blocking || tweet.user.muting) continue;
 
-            if(localStorage.OTDshowAllRepliesInHome === '1') {
-                return data;
-            } 
+                    tweets.push(tweet);
+                } else if (e.entryId.startsWith("home-conversation-")) {
+                    let items = e.content.items;
 
-            let userId = xhr.storage.user_id;
-            let follows = followsData[userId];
-            if(follows && follows.data) follows = follows.data;
-            else follows = [];
+                    let pushedTweets = [];
+                    for (let i = 0; i < items.length; i++) {
+                        let item = items[i];
+                        if (
+                            item.entryId.includes("-tweet-") &&
+                            !item.entryId.includes("promoted")
+                        ) {
+                            let res = item.item.itemContent.tweet_results.result;
+                            let tweet = parseTweet(res);
+                            if (!tweet) continue;
+                            if (
+                                tweet.source &&
+                                (tweet.source.includes("Twitter for Advertisers") ||
+                                    tweet.source.includes("advertiser-interface"))
+                            )
+                                continue;
+                            if (tweet.user.blocking || tweet.user.muting) break;
+                            if (item.item.feedbackInfo) {
+                                tweet.feedback = item.item.feedbackInfo.feedbackKeys
+                                    .map(
+                                        (f) =>
+                                            data.data.home.home_timeline_urt.responseObjects.feedbackActions.find(
+                                                (a) => a.key === f
+                                            ).value
+                                    )
+                                    .filter((f) => f);
+                                if (tweet.feedback) {
+                                    tweet.feedbackMetadata =
+                                        item.item.feedbackInfo.feedbackMetadata;
+                                }
+                            }
+                            tweets.push(tweet);
+                            pushedTweets.push(tweet);
+                        }
+                    }
+                }
+            }
 
-            let filtered = data.filter(t => 
-                !t.in_reply_to_user_id_str || // not a reply
-                t.user.id_str === userId || // my tweet
-                (
-                    // reply to someone i follow from someone i follow
-                    follows.includes(t.in_reply_to_user_id_str) && 
-                    t.user.following && t.entities.user_mentions.every(user => follows.includes(user.id_str))
-                ) ||
-                (
-                    // reply to me from someone i follow
-                    t.in_reply_to_user_id_str === userId &&
-                    t.user.following
-                )
+            if (tweets.length === 0) return tweets;
+
+            // i didn't know they return tweets unsorted???
+            tweets.sort(
+                (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
 
-            return filtered;
-        }
-        // responseHeaderOverride: {
-        //     // slow it down a bit
-        //     "x-rate-limit-limit": (value) => {
-        //         if (value == "500") {
-        //             return "100";
-        //         }
-        //         return value;
-        //     },
-        //     "x-rate-limit-remaining": (value, headers) => {
-        //         if (headers["x-rate-limit-limit"] == "500" && value > 250) {
-        //             return (+value - 400).toString();
-        //         } else {
-        //             return value;
-        //         }
-        //     },
-        // },
-        // afterRequest: (xhr) => {
-        //     let data;
-        //     try {
-        //         data = JSON.parse(xhr.responseText);
-        //     } catch (e) {
-        //         console.error(e);
-        //         return [];
-        //     }
-        //     if (data.errors && data.errors[0]) {
-        //         return [];
-        //     }
-        //     let instructions = data.data.home.home_timeline_urt.instructions;
-        //     let entries = instructions.find((i) => i.type === "TimelineAddEntries");
-        //     if (!entries) {
-        //         return [];
-        //     }
-        //     entries = entries.entries;
-        //     let tweets = [];
-        //     for (let e of entries) {
-        //         // thats a lot of trash https://lune.dimden.dev/0bf524e52eb.png
-        //         if (e.entryId.startsWith("tweet-")) {
-        //             let res = e.content.itemContent.tweet_results.result;
-        //             let tweet = parseTweet(res);
-        //             if (!tweet) continue;
-        //             if (
-        //                 tweet.source &&
-        //                 (tweet.source.includes("Twitter for Advertisers") ||
-        //                     tweet.source.includes("advertiser-interface"))
-        //             )
-        //                 continue;
-        //             if (tweet.user.blocking || tweet.user.muting) continue;
+            let cursor = entries.find(
+                (e) =>
+                    e.entryId.startsWith("sq-cursor-bottom-") ||
+                    e.entryId.startsWith("cursor-bottom-")
+            );
+            if (cursor) {
+                cursors[`${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}`] =
+                    cursor.content.value;
+            }
 
-        //             tweets.push(tweet);
-        //         } else if (e.entryId.startsWith("home-conversation-")) {
-        //             let items = e.content.items;
-
-        //             let pushedTweets = [];
-        //             for (let i = 0; i < items.length; i++) {
-        //                 let item = items[i];
-        //                 if (
-        //                     item.entryId.includes("-tweet-") &&
-        //                     !item.entryId.includes("promoted")
-        //                 ) {
-        //                     let res = item.item.itemContent.tweet_results.result;
-        //                     let tweet = parseTweet(res);
-        //                     if (!tweet) continue;
-        //                     if (
-        //                         tweet.source &&
-        //                         (tweet.source.includes("Twitter for Advertisers") ||
-        //                             tweet.source.includes("advertiser-interface"))
-        //                     )
-        //                         continue;
-        //                     if (tweet.user.blocking || tweet.user.muting) break;
-        //                     if (item.item.feedbackInfo) {
-        //                         tweet.feedback = item.item.feedbackInfo.feedbackKeys
-        //                             .map(
-        //                                 (f) =>
-        //                                     data.data.home.home_timeline_urt.responseObjects.feedbackActions.find(
-        //                                         (a) => a.key === f
-        //                                     ).value
-        //                             )
-        //                             .filter((f) => f);
-        //                         if (tweet.feedback) {
-        //                             tweet.feedbackMetadata =
-        //                                 item.item.feedbackInfo.feedbackMetadata;
-        //                         }
-        //                     }
-        //                     tweets.push(tweet);
-        //                     pushedTweets.push(tweet);
-        //                 }
-        //             }
-        //         }
-        //     }
-
-        //     if (tweets.length === 0) return tweets;
-
-        //     // i didn't know they return tweets unsorted???
-        //     tweets.sort(
-        //         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        //     );
-
-        //     let cursor = entries.find(
-        //         (e) =>
-        //             e.entryId.startsWith("sq-cursor-bottom-") ||
-        //             e.entryId.startsWith("cursor-bottom-")
-        //     );
-        //     if (cursor) {
-        //         cursors[`${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}`] =
-        //             cursor.content.value;
-        //     }
-
-        //     return tweets;
-        // },
+            return tweets;
+        },
     },
     // List timeline
     {

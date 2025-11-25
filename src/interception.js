@@ -364,7 +364,7 @@ function parseTweet(res) {
             } else {
                 console.warn("No retweeted status", result);
             }
-            if (result.note_tweet && result.note_tweet.note_tweet_results) {
+            if (result.note_tweet && result.note_tweet.note_tweet_results && localStorage.OTDenableAutoExpand === "1") {
                 let note = parseNoteTweet(result);
                 tweet.retweeted_status.full_text = note.text;
                 tweet.retweeted_status.entities = note.entities;

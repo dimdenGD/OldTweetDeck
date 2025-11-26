@@ -168,8 +168,8 @@ function updateFollows(id = getCurrentUserId()) {
     get();
 }
 
-setTimeout(updateFollows, 1000);
-setInterval(updateFollows, 1000 * 60);
+// setTimeout(updateFollows, 1000);
+// setInterval(updateFollows, 1000 * 60);
 
 function parseNoteTweet(result) {
     let text, entities;
@@ -747,7 +747,7 @@ const proxyRoutes = [
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
             xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
-            updateFollows(xhr.storage.user_id);
+            // updateFollows(xhr.storage.user_id);
         },
         afterRequest: (xhr) => {
             if(xhr.storage.cancelled) {

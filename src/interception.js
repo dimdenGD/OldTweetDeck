@@ -1,6 +1,5 @@
 const PUBLIC_TOKENS = [
     "Bearer AAAAAAAAAAAAAAAAAAAAANRILgAAAAAAnNwIzUejRCOuH5E6I8xnZz4puTs%3D1Zv7ttfk8LF81IUq16cHjhLTvJu4FA33AGWWjCpTnA",
-    "Bearer AAAAAAAAAAAAAAAAAAAAAFQODgEAAAAAVHTp76lzh3rFzcHbmHVvQxYYpTw%3DckAlMINMjmCwxUcaXbAN4XqJVdgMJaHqNOFgPMK0zN1qLqLQCF",
 ];
 const NEW_API = `https://${location.hostname}/i/api/graphql`;
 const cursors = {};
@@ -1713,7 +1712,7 @@ const proxyRoutes = [
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
     },

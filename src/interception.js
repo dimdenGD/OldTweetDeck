@@ -46,6 +46,11 @@ if(localStorage.OTDsettings) {
         settings = null;
     }
 }
+let timings = {
+    home: [],
+    list: [],
+    user: [],
+}
 
 function exportState() {
 	const a = document.createElement('a');
@@ -673,11 +678,21 @@ const proxyRoutes = [
                 let features = {"rweb_video_screen_enabled":false,"profile_label_improvements_pcf_label_in_post_enabled":true,"responsive_web_profile_redirect_enabled":false,"rweb_tipjar_consumption_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"premium_content_api_read_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"responsive_web_grok_analyze_button_fetch_trends_enabled":false,"responsive_web_grok_analyze_post_followups_enabled":true,"responsive_web_jetfuel_frame":true,"responsive_web_grok_share_attachment_enabled":true,"articles_preview_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"responsive_web_grok_show_grok_translated_post":false,"responsive_web_grok_analysis_button_from_backend":true,"creator_subscriptions_quote_tweet_preview_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_grok_image_annotation_enabled":true,"responsive_web_grok_imagine_annotation_enabled":true,"responsive_web_grok_community_note_auto_translation_is_enabled":false,"responsive_web_enhance_cards_enabled":false};
 
                 let max_id = params.get("max_id");
+                let since_id = params.get("since_id");
+                let user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
                 if (max_id) {
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);
-                    if (cursors[`home-${bn}`]) {
-                        variables.cursor = cursors[`home-${bn}`];
+                    if (cursors[`home-${user_id}-${bn}`]) {
+                        variables.cursor = cursors[`home-${user_id}-${bn}`];
+                        xhr.storage.cursor = true;
+                    }
+                }
+                if (since_id) {
+                    let bn = BigInt(params.get("since_id"));
+                    if (cursors[`home-${user_id}-${bn}-top`]) {
+                        variables.cursor = cursors[`home-${user_id}-${bn}-top`];
+                        xhr.storage.cursor = true;
                     }
                 }
                 xhr.modUrl = `${NEW_API}/cWF3cqWadLlIXA6KJWhcew/HomeLatestTimeline?${generateParams(
@@ -686,6 +701,25 @@ const proxyRoutes = [
                 )}`;
             } catch (e) {
                 console.error(e);
+            }
+        },
+        openHandler: (xhr, method, url, async, username, password) => {
+            const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
+            if(!timings.home[user_id]) {
+                timings.home[user_id] = 0;
+            }
+            if(Date.now() - timings.home[user_id] < 20000 && xhr.storage.cursor) {
+                xhr.storage.cancelled = true;
+            } else {
+                xhr.open(method, url, async, username, password);
+                timings.home[user_id] = Date.now();
+            }
+        },
+        sendHandler: (xhr, data) => {
+            if(xhr.storage.cancelled) {
+                emulateResponse(xhr);
+            } else {
+                xhr.send(data);
             }
         },
         beforeSendHeaders: (xhr) => {
@@ -697,16 +731,10 @@ const proxyRoutes = [
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
             updateFollows(xhr.storage.user_id);
         },
-        // artificially slow down, because theres an invisible rate limit that gets hit after a few hours
-        responseHeaderOverride: {
-            "x-rate-limit-limit": (value) => {
-                return Math.floor(+value/5);
-            },
-            "x-rate-limit-remaining": (value) => {
-                return Math.floor(+value/5);
-            },
-        },
         afterRequest: (xhr) => {
+            if(xhr.storage.cancelled) {
+                return [];
+            }
             let data;
             try {
                 data = JSON.parse(xhr.responseText);
@@ -787,14 +815,23 @@ const proxyRoutes = [
                 (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
 
-            let cursor = entries.find(
+            let bottomCursor = entries.find(
                 (e) =>
                     e.entryId.startsWith("sq-cursor-bottom-") ||
                     e.entryId.startsWith("cursor-bottom-")
             );
-            if (cursor) {
-                cursors[`${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}`] =
-                    cursor.content.value;
+            if (bottomCursor) {
+                cursors[`home-${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}`] =
+                    bottomCursor.content.value;
+            }
+            let topCursor = entries.find(
+                (e) =>
+                    e.entryId.startsWith("sq-cursor-top-") ||
+                    e.entryId.startsWith("cursor-top-")
+            )?.content?.value;
+            if (topCursor) {
+                if(tweets[0]) cursors[`home-${xhr.storage.user_id}-${tweets[0].id_str}-top`] = topCursor;
+                if(tweets[1]) cursors[`home-${xhr.storage.user_id}-${tweets[1].id_str}-top`] = topCursor;
             }
 
             return tweets;
@@ -813,11 +850,20 @@ const proxyRoutes = [
 
                 let list_id = params.get("list_id");
                 let max_id = params.get("max_id");
+                let since_id = params.get("since_id");
                 if (max_id) {
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);
                     if (cursors[`list-${list_id}-${bn}`]) {
                         variables.cursor = cursors[`list-${list_id}-${bn}`];
+                        xhr.storage.cursor = true;
+                    }
+                }
+                if (since_id) {
+                    let bn = BigInt(params.get("since_id"));
+                    if (cursors[`list-${list_id}-${bn}-top`]) {
+                        variables.cursor = cursors[`list-${list_id}-${bn}-top`];
+                        xhr.storage.cursor = true;
                     }
                 }
                 variables.listId = list_id;
@@ -837,16 +883,29 @@ const proxyRoutes = [
             xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
-        // artificially slow down, because theres an invisible rate limit that gets hit after a few hours
-        responseHeaderOverride: {
-            "x-rate-limit-limit": (value) => {
-                return Math.floor(+value/5);
-            },
-            "x-rate-limit-remaining": (value) => {
-                return Math.floor(+value/5);
-            },
+        openHandler: (xhr, method, url, async, username, password) => {
+            const list_id = xhr.storage.list_id;
+            if(!timings.list[list_id]) {
+                timings.list[list_id] = 0;
+            }
+            if(Date.now() - timings.list[list_id] < 20000 && xhr.storage.cursor) {
+                xhr.storage.cancelled = true;
+            } else {
+                xhr.open(method, url, async, username, password);
+                timings.list[list_id] = Date.now();
+            }
+        },
+        sendHandler: (xhr, data) => {
+            if(xhr.storage.cancelled) {
+                emulateResponse(xhr);
+            } else {
+                xhr.send(data);
+            }
         },
         afterRequest: (xhr) => {
+            if(xhr.storage.cancelled) {
+                return [];
+            }
             let data;
             try {
                 data = JSON.parse(xhr.responseText);
@@ -890,14 +949,23 @@ const proxyRoutes = [
                 (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             )
 
-            let cursor = list.find(
+            let bottomCursor = list.find(
                 (e) =>
                     e.entryId.startsWith("sq-cursor-bottom-") ||
                     e.entryId.startsWith("cursor-bottom-")
             );
-            if (cursor) {
+            if (bottomCursor) {
                 cursors[`list-${xhr.storage.list_id}-${tweets[tweets.length - 1].id_str}`] =
-                    cursor.content.value;
+                    bottomCursor.content.value;
+            }
+            let topCursor = list.find(
+                (e) =>
+                    e.entryId.startsWith("sq-cursor-top-") ||
+                    e.entryId.startsWith("cursor-top-")
+            )?.content?.value;
+            if (topCursor) {
+                if(tweets[0]) cursors[`list-${xhr.storage.list_id}-${tweets[0].id_str}-top`] = topCursor;
+                if(tweets[1]) cursors[`list-${xhr.storage.list_id}-${tweets[1].id_str}-top`] = topCursor;
             }
 
             return tweets;
@@ -947,12 +1015,21 @@ const proxyRoutes = [
                 } else {
                     variables.userId = user_id;
                 }
+                let since_id = params.get("since_id");
                 let max_id = params.get("max_id");
                 if (max_id) {
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);
                     if (cursors[`${variables.userId}-${bn}`]) {
                         variables.cursor = cursors[`${variables.userId}-${bn}`];
+                        xhr.storage.cursor = true;
+                    }
+                }
+                if (since_id) {
+                    let bn = BigInt(params.get("since_id"));
+                    if (cursors[`${variables.userId}-${bn}-top`]) {
+                        variables.cursor = cursors[`${variables.userId}-${bn}-top`];
+                        xhr.storage.cursor = true;
                     }
                 }
                 xhr.storage.user_id = variables.userId;
@@ -974,16 +1051,29 @@ const proxyRoutes = [
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
             // delete xhr.modReqHeaders["x-act-as-user-id"];
         },
-        // artificially slow down, because theres an invisible rate limit that gets hit after a few hours
-        responseHeaderOverride: {
-            "x-rate-limit-limit": (value) => {
-                return Math.floor(+value/5);
-            },
-            "x-rate-limit-remaining": (value) => {
-                return Math.floor(+value/5);
-            },
+        openHandler: (xhr, method, url, async, username, password) => {
+            const user_id = xhr.storage.user_id;
+            if(!timings.user[user_id]) {
+                timings.user[user_id] = 0;
+            }
+            if(Date.now() - timings.user[user_id] < 20000 && xhr.storage.cursor) {
+                xhr.storage.cancelled = true;
+            } else {
+                xhr.open(method, url, async, username, password);
+                timings.user[user_id] = Date.now();
+            }
+        },
+        sendHandler: (xhr, data) => {
+            if(xhr.storage.cancelled) {
+                emulateResponse(xhr);
+            } else {
+                xhr.send(data);
+            }
         },
         afterRequest: (xhr) => {
+            if(xhr.storage.cancelled) {
+                return [];
+            }
             let data;
             try {
                 data = JSON.parse(xhr.responseText);
@@ -1027,13 +1117,22 @@ const proxyRoutes = [
                 (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
 
-            let cursor = entries.find(
+            let bottomCursor = entries.find(
                 (e) =>
                     e.entryId.startsWith("sq-cursor-bottom-") ||
                     e.entryId.startsWith("cursor-bottom-")
             ).content.value;
-            if (cursor) {
-                cursors[`${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}`] = cursor;
+            if (bottomCursor) {
+                cursors[`${xhr.storage.user_id}-${tweets[tweets.length - 1].id_str}`] = bottomCursor;
+            }
+            let topCursor = entries.find(
+                (e) =>
+                    e.entryId.startsWith("sq-cursor-top-") ||
+                    e.entryId.startsWith("cursor-top-")
+            )?.content?.value;
+            if (topCursor) {
+                if(tweets[0]) cursors[`${xhr.storage.user_id}-${tweets[0].id_str}-top`] = topCursor;
+                if(tweets[1]) cursors[`${xhr.storage.user_id}-${tweets[1].id_str}-top`] = topCursor;
             }
 
             let pinEntry = instructions.find((e) => e.type === "TimelinePinEntry");
@@ -2448,7 +2547,6 @@ XMLHttpRequest = function () {
         },
         getResponseHeader(name) {
             let override = this.responseHeaderOverride ? this.responseHeaderOverride : this.proxyRoute ? this.proxyRoute.responseHeaderOverride : undefined;
-            console.log(override, name);
             if(this.proxyRoute && override) {
                 for(let header in override) {
                     if(header.toLowerCase() === name.toLowerCase()) {

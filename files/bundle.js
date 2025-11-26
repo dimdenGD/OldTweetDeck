@@ -7761,8 +7761,8 @@ document.body.addEventListener("click", function (e) {
                                             break;
                                         case 12:
                                             (t.prev = 12),
-                                                (t.t0 = t.catch(2)),
-                                                (0, l.metric)("api:hashflags:getFlags:failure");
+                                                (t.t0 = t.catch(2));
+                                                // (0, l.metric)("api:hashflags:getFlags:failure");
                                         case 15:
                                         case "end":
                                             return t.stop();
@@ -22147,6 +22147,7 @@ document.body.addEventListener("click", function (e) {
                     );
                 },
                 updateOptions: function (e) {
+                    return;
                     if (
                         ((this.options = s.default.extend({}, this.options, e)),
                         this.options.requestParameters || (this.options.requestParameters = {}),
@@ -22193,6 +22194,7 @@ document.body.addEventListener("click", function (e) {
                     return window.location.host;
                 },
                 registerEventHandlers: function () {
+                    return;
                     var e = this,
                         t = (0, s.default)(document);
                     if (
@@ -63949,6 +63951,7 @@ document.body.addEventListener("click", function (e) {
                                 };
 
                             return function (s) {
+                                return;
                                 var r,
                                     a = Math.abs(s.originalEvent.wheelDeltaX),
                                     o = Math.abs(s.originalEvent.wheelDeltaY),

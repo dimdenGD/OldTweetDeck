@@ -48,9 +48,10 @@ if(localStorage.OTDsettings) {
 }
 let seenNotifications = [];
 let timings = {
-    home: [],
-    list: [],
-    user: [],
+    home: {},
+    list: {},
+    user: {},
+    search: {},
 }
 let refreshInterval = localStorage.OTDrefreshInterval ? parseInt(localStorage.OTDrefreshInterval) : 35000;
 
@@ -695,7 +696,7 @@ const proxyRoutes = [
 
                 let max_id = params.get("max_id");
                 let since_id = params.get("since_id");
-                let user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
+                let user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? params.get("user_id") ?? getCurrentUserId();
                 if (max_id) {
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);
@@ -1300,7 +1301,7 @@ const proxyRoutes = [
             const params = new URLSearchParams(xhr.modUrl);
             const since_id = params.get("since_id");
             const max_id = params.get("max_id");
-            const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
+            const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? params.get("user_id") ?? getCurrentUserId();
             let cursor;
             if(since_id && cursors[`notifications-${user_id}-top`]) {
                 cursor = cursors[`notifications-${user_id}-top`];
@@ -1577,11 +1578,27 @@ const proxyRoutes = [
     {
         path: /\/1\.1\/favorites\/.*\.json/,
         method: "POST",
+        beforeRequest: (xhr) => {
+            const isFavorite = xhr.modUrl.includes("create.json");
+            xhr.storage.isFavorite = isFavorite;
+
+            xhr.modUrl = isFavorite ? 
+                `https://${location.hostname}/i/api/graphql/lI07N6Otwv1PhnEgXILM7A/FavoriteTweet` : 
+                `https://${location.hostname}/i/api/graphql/ZYKSe-w7KEslx3JhSIk5LA/UnfavoriteTweet`;
+        },
+        sendHandler: (xhr, data) => {
+            const tweet_id = new URLSearchParams(data).get("id");
+            xhr.send(JSON.stringify({"variables":{"tweet_id":tweet_id},"queryId":xhr.storage.isFavorite ? "lI07N6Otwv1PhnEgXILM7A" : "ZYKSe-w7KEslx3JhSIk5LA"}));
+        },
         beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
+        },
+        afterRequest: (xhr) => {
+            return {};
         },
     },
     // Collections
@@ -1632,12 +1649,32 @@ const proxyRoutes = [
                 };
                 let features = {"responsive_web_graphql_exclude_directive_enabled":true,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"responsive_web_graphql_skip_user_profile_image_extensions_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"tweetypie_unmention_optimization_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"tweet_awards_web_tipping_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"rweb_video_timestamps_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":true,"responsive_web_enhance_cards_enabled":false};
 
+                xhr.storage.query = variables.rawQuery;
+                xhr.storage.cursor = params.get("since_id");
                 xhr.modUrl = `${NEW_API}/l0dLMlz_fHji3FT8AfrvxA/SearchTimeline?${generateParams(
                     features,
                     variables
                 )}`;
             } catch (e) {
                 console.error(e);
+            }
+        },
+        openHandler: (xhr, method, url, async, username, password) => {
+            if(!timings.search[xhr.storage.query]) {
+                timings.search[xhr.storage.query] = 0;
+            }
+            if(Date.now() - timings.search[xhr.storage.query] < 60000*1.5 && xhr.storage.cursor) {
+                xhr.storage.cancelled = true;
+            } else {
+                xhr.open(method, url, async, username, password);
+                timings.search[xhr.storage.query] = Date.now();
+            }
+        },
+        sendHandler: (xhr, data) => {
+            if(xhr.storage.cancelled) {
+                emulateResponse(xhr);
+            } else {
+                xhr.send(data);
             }
         },
         beforeSendHeaders: (xhr) => {
@@ -1649,6 +1686,9 @@ const proxyRoutes = [
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
         afterRequest: (xhr) => {
+            if(xhr.storage.cancelled) {
+                return [];
+            }
             let data;
             try {
                 data = JSON.parse(xhr.responseText);

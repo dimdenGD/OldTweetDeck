@@ -47,6 +47,7 @@ if(localStorage.OTDsettings) {
     }
 }
 let seenNotifications = [];
+let seenHomeTweets = {};
 let timings = {
     home: {},
     list: {},
@@ -722,6 +723,7 @@ const proxyRoutes = [
         },
         openHandler: (xhr, method, url, async, username, password) => {
             const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
+            xhr.storage.user_id = user_id;
             if(!timings.home[user_id]) {
                 timings.home[user_id] = 0;
             }
@@ -787,7 +789,7 @@ const proxyRoutes = [
                 } else if (e.entryId.startsWith("home-conversation-")) {
                     let items = e.content.items;
 
-                    let pushedTweets = [];
+                    let pushTweets = [];
                     for (let i = 0; i < items.length; i++) {
                         let item = items[i];
                         if (
@@ -818,10 +820,17 @@ const proxyRoutes = [
                                         item.item.feedbackInfo.feedbackMetadata;
                                 }
                             }
-                            tweets.push(tweet);
-                            pushedTweets.push(tweet);
+                            pushTweets.push(tweet);
                         }
                     }
+                    if(!seenHomeTweets[xhr.storage.user_id]) {
+                        seenHomeTweets[xhr.storage.user_id] = [];
+                    }
+                    // if any of the tweets are already in the seenHomeTweets, don't push them
+                    if(pushTweets.some(tweet => seenHomeTweets[xhr.storage.user_id].includes(tweet.id_str))) {
+                        continue;
+                    }
+                    tweets.push(...pushTweets);
                 }
             }
 
@@ -831,6 +840,13 @@ const proxyRoutes = [
             tweets.sort(
                 (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
+            if(!seenHomeTweets[xhr.storage.user_id]) {
+                seenHomeTweets[xhr.storage.user_id] = [];
+            }
+            for(let tweet of tweets) {
+                if(seenHomeTweets[xhr.storage.user_id].includes(tweet.id_str)) continue;
+                seenHomeTweets[xhr.storage.user_id].push(tweet.id_str);
+            }
 
             let bottomCursor = entries.find(
                 (e) =>

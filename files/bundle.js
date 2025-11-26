@@ -22147,7 +22147,6 @@ document.body.addEventListener("click", function (e) {
                     );
                 },
                 updateOptions: function (e) {
-                    return;
                     if (
                         ((this.options = s.default.extend({}, this.options, e)),
                         this.options.requestParameters || (this.options.requestParameters = {}),
@@ -22266,6 +22265,7 @@ document.body.addEventListener("click", function (e) {
             (this.scribeContext = {}),
                 (this.scribeData = {}),
                 (this.scribe = function (t, i) {
+                    return;
                     var a = e || window.scribeTransport;
                     if (!a)
                         throw new Error(

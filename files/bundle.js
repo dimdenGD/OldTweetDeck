@@ -4894,7 +4894,7 @@ document.body.addEventListener("click", function (e) {
                 return (e.isContributor() && TD.storage.store.getTwitterLoginAccount()) || e;
             }
 
-            function p(e, t) {
+            function addActAsUserId(e, t) {
                 return t.isContributor()
                     ? (0, r.default)({}, e, {
                           "x-act-as-user-id": t.getUserID(),
@@ -4912,7 +4912,7 @@ document.body.addEventListener("click", function (e) {
 
             function v(e, t) {
                 return [
-                    p,
+                    addActAsUserId,
                     function (e, t) {
                         var n = i(t);
                         return (0, r.default)({}, e, {
@@ -4948,7 +4948,7 @@ document.body.addEventListener("click", function (e) {
                     );
                 };
             }
-            e.maybeAddContributorsHeaders = p;
+            e.maybeAddContributorsHeaders = addActAsUserId;
             var b,
                 y,
                 _ = 0.5;
@@ -5090,7 +5090,7 @@ document.body.addEventListener("click", function (e) {
                 (e.upload = function (t, i) {
                     return TD.decider.hasAccessLevel("mediaUpload", "USE_SRU")
                         ? (function (e, t) {
-                              var i = g(p({}, t)),
+                              var i = g(addActAsUserId({}, t)),
                                   n = TD.config.twitter_upload_base + "/1.1/media/upload.json",
                                   s = new m.default(e, {
                                       uploadUrl: n,
@@ -5152,7 +5152,7 @@ document.body.addEventListener("click", function (e) {
                               );
                           })(t, i)
                         : (function (t, i) {
-                              var n = g(p({}, i)),
+                              var n = g(addActAsUserId({}, i)),
                                   s = new FormData();
                               s.append("media", t);
                               var r = TD.config.twitter_upload_base + "/1.1/media/upload.json",
@@ -5254,7 +5254,7 @@ document.body.addEventListener("click", function (e) {
                     ("GET" !== t.method && "DELETE" !== t.method) ||
                         ((t.url = TD.net.util.addURLParameters(t.url, t.params)), delete t.params),
                         (t.body = t.params);
-                    var n = p(t.headers, t.account);
+                    var n = addActAsUserId(t.headers, t.account);
                     if (
                         n["x-act-as-user-id"] &&
                         t.url &&
@@ -37090,6 +37090,9 @@ document.body.addEventListener("click", function (e) {
                         );
                     }),
                     (this.updateAccountFromVerifySuccess = function (e, t) {
+                        if(!t || !t.screen_name) {
+                            throw new Error("No user found for some reason. Visiting x.com usually fixes this.");
+                        }
                         e.setUsername(t.screen_name),
                             e.setName(t.name),
                             e.setProfileImageURL(t.profile_image_url_https),
@@ -42945,13 +42948,13 @@ document.body.addEventListener("click", function (e) {
                 "",
             ].join("/")),
             (TD.services.TwitterClient.prototype.URT_BASE_URL = TD.config.twitter_api_base + "/2/"),
-            (TD.services.TwitterClient.prototype.makeTwitterCall = function (e, t, i, n, s, r, a) {
+            (TD.services.TwitterClient.prototype.makeTwitterCall = function (url, params, method, processor, s, r, feedType) {
                 (s = s || function () {}), (r = r || function () {});
-                var o = this.request(e, {
-                    method: i,
-                    params: t,
-                    processor: n,
-                    feedType: a,
+                var o = this.request(url, {
+                    method: method,
+                    params: params,
+                    processor: processor,
+                    feedType: feedType,
                 });
                 return (
                     o.addCallbacks(
@@ -43168,23 +43171,28 @@ document.body.addEventListener("click", function (e) {
                 return t;
             }),
             (TD.services.TwitterClient.prototype.processActions = function (e) {
-                for (var t = [], i = 0; i < e.length; i++) {
-                    var n = e[i];
-                    if (
-                        n.action === TD.services.TwitterAction.LIST_MEMBER_ADDED &&
-                        n.targets_size > 1 &&
-                        n.target_objects_size > 1
-                    ) {
-                        var s = new TD.services.TwitterActionMultiListMemberAdded(
-                            this.oauth.account
-                        );
-                        s.fromJSONObject(n, [n], !1), t.push(s);
-                    } else {
-                        var r = TD.services.TwitterAction.processRESTAction(n, this.oauth.account);
-                        r && (t = t.concat(r));
+                try {
+                    for (var t = [], i = 0; i < e.length; i++) {
+                        var n = e[i];
+                        if (
+                            n.action === TD.services.TwitterAction.LIST_MEMBER_ADDED &&
+                            n.targets_size > 1 &&
+                            n.target_objects_size > 1
+                        ) {
+                            var s = new TD.services.TwitterActionMultiListMemberAdded(
+                                this.oauth.account
+                            );
+                            s.fromJSONObject(n, [n], !1), t.push(s);
+                        } else {
+                            var r = TD.services.TwitterAction.processRESTAction(n, this.oauth.account);
+                            r && (t = t.concat(r));
+                        }
                     }
+                    return t;
+                } catch(e) {
+                    console.error(`Error processing actions`, e);
+                    return [];
                 }
-                return t;
             }),
             (TD.services.TwitterClient.prototype.showUser = function (e, t, i, n) {
                 var s = {};

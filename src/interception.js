@@ -46,12 +46,13 @@ if(localStorage.OTDsettings) {
         settings = null;
     }
 }
+let seenNotifications = [];
 let timings = {
     home: [],
     list: [],
     user: [],
 }
-let refreshInterval = localStorage.OTDrefreshInterval ? parseInt(localStorage.OTDrefreshInterval) : 20000;
+let refreshInterval = localStorage.OTDrefreshInterval ? parseInt(localStorage.OTDrefreshInterval) : 35000;
 
 function exportState() {
 	const a = document.createElement('a');
@@ -643,6 +644,20 @@ function extractAssignedJSON(html, varName = "window.__INITIAL_STATE__") {
   
       return out;
     }
+}
+function formatTwitterStyle(date) {
+    const days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+    const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  
+    const day = days[date.getUTCDay()];
+    const month = months[date.getUTCMonth()];
+    const dayNum = String(date.getUTCDate()).padStart(2, "0");
+    const hours = String(date.getUTCHours()).padStart(2, "0");
+    const mins = String(date.getUTCMinutes()).padStart(2, "0");
+    const secs = String(date.getUTCSeconds()).padStart(2, "0");
+    const year = date.getUTCFullYear();
+  
+    return `${day} ${month} ${dayNum} ${hours}:${mins}:${secs} +0000 ${year}`;
 }
 
 function emulateResponse(xhr) {
@@ -1277,49 +1292,172 @@ const proxyRoutes = [
             return tweets;
         },
     },
-    // Notifications
+    // Notifications column
     {
         path: "/1.1/activity/about_me.json",
         method: "GET",
-        // beforeRequest: (xhr) => {
-        //     try {
-        //         let url = new URL(xhr.modUrl);
-        //         let params = new URLSearchParams(url.search);
-        //         let max_id = params.get("max_id");
+        beforeRequest: (xhr) => {
+            const params = new URLSearchParams(xhr.modUrl);
+            const since_id = params.get("since_id");
+            const max_id = params.get("max_id");
+            const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
+            let cursor;
+            if(since_id && cursors[`notifications-${user_id}-top`]) {
+                cursor = cursors[`notifications-${user_id}-top`];
+            } else if(max_id && cursors[`notifications-${user_id}-bottom`]) {
+                cursor = cursors[`notifications-${user_id}-bottom`];
+            }
 
-        //         let cursor;
-        //         if(max_id) {
-        //             let bn = BigInt(params.get("max_id"));
-        //             bn += BigInt(1);
-        //             if (cursors[`notifs-${bn}`]) {
-        //                 cursor = cursors[`notifs-${bn}`];
-        //             }
-        //         }
-
-        //         xhr.modUrl = `https://${location.hostname}/i/api/2/notifications/all.json?include_profile_interstitial_type=1&include_blocking=1&include_blocked_by=1&include_followed_by=1&include_want_retweets=1&include_mute_edge=1&include_can_dm=1&include_can_media_tag=1&include_ext_has_nft_avatar=1&include_ext_is_blue_verified=1&include_ext_verified_type=1&include_ext_profile_image_shape=1&skip_status=1&cards_platform=Web-12&include_cards=1&include_ext_alt_text=true&include_ext_limited_action_results=true&include_quote_count=true&include_reply_count=1&tweet_mode=extended&include_ext_views=true&include_entities=true&include_user_entities=true&include_ext_media_color=true&include_ext_media_availability=true&include_ext_sensitive_media_warning=true&include_ext_trusted_friends_metadata=true&send_error_codes=true&simple_quoted_tweet=true&count=20&requestContext=launch&ext=mediaStats%2ChighlightedLabel%2ChasNftAvatar%2CvoiceInfo%2CbirdwatchPivot%2CsuperFollowMetadata%2CunmentionInfo%2CeditControl${cursor ? `&cursor=${cursor}` : ''}`;
-        //     } catch (e) {
-        //         console.error(e);
-        //     }
-        // },
+            xhr.modUrl = `https://${location.hostname}/i/api/2/notifications/all.json?include_profile_interstitial_type=1&include_blocking=1&include_blocked_by=1&include_followed_by=1&include_want_retweets=1&include_mute_edge=1&include_can_dm=1&include_can_media_tag=1&include_ext_has_nft_avatar=1&include_ext_is_blue_verified=1&include_ext_verified_type=1&include_ext_profile_image_shape=1&skip_status=1&cards_platform=Web-12&include_cards=1&include_ext_alt_text=true&include_ext_limited_action_results=true&include_quote_count=true&include_reply_count=1&tweet_mode=extended&include_ext_views=true&include_entities=true&include_user_entities=true&include_ext_media_color=true&include_ext_media_availability=true&include_ext_sensitive_media_warning=true&include_ext_trusted_friends_metadata=true&send_error_codes=true&simple_quoted_tweet=true&count=20&requestContext=launch&ext=mediaStats%2ChighlightedLabel%2ChasNftAvatar%2CvoiceInfo%2CbirdwatchPivot%2CsuperFollowMetadata%2CunmentionInfo%2CeditControl${cursor ? `&cursor=${cursor}` : ''}`;
+        },
         beforeSendHeaders: (xhr) => {
+            xhr.storage.user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
-            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
-            xhr.modReqHeaders["Authorization"] = PUBLIC_TOKENS[1];
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = navigator.language.split("-")[0];
+            xhr.modReqHeaders["Authorization"] =
+                PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
         },
-        // afterRequest: (xhr) => {
-        //     let data;
-        //     try {
-        //         data = JSON.parse(xhr.responseText);
-        //     } catch (e) {
-        //         console.error(e);
-        //         return [];
-        //     }
-        //     if (data.errors && data.errors[0]) {
-        //         return [];
-        //     }
-        // },
+        afterRequest: (xhr) => {
+            if(xhr.storage.notifications) {
+                return xhr.storage.notifications;
+            }
+            try {
+                const response = JSON.parse(xhr.responseText);
+                const entries = response.timeline.instructions.find((i) => i.addEntries).addEntries.entries;
+                const go = response.globalObjects;
+                const notifications = [];
+                for(let entry of entries) {
+                    if(entry.entryId.startsWith("notification-")) {
+                        const sortIndex = entry.sortIndex;
+                        const item = entry.content.item;
+                        const type = item.clientEventInfo.element;
+                        const notif = item.content.notification;
+
+                        switch(type) {
+                            case "users_retweeted_your_tweet": 
+                            case "users_liked_your_tweet": {
+                                let i = 0;
+                                for(const userId of notif.fromUsers) {
+                                    for(const tweetId of notif.targetTweets) {
+                                        const tweet = go.tweets[tweetId];
+                                        const user = go.users[userId];
+                                        const action = type === "users_retweeted_your_tweet" ? "retweet" : "favorite";
+                                        if(!tweet || !user) continue;
+                                        const id = `${tweetId}-${userId}-${action}`;
+                                        if(seenNotifications.includes(id)) continue;
+                                        seenNotifications.push(id);
+                                        const notifSortIndex = +sortIndex - (i++);
+                                        tweet.user = go.users[tweet.user_id_str];
+                                        if(tweet.quoted_status_id_str) {
+                                            tweet.quoted_status = go.tweets[tweet.quoted_status_id_str];
+                                            tweet.quoted_status.user = go.users[tweet.quoted_status.user_id_str];
+                                        }
+
+                                        const sources = [user];
+                                        const targets = [tweet];
+                                        const target_objects = [tweet];
+                                        notifications.push({
+                                            action,
+                                            created_at: formatTwitterStyle(new Date(notifSortIndex)),
+                                            max_position: notifSortIndex+"",
+                                            min_position: notifSortIndex+"",
+                                            sources,
+                                            sources_size: sources.length,
+                                            target_objects,
+                                            target_objects_size: target_objects.length,
+                                            targets,
+                                            targets_size: targets.length,
+                                        })
+                                    }
+                                }
+                                break;
+                            }
+                            case "user_mentioned_you":
+                            case "user_replied_to_your_tweet": 
+                            case "user_quoted_your_tweet":{
+                                const tweetId = item.content.tweet.id;
+                                const tweet = go.tweets[tweetId];
+                                if(!tweet) continue;
+                                tweet.user = go.users[tweet.user_id_str];
+                                const type = item.clientEventInfo.element === "user_mentioned_you" ? "mention" : item.clientEventInfo.element === "user_replied_to_your_tweet" ? "reply" : "quote";
+                                
+                                const id = `${tweetId}-${tweet.user_id_str}-${type}`;
+                                if(seenNotifications.includes(id)) continue;
+                                seenNotifications.push(id);
+
+                                if(tweet.quoted_status_id_str) {
+                                    tweet.quoted_status = go.tweets[tweet.quoted_status_id_str];
+                                    tweet.quoted_status.user = go.users[tweet.quoted_status.user_id_str];
+                                }
+                                
+                                notifications.push({
+                                    action: type,
+                                    created_at: formatTwitterStyle(new Date(+sortIndex)),
+                                    max_position: sortIndex+"",
+                                    min_position: sortIndex+"",
+                                    sources: [tweet.user],
+                                    sources_size: 1,
+                                    target_objects: [tweet],
+                                    target_objects_size: 1,
+                                    targets: [tweet],
+                                    targets_size: 1,
+                                });
+                                break;
+                            }
+                            case "users_followed_you": {
+                                for(const userId of notif.fromUsers) {
+                                    const user = go.users[userId];
+                                    if(!user) continue;
+                                    const id = `${userId}-follow`;
+                                    if(seenNotifications.includes(id)) continue;
+                                    seenNotifications.push(id);
+                                    notifications.push({
+                                        action: "follow",
+                                        created_at: formatTwitterStyle(new Date(+sortIndex)),
+                                        max_position: sortIndex+"",
+                                        min_position: sortIndex+"",
+                                        sources: [user],
+                                        sources_size: 1,
+                                        target_objects: [user],
+                                        target_objects_size: 1,
+                                        targets: [user],
+                                        targets_size: 1
+                                    });
+                                }
+                            }
+                            case "generic_login_notification":
+                            case "generic_acid_notification":
+                                break;
+                            default:
+                                console.warn(`Unknown notification type: ${type}`);
+                        }
+                    }
+                }
+                xhr.storage.notifications = notifications;
+                const cursorTop = entries.find(
+                    (e) =>
+                        e.entryId.startsWith("sq-cursor-top-") ||
+                        e.entryId.startsWith("cursor-top-")
+                )?.content?.operation?.cursor?.value;
+                if(cursorTop) {
+                    cursors[`notifications-${xhr.storage.user_id}-top`] = cursorTop;
+                }
+                const cursorBottom = entries.find(
+                    (e) =>
+                        e.entryId.startsWith("sq-cursor-bottom-") ||
+                        e.entryId.startsWith("cursor-bottom-")
+                )?.content?.operation?.cursor?.value;
+                if(cursorBottom) {
+                    cursors[`notifications-${xhr.storage.user_id}-bottom`] = cursorBottom;
+                }
+                return notifications;
+            } catch (e) {
+                console.error(`Error parsing notifications`, e);
+                return [];
+            }
+        },
     },
     // Mentions timeline
     {
@@ -2186,6 +2324,13 @@ const proxyRoutes = [
                 const user = state.entities.users.entities[user_id];
                 if(!user) {
                     console.error(`User not found: ${JSON.stringify(state)}`);
+                    if(localStorage.OTDverifiedUser) {
+                        try {
+                            verifiedUser = JSON.parse(localStorage.OTDverifiedUser);
+                            console.warn("Using verified user from localStorage");
+                            return verifiedUser;
+                        } catch (e) {}
+                    }
                     throw new Error('User not found');
                 }
                 verifiedUser = user;
@@ -2427,6 +2572,7 @@ XMLHttpRequest = function () {
             this.originalUrl = url;
             this.modReqHeaders = {};
             this.storage = {};
+
 
             try {
                 let parsedUrl = new URL(url);

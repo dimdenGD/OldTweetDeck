@@ -51,6 +51,7 @@ let timings = {
     list: [],
     user: [],
 }
+let refreshInterval = localStorage.OTDrefreshInterval ? parseInt(localStorage.OTDrefreshInterval) : 20000;
 
 function exportState() {
 	const a = document.createElement('a');
@@ -708,7 +709,7 @@ const proxyRoutes = [
             if(!timings.home[user_id]) {
                 timings.home[user_id] = 0;
             }
-            if(Date.now() - timings.home[user_id] < 20000 && xhr.storage.cursor) {
+            if(Date.now() - timings.home[user_id] < refreshInterval && xhr.storage.cursor) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);
@@ -888,7 +889,7 @@ const proxyRoutes = [
             if(!timings.list[list_id]) {
                 timings.list[list_id] = 0;
             }
-            if(Date.now() - timings.list[list_id] < 20000 && xhr.storage.cursor) {
+            if(Date.now() - timings.list[list_id] < refreshInterval && xhr.storage.cursor) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);
@@ -1056,7 +1057,7 @@ const proxyRoutes = [
             if(!timings.user[user_id]) {
                 timings.user[user_id] = 0;
             }
-            if(Date.now() - timings.user[user_id] < 20000 && xhr.storage.cursor) {
+            if(Date.now() - timings.user[user_id] < refreshInterval && xhr.storage.cursor) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);

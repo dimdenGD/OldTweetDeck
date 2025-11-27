@@ -825,11 +825,11 @@ const proxyRoutes = [
                     if(!seenHomeTweets[xhr.storage.user_id]) {
                         seenHomeTweets[xhr.storage.user_id] = [];
                     }
-                    // if any of the tweets are already in the seenHomeTweets, don't push them
-                    if(pushTweets.some(tweet => seenHomeTweets[xhr.storage.user_id].includes(tweet.id_str))) {
-                        continue;
+                    for(let tweet of pushTweets) {
+                        if(seenHomeTweets[xhr.storage.user_id].includes(tweet.id_str)) continue;
+                        seenHomeTweets[xhr.storage.user_id].push(tweet.id_str);
+                        tweets.push(tweet);
                     }
-                    tweets.push(...pushTweets);
                 }
             }
 

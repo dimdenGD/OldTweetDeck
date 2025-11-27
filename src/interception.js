@@ -713,6 +713,7 @@ const proxyRoutes = [
                     if (cursors[`home-${user_id}-${bn}-top`]) {
                         variables.cursor = cursors[`home-${user_id}-${bn}-top`];
                         xhr.storage.cursor = true;
+                        xhr.storage.since_id = since_id;
                     }
                 }
                 xhr.modUrl = `${NEW_API}/cWF3cqWadLlIXA6KJWhcew/HomeLatestTimeline?${generateParams(
@@ -832,7 +833,7 @@ const proxyRoutes = [
                         seenHomeTweets[xhr.storage.user_id] = [];
                     }
                     for(let tweet of pushTweets) {
-                        if(seenHomeTweets[xhr.storage.user_id].includes(tweet.id_str)) continue;
+                        if(xhr.storage.since_id && seenHomeTweets[xhr.storage.user_id].includes(tweet.id_str)) continue;
                         seenHomeTweets[xhr.storage.user_id].push(tweet.id_str);
                         tweets.push(tweet);
                     }

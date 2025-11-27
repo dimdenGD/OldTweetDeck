@@ -1,7 +1,7 @@
 {
   "name": "oldtweetdeck",
   "version": "0.0.0",
-  "description": "Returns old TweetDeck, for free!",
+  "description": "Returns old TweetDeck!",
   "main": "pack.js",
   "scripts": {
     "build": "node pack.js"

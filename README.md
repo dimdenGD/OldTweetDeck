@@ -1,6 +1,6 @@
 ﻿# OldTweetDeck
 
-Returns old TweetDeck, for free!  
+Returns old TweetDeck!  
 
 > [!NOTE]
 > Since Twitter made likes private, the Likes tab aren't loading anymore.  

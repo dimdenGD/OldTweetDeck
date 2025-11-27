@@ -2450,6 +2450,7 @@ const proxyRoutes = [
             // delete xhr.modReqHeaders["X-Twitter-Auth-Type"];
             // delete xhr.modReqHeaders["Authorization"];
             // delete xhr.modReqHeaders["X-Csrf-Token"];
+            xhr.storage.user_id = xhr.modReqHeaders["x-act-as-user-id"];
             xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
@@ -2457,6 +2458,18 @@ const proxyRoutes = [
                 PUBLIC_TOKENS[0];
             delete xhr.modReqHeaders["X-Twitter-Client-Version"];
 
+        },
+        afterRequest: (xhr) => {
+            const data = JSON.parse(xhr.responseText);
+            try {
+                if(!xhr.storage.user_id) {
+                    localStorage.OTDverifiedUser = JSON.stringify(data);
+                    verifiedUser = data;
+                } 
+            } catch (e) {
+                console.error('error parsing verified user', e);
+            }
+            return data;
         },
         // afterRequest: (xhr) => {
         //     try {

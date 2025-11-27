@@ -1361,7 +1361,7 @@ const proxyRoutes = [
                                     for(const tweetId of notif.targetTweets) {
                                         const tweet = go.tweets[tweetId];
                                         const user = go.users[userId];
-                                        const action = type === "users_retweeted_your_tweet" ? "retweet" : "favorite";
+                                        const action = type === "users_retweeted_your_tweet" || type === "users_retweeted_your_retweet" ? "retweet" : "favorite";
                                         if(!tweet || !user) continue;
                                         const id = `${tweetId}-${userId}-${action}`;
                                         if(seenNotifications.includes(id)) continue;

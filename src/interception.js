@@ -756,6 +756,9 @@ const proxyRoutes = [
             if(xhr.storage.cancelled) {
                 return [];
             }
+            if(xhr.storage.data) {
+                return xhr.storage.data;
+            }
             let data;
             try {
                 data = JSON.parse(xhr.responseText);
@@ -868,6 +871,8 @@ const proxyRoutes = [
                 if(tweets[0]) cursors[`home-${xhr.storage.user_id}-${tweets[0].id_str}-top`] = topCursor;
                 if(tweets[1]) cursors[`home-${xhr.storage.user_id}-${tweets[1].id_str}-top`] = topCursor;
             }
+
+            xhr.storage.data = tweets;
 
             return tweets;
         },

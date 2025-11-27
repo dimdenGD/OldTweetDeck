@@ -2424,47 +2424,52 @@ const proxyRoutes = [
         },
     },
     // getting user
-    // {
-    //     path: "/1.1/account/verify_credentials.json",
-    //     method: "GET",
-    //     beforeRequest: (xhr) => {
-    //         xhr.modUrl = `https://x.com/home/`;
-    //     },
-    //     beforeSendHeaders: (xhr) => {
-    //         delete xhr.modReqHeaders["Content-Type"];
-    //         delete xhr.modReqHeaders["X-Twitter-Active-User"];
-    //         delete xhr.modReqHeaders["X-Twitter-Client-Language"];
-    //         delete xhr.modReqHeaders["X-Twitter-Auth-Type"];
-    //         delete xhr.modReqHeaders["Authorization"];
-    //         delete xhr.modReqHeaders["X-Twitter-Client-Version"];
-    //         delete xhr.modReqHeaders["X-Csrf-Token"];
+    {
+        path: "/1.1/account/verify_credentials.json",
+        method: "GET",
+        beforeRequest: (xhr) => {
+            // xhr.modUrl = `https://x.com/home/`;
+        },
+        beforeSendHeaders: (xhr) => {
+            // delete xhr.modReqHeaders["Content-Type"];
+            // delete xhr.modReqHeaders["X-Twitter-Active-User"];
+            // delete xhr.modReqHeaders["X-Twitter-Client-Language"];
+            // delete xhr.modReqHeaders["X-Twitter-Auth-Type"];
+            // delete xhr.modReqHeaders["Authorization"];
+            // delete xhr.modReqHeaders["X-Csrf-Token"];
+            xhr.modReqHeaders["Content-Type"] = "application/json";
+            xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
+            xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
+            xhr.modReqHeaders["Authorization"] =
+                PUBLIC_TOKENS[0];
+            delete xhr.modReqHeaders["X-Twitter-Client-Version"];
 
-    //     },
-    //     afterRequest: (xhr) => {
-    //         try {
-    //             const state = extractAssignedJSON(xhr.responseText);
-    //             const user_id = state.session.user_id;
-    //             const user = state.entities.users.entities[user_id];
-    //             if(!user) {
-    //                 console.error(`User not found: ${JSON.stringify(state)}`);
-    //                 if(localStorage.OTDverifiedUser) {
-    //                     try {
-    //                         verifiedUser = JSON.parse(localStorage.OTDverifiedUser);
-    //                         console.warn("Using verified user from localStorage");
-    //                         return verifiedUser;
-    //                     } catch (e) {}
-    //                 }
-    //                 throw new Error('User not found');
-    //             }
-    //             verifiedUser = user;
-    //             localStorage.OTDverifiedUser = JSON.stringify(user);
-    //             return user;
-    //         } catch (e) {
-    //             console.error(`Failed to get user data`, e);
-    //             return null;
-    //         }
-    //     }
-    // },
+        },
+        // afterRequest: (xhr) => {
+        //     try {
+        //         const state = extractAssignedJSON(xhr.responseText);
+        //         const user_id = state.session.user_id;
+        //         const user = state.entities.users.entities[user_id];
+        //         if(!user) {
+        //             console.error(`User not found: ${JSON.stringify(state)}`);
+        //             if(localStorage.OTDverifiedUser) {
+        //                 try {
+        //                     verifiedUser = JSON.parse(localStorage.OTDverifiedUser);
+        //                     console.warn("Using verified user from localStorage");
+        //                     return verifiedUser;
+        //                 } catch (e) {}
+        //             }
+        //             throw new Error('User not found');
+        //         }
+        //         verifiedUser = user;
+        //         localStorage.OTDverifiedUser = JSON.stringify(user);
+        //         return user;
+        //     } catch (e) {
+        //         console.error(`Failed to get user data`, e);
+        //         return null;
+        //     }
+        // }
+    },
     // DM messages
     {
         path: /\/1.1\/dm\/conversation\/(\d+)-(\d+).json/,

@@ -697,7 +697,6 @@ const proxyRoutes = [
                 let max_id = params.get("max_id");
                 let since_id = params.get("since_id");
                 let user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? params.get("user_id") ?? getCurrentUserId();
-                console.log('home', params.get("user_id"), xhr.modReqHeaders["x-act-as-user-id"], getCurrentUserId());
                 if (max_id) {
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);

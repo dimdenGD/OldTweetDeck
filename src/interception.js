@@ -1457,6 +1457,7 @@ const proxyRoutes = [
                             }
                             case "generic_login_notification":
                             case "generic_acid_notification":
+                            case "generic_safety_label_added":
                                 break;
                             default:
                                 console.warn(`Unknown notification type: ${type}`);

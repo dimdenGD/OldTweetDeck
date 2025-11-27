@@ -2462,7 +2462,7 @@ const proxyRoutes = [
         afterRequest: (xhr) => {
             const data = JSON.parse(xhr.responseText);
             try {
-                if(!xhr.storage.user_id) {
+                if(!xhr.storage.user_id && !data.errors) {
                     localStorage.OTDverifiedUser = JSON.stringify(data);
                     verifiedUser = data;
                 } 

@@ -1487,6 +1487,7 @@ const proxyRoutes = [
             const since_id = params.get("since_id");
             const max_id = params.get("max_id");
             const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? params.get("user_id") ?? getCurrentUserId();
+            xhr.storage.user_id = user_id;
             let cursor;
             if(since_id && cursors[`mentions-${user_id}-top`]) {
                 cursor = cursors[`mentions-${user_id}-top`];
@@ -1551,6 +1552,7 @@ const proxyRoutes = [
                 if(cursorBottom) {
                     cursors[`mentions-${xhr.storage.user_id}-bottom`] = cursorBottom;
                 }
+                
                 return tweets;
             } catch (e) {
                 console.error(`Error parsing mentions`, e);

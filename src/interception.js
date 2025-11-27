@@ -1454,6 +1454,7 @@ const proxyRoutes = [
                                         targets_size: 1
                                     });
                                 }
+                                break;
                             }
                             case "generic_login_notification":
                             case "generic_acid_notification":

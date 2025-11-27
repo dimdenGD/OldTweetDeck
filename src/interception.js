@@ -1366,7 +1366,11 @@ const proxyRoutes = [
                             case "users_liked_your_retweet":
                             case "users_liked_your_tweet": {
                                 let i = 0;
+                                if(type === 'users_liked_your_retweet') {
+                                    notif.targetTweets = notif.targetTweets.slice(0, 1);
+                                }
                                 for(const userId of notif.fromUsers) {
+                                    if(userId === xhr.storage.user_id) continue;
                                     for(const tweetId of notif.targetTweets) {
                                         const tweet = go.tweets[tweetId];
                                         const user = go.users[userId];

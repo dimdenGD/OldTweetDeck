@@ -697,6 +697,9 @@ const proxyRoutes = [
                 let max_id = params.get("max_id");
                 let since_id = params.get("since_id");
                 let user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? params.get("user_id") ?? getCurrentUserId();
+                if(params.get("user_id")) {
+                    xhr.storage.user_id = params.get("user_id");
+                }
                 if (max_id) {
                     let bn = BigInt(params.get("max_id"));
                     bn += BigInt(1);
@@ -721,7 +724,7 @@ const proxyRoutes = [
             }
         },
         openHandler: (xhr, method, url, async, username, password) => {
-            const user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? getCurrentUserId();
+            let user_id = xhr.modReqHeaders["x-act-as-user-id"] ?? xhr.storage.user_id ?? getCurrentUserId();
             xhr.storage.user_id = user_id;
             if(!timings.home[user_id]) {
                 timings.home[user_id] = 0;

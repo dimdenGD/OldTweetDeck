@@ -1353,6 +1353,7 @@ const proxyRoutes = [
 
                         switch(type) {
                             case "users_retweeted_your_tweet": 
+                            case "users_liked_your_retweet":
                             case "users_liked_your_tweet": {
                                 let i = 0;
                                 for(const userId of notif.fromUsers) {

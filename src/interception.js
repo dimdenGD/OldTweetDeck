@@ -1368,13 +1368,13 @@ const proxyRoutes = [
                             case "user_liked_multiple_tweets": 
                             case "users_liked_your_retweet":
                             case "users_liked_your_tweet": {
+                                const nf = go.notifications[notif.id];
+                                const actions = nf.template.aggregateUserActionsV1;
+                                const users = actions.fromUsers.map(u => u.user.id);
+                                const tweets = actions.targetObjects.map(t => t.tweet.id);
                                 let i = 0;
-                                if(type === 'users_liked_your_retweet') {
-                                    notif.targetTweets = notif.targetTweets.slice(0, 1);
-                                }
-                                for(const userId of notif.fromUsers) {
-                                    if(userId === xhr.storage.user_id) continue;
-                                    for(const tweetId of notif.targetTweets) {
+                                for(const userId of users) {
+                                    for(const tweetId of tweets) {
                                         const tweet = go.tweets[tweetId];
                                         const user = go.users[userId];
                                         const action = type === "users_retweeted_your_tweet" || type === "users_retweeted_your_retweet" ? "retweet" : "favorite";
@@ -1442,7 +1442,9 @@ const proxyRoutes = [
                             }
                             case "follow_from_recommended_user":
                             case "users_followed_you": {
-                                for(const userId of notif.fromUsers) {
+                                const nf = go.notifications[notif.id];
+                                const users = nf.template.aggregateUserActionsV1.fromUsers.map(u => u.user.id);
+                                for(const userId of users) {
                                     const user = go.users[userId];
                                     if(!user) continue;
                                     const id = `${userId}-follow`;

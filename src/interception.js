@@ -732,7 +732,7 @@ const proxyRoutes = [
             if(!timings.home[user_id]) {
                 timings.home[user_id] = 0;
             }
-            if(Date.now() - timings.home[user_id] < refreshInterval && xhr.storage.cursor) {
+            if(Date.now() - timings.home[user_id] < refreshInterval && xhr.storage.cursor && Math.random() > 0.6) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);

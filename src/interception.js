@@ -201,7 +201,7 @@ function parseTweet(res) {
         }
         if (!res.legacy && res.tweet) res = res.tweet;
         let tweet = res.legacy;
-        if (!res.core) return;
+        if (!res.core || !tweet) return;
         if(!tweet.id) {
             tweet.id = +tweet.id_str;
         }
@@ -1356,122 +1356,126 @@ const proxyRoutes = [
                 const go = response.globalObjects;
                 const notifications = [];
                 for(let entry of entries) {
-                    if(entry.entryId.startsWith("notification-")) {
-                        const sortIndex = entry.sortIndex;
-                        const item = entry.content.item;
-                        const type = item.clientEventInfo.element;
-                        const notif = item.content.notification;
-
-                        switch(type) {
-                            case "users_retweeted_your_retweet":
-                            case "users_retweeted_your_tweet":
-                            case "user_liked_multiple_tweets": 
-                            case "users_liked_your_retweet":
-                            case "users_liked_your_tweet": {
-                                const nf = go.notifications[notif.id];
-                                const actions = nf.template.aggregateUserActionsV1;
-                                const users = actions.fromUsers.map(u => u.user.id);
-                                const tweets = actions.targetObjects.map(t => t.tweet.id);
-                                let i = 0;
-                                for(const userId of users) {
-                                    for(const tweetId of tweets) {
-                                        const tweet = go.tweets[tweetId];
-                                        const user = go.users[userId];
-                                        const action = type === "users_retweeted_your_tweet" || type === "users_retweeted_your_retweet" ? "retweet" : "favorite";
-                                        if(!tweet || !user) continue;
-                                        const id = `${tweetId}-${userId}-${action}`;
-                                        if(seenNotifications.includes(id)) continue;
-                                        seenNotifications.push(id);
-                                        const notifSortIndex = +sortIndex - (i++);
-                                        tweet.user = go.users[tweet.user_id_str];
-                                        if(tweet.quoted_status_id_str) {
-                                            tweet.quoted_status = go.tweets[tweet.quoted_status_id_str];
-                                            tweet.quoted_status.user = go.users[tweet.quoted_status.user_id_str];
+                    try {
+                        if(entry.entryId.startsWith("notification-")) {
+                            const sortIndex = entry.sortIndex;
+                            const item = entry.content.item;
+                            const type = item.clientEventInfo.element;
+                            const notif = item.content.notification;
+    
+                            switch(type) {
+                                case "users_retweeted_your_retweet":
+                                case "users_retweeted_your_tweet":
+                                case "user_liked_multiple_tweets": 
+                                case "users_liked_your_retweet":
+                                case "users_liked_your_tweet": {
+                                    const nf = go.notifications[notif.id];
+                                    const actions = nf.template.aggregateUserActionsV1;
+                                    const users = actions.fromUsers.map(u => u.user.id);
+                                    const tweets = actions.targetObjects.map(t => t.tweet.id);
+                                    let i = 0;
+                                    for(const userId of users) {
+                                        for(const tweetId of tweets) {
+                                            const tweet = go.tweets[tweetId];
+                                            const user = go.users[userId];
+                                            const action = type === "users_retweeted_your_tweet" || type === "users_retweeted_your_retweet" ? "retweet" : "favorite";
+                                            if(!tweet || !user) continue;
+                                            const id = `${tweetId}-${userId}-${action}`;
+                                            if(seenNotifications.includes(id)) continue;
+                                            seenNotifications.push(id);
+                                            const notifSortIndex = +sortIndex - (i++);
+                                            tweet.user = go.users[tweet.user_id_str];
+                                            if(tweet.quoted_status_id_str) {
+                                                tweet.quoted_status = go.tweets[tweet.quoted_status_id_str];
+                                                tweet.quoted_status.user = go.users[tweet.quoted_status.user_id_str];
+                                            }
+    
+                                            const sources = [user];
+                                            const targets = [tweet];
+                                            const target_objects = [tweet];
+                                            notifications.push({
+                                                action,
+                                                created_at: formatTwitterStyle(new Date(notifSortIndex)),
+                                                max_position: notifSortIndex+"",
+                                                min_position: notifSortIndex+"",
+                                                sources,
+                                                sources_size: sources.length,
+                                                target_objects,
+                                                target_objects_size: target_objects.length,
+                                                targets,
+                                                targets_size: targets.length,
+                                            })
                                         }
-
-                                        const sources = [user];
-                                        const targets = [tweet];
-                                        const target_objects = [tweet];
-                                        notifications.push({
-                                            action,
-                                            created_at: formatTwitterStyle(new Date(notifSortIndex)),
-                                            max_position: notifSortIndex+"",
-                                            min_position: notifSortIndex+"",
-                                            sources,
-                                            sources_size: sources.length,
-                                            target_objects,
-                                            target_objects_size: target_objects.length,
-                                            targets,
-                                            targets_size: targets.length,
-                                        })
                                     }
+                                    break;
                                 }
-                                break;
-                            }
-                            case "user_mentioned_you":
-                            case "user_replied_to_your_tweet": 
-                            case "user_quoted_your_tweet":{
-                                const tweetId = item.content.tweet.id;
-                                const tweet = go.tweets[tweetId];
-                                if(!tweet) continue;
-                                tweet.user = go.users[tweet.user_id_str];
-                                const type = item.clientEventInfo.element === "user_mentioned_you" ? "mention" : item.clientEventInfo.element === "user_replied_to_your_tweet" ? "reply" : "quote";
-                                
-                                const id = `${tweetId}-${tweet.user_id_str}-${type}`;
-                                if(seenNotifications.includes(id)) continue;
-                                seenNotifications.push(id);
-
-                                if(tweet.quoted_status_id_str) {
-                                    tweet.quoted_status = go.tweets[tweet.quoted_status_id_str];
-                                    tweet.quoted_status.user = go.users[tweet.quoted_status.user_id_str];
-                                }
-                                
-                                notifications.push({
-                                    action: type,
-                                    created_at: formatTwitterStyle(new Date(+sortIndex)),
-                                    max_position: sortIndex+"",
-                                    min_position: sortIndex+"",
-                                    sources: [tweet.user],
-                                    sources_size: 1,
-                                    target_objects: [tweet],
-                                    target_objects_size: 1,
-                                    targets: [tweet],
-                                    targets_size: 1,
-                                });
-                                break;
-                            }
-                            case "follow_from_recommended_user":
-                            case "users_followed_you": {
-                                const nf = go.notifications[notif.id];
-                                const users = nf.template.aggregateUserActionsV1.fromUsers.map(u => u.user.id);
-                                for(const userId of users) {
-                                    const user = go.users[userId];
-                                    if(!user) continue;
-                                    const id = `${userId}-follow`;
+                                case "user_mentioned_you":
+                                case "user_replied_to_your_tweet": 
+                                case "user_quoted_your_tweet":{
+                                    const tweetId = item.content.tweet.id;
+                                    const tweet = go.tweets[tweetId];
+                                    if(!tweet) continue;
+                                    tweet.user = go.users[tweet.user_id_str];
+                                    const type = item.clientEventInfo.element === "user_mentioned_you" ? "mention" : item.clientEventInfo.element === "user_replied_to_your_tweet" ? "reply" : "quote";
+                                    
+                                    const id = `${tweetId}-${tweet.user_id_str}-${type}`;
                                     if(seenNotifications.includes(id)) continue;
                                     seenNotifications.push(id);
+    
+                                    if(tweet.quoted_status_id_str) {
+                                        tweet.quoted_status = go.tweets[tweet.quoted_status_id_str];
+                                        tweet.quoted_status.user = go.users[tweet.quoted_status.user_id_str];
+                                    }
+                                    
                                     notifications.push({
-                                        action: "follow",
+                                        action: type,
                                         created_at: formatTwitterStyle(new Date(+sortIndex)),
                                         max_position: sortIndex+"",
                                         min_position: sortIndex+"",
-                                        sources: [user],
+                                        sources: [tweet.user],
                                         sources_size: 1,
-                                        target_objects: [user],
+                                        target_objects: [tweet],
                                         target_objects_size: 1,
-                                        targets: [user],
-                                        targets_size: 1
+                                        targets: [tweet],
+                                        targets_size: 1,
                                     });
+                                    break;
                                 }
-                                break;
+                                case "follow_from_recommended_user":
+                                case "users_followed_you": {
+                                    const nf = go.notifications[notif.id];
+                                    const users = nf.template.aggregateUserActionsV1.fromUsers.map(u => u.user.id);
+                                    for(const userId of users) {
+                                        const user = go.users[userId];
+                                        if(!user) continue;
+                                        const id = `${userId}-follow`;
+                                        if(seenNotifications.includes(id)) continue;
+                                        seenNotifications.push(id);
+                                        notifications.push({
+                                            action: "follow",
+                                            created_at: formatTwitterStyle(new Date(+sortIndex)),
+                                            max_position: sortIndex+"",
+                                            min_position: sortIndex+"",
+                                            sources: [user],
+                                            sources_size: 1,
+                                            target_objects: [user],
+                                            target_objects_size: 1,
+                                            targets: [user],
+                                            targets_size: 1
+                                        });
+                                    }
+                                    break;
+                                }
+                                case "generic_login_notification":
+                                case "generic_acid_notification":
+                                case "generic_safety_label_added":
+                                    break;
+                                default:
+                                    console.warn(`Unknown notification type: ${type}`);
                             }
-                            case "generic_login_notification":
-                            case "generic_acid_notification":
-                            case "generic_safety_label_added":
-                                break;
-                            default:
-                                console.warn(`Unknown notification type: ${type}`);
                         }
+                    } catch (e) {
+                        console.error(`Error parsing notification`, JSON.stringify(entry));
                     }
                 }
                 xhr.storage.notifications = notifications;

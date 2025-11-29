@@ -9,4 +9,4 @@ assignees: ''
 
 Include version of extension. **Make sure you're using last version before submitting a bug report! Check releases page before reporting anything!**
 
-Screenshot errors you get in Console (press F12).
+Screenshot errors you get in Console (press F12). Without error log, your bug report is mostly useless.

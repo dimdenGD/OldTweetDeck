@@ -20205,7 +20205,7 @@ document.body.addEventListener("click", function (e) {
                 for (
                     var s,
                         r = (i = (0, n.default)({}, i, {
-                            isGapless: !1,
+                            isGapless: !0,
                         })).isGapless
                             ? 0
                             : 1;

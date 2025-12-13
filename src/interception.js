@@ -707,7 +707,7 @@ const proxyRoutes = [
                     bn += BigInt(1);
                     if (cursors[`home-${user_id}-${bn}`]) {
                         variables.cursor = cursors[`home-${user_id}-${bn}`];
-                        xhr.storage.cursor = true;
+                        // xhr.storage.cursor = true;
                     }
                 }
                 if (since_id) {

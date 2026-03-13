@@ -12,7 +12,21 @@ if(location.hostname === 'twitter.com' && location.pathname === '/i/tweetdeck') 
     location.replace(`https://x.com/i/tweetdeck`)
 }
 
+setInterval(() => {
+    if(localStorage.OTDenableAutoExpand !== "1") {
+        return;
+    }
+    const expandTweets = document.querySelectorAll(".expand-tweet[data-clicked='false']");
+    for(let expandTweet of expandTweets) {
+        expandTweet.click();
+    }
+}, 250);
+
 function expandTweet(e, tweet_id) {
+    if(e.target.dataset.clicked === "true") {
+        return;
+    }
+    e.target.dataset.clicked = "true";
     e.preventDefault();
     e.target.innerText = "Loading...";
     e.target.onclick = null;
@@ -37720,7 +37734,7 @@ document.body.addEventListener("click", function (e) {
                 if (cleanText.endsWith("…")) {
                     if (this.text.length >= 100 && this.text.length < 400) {
                         let id = this.retweetedStatus ? this.retweetedStatus.id : this.id;
-                        this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')">Expand tweet</a>`;
+                        this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')" class="expand-tweet" data-clicked="false">Expand tweet</a>`;
                     }
                 }
             }),

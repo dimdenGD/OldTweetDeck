@@ -16,7 +16,7 @@ setInterval(() => {
     if(localStorage.OTDenableAutoExpand !== "1") {
         return;
     }
-    const expandTweets = document.querySelectorAll(".expand-tweet[data-clicked='false']");
+    const expandTweets = document.querySelectorAll("a.expand-tweet[data-clicked='false']");
     for(let expandTweet of expandTweets) {
         expandTweet.click();
     }

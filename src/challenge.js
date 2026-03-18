@@ -173,7 +173,8 @@ window.addEventListener('message', e => {
         let anims = Array.from(dom.querySelectorAll('svg[id^="loading-x"]')).map(svg => svg.outerHTML);
 
         let vendorCode = homepageData.match(/vendor.(\w+).js"/)[1];
-        let challengeCode = homepageData.match(/"ondemand.s":"(\w+)"/)[1];
+        let challengePos = homepageData.match(/(\d+):"ondemand.s"/)[1];
+        let challengeCode = homepageData.match(new RegExp(`${challengePos}:"(\\w+)"`))[1];
         let challengeData = await fetch(`https://abs.twimg.com/responsive-web/client-web/ondemand.s.${challengeCode}a.js`).then(res => res.text());
         console.log(`Successfully fetched challenge data (${challengeCode} / ${challengeData.length})`);
         let vendorData = await fetch(`https://abs.twimg.com/responsive-web/client-web/vendor.${vendorCode}.js`).then(res => res.text());

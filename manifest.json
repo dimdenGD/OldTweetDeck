@@ -29,6 +29,9 @@
             "matches": ["<all_urls>"]
         }
     ],
+    "sandbox": {
+        "pages": ["solver.html"]
+    },
     "declarative_net_request": {
         "rule_resources" : [{
           "id": "ruleset",

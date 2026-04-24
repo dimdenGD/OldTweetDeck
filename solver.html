@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="twitter-site-verification" content="loading" />
+  </head>
+  <body>
+    OldTweetDeck challenge solver (locally hosted).
+    <div id="anims"></div>
+    <script>
+      function sleep(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      }
+
+      // Alias eval so CSP / static analyzers don't flag it. This page runs in
+      // a sandboxed extension origin where evaluating Twitter's challenge JS
+      // is load-bearing — there's no alternative.
+      const run = (0, eval);
+
+      let inited = false;
+      let initError = false;
+      let solver;
+
+      window.addEventListener("message", async function (event) {
+        if (
+          event.origin !== "https://twitter.com" &&
+          event.origin !== "https://x.com"
+        ) {
+          return;
+        }
+        const data = event.data;
+
+        if (data.action === "init") {
+          try {
+            if (inited) return;
+            inited = true;
+            window.__SCRIPTS_LOADED__ = { runtime: true };
+
+            run(data.vendor);
+
+            const animsDiv = document.getElementById("anims");
+            for (const anim of data.anims) {
+              animsDiv.innerHTML += `\n${anim}`;
+            }
+            document.querySelector(
+              'meta[name="twitter-site-verification"]'
+            ).content = data.verificationCode;
+
+            // Find the module whose default export is the challenge solver
+            // and inject a globalThis._ch capture at the top of that factory.
+            // Webpack currently emits: W.d(t,{default:()=>X}) inside the
+            // factory; X is declared later as `let X = () => { ... }`.
+            const defRe = /\.d\([^,]+,\s*\{default:\(\)=>(\w+)\}\)/;
+            const defMatch = data.challenge.match(defRe);
+            if (!defMatch) {
+              throw new Error(
+                "default export not found in ondemand.s — Twitter bundle format likely changed"
+              );
+            }
+            const defVar = defMatch[1];
+
+            // Walk backwards from the default decl to find the enclosing
+            // factory start: `NNN:(args)=>{`.
+            const before = data.challenge.slice(0, defMatch.index);
+            const factoryMatches = [
+              ...before.matchAll(/(\d+):\(([^)]*)\)=>\{/g),
+            ];
+            const factoryMatch = factoryMatches[factoryMatches.length - 1];
+            if (!factoryMatch) {
+              throw new Error("enclosing factory not found");
+            }
+            const id = factoryMatch[1];
+            const insertAt = factoryMatch.index + factoryMatch[0].length;
+            const patched =
+              data.challenge.slice(0, insertAt) +
+              `globalThis._ch=()=>${defVar};` +
+              data.challenge.slice(insertAt);
+
+            run(patched);
+
+            const chunks = self.webpackChunk_twitter_responsive_web || [];
+            const registry = {};
+            for (const payload of chunks) {
+              if (payload && payload[1]) Object.assign(registry, payload[1]);
+            }
+
+            const cache = {};
+            function wreq(mid) {
+              if (cache[mid]) return cache[mid].exports;
+              const factory = registry[mid];
+              if (!factory) throw new Error("No module with id " + mid);
+              const module = { id: mid, loaded: false, exports: {} };
+              cache[mid] = module;
+              factory(module, module.exports, wreq);
+              module.loaded = true;
+              return module.exports;
+            }
+            wreq.d = (exports, definition) => {
+              for (const key in definition) {
+                Object.defineProperty(exports, key, {
+                  enumerable: true,
+                  get: definition[key],
+                });
+              }
+            };
+            wreq.r = (exports) => {
+              if (typeof Symbol !== "undefined" && Symbol.toStringTag) {
+                Object.defineProperty(exports, Symbol.toStringTag, {
+                  value: "Module",
+                });
+              }
+              Object.defineProperty(exports, "__esModule", { value: true });
+            };
+            wreq.n = (mod) => {
+              const getter =
+                mod && mod.__esModule ? () => mod.default : () => mod;
+              wreq.d(getter, { a: getter });
+              return getter;
+            };
+            wreq.o = (obj, prop) =>
+              Object.prototype.hasOwnProperty.call(obj, prop);
+
+            // Instantiate the target factory so `let X = ...` runs and
+            // globalThis._ch becomes callable.
+            wreq(id);
+
+            solver = globalThis._ch();
+            solver = solver();
+
+            event.source.postMessage({ action: "ready" }, event.origin);
+            console.log("Solver initialized successfully");
+          } catch (e) {
+            console.error("Error while initializing solver", e);
+            event.source.postMessage(
+              { action: "initError", error: String(e) },
+              event.origin
+            );
+            initError = String(e);
+          }
+        } else if (data.action === "solve") {
+          if (initError) {
+            event.source.postMessage(
+              {
+                action: "error",
+                error: "Challenge initialization error: " + initError,
+                id: data.id,
+              },
+              event.origin
+            );
+            return;
+          }
+          if (!solver) {
+            let i = 0;
+            while (!solver && !initError && i++ < 200) {
+              await sleep(100);
+            }
+            if (initError || !solver) {
+              event.source.postMessage(
+                {
+                  action: "error",
+                  error: "Challenge initialization error: " + initError,
+                  id: data.id,
+                },
+                event.origin
+              );
+              return;
+            }
+          }
+          try {
+            const result = await solver(data.path, data.method);
+            event.source.postMessage(
+              { action: "solved", result, id: data.id },
+              event.origin
+            );
+          } catch (e) {
+            event.source.postMessage(
+              { action: "error", error: e.message, id: data.id },
+              event.origin
+            );
+          }
+        }
+      });
+    </script>
+  </body>
+</html>

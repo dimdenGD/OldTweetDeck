@@ -11,7 +11,7 @@ solverIframe.style.border = 'none';
 solverIframe.style.opacity = 0;
 solverIframe.style.pointerEvents = 'none';
 solverIframe.tabIndex = -1;
-solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?4"; // check source code of that page to make sure its safe if u dont trust it
+solverIframe.src = "SOLVER_URL"; // replaced by injection.js with chrome.runtime.getURL("solver.html")
 fetch(solverIframe.src).catch(() => {
     console.error("Cannot load solver iframe");
     solverErrored = true;

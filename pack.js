@@ -45,7 +45,7 @@ copyDir('./', './build/OldTweetDeckFirefox').then(async () => {
         }
     };
     manifest.manifest_version = 2;
-    manifest.host_permissions.push("https://tweetdeck.dimden.dev/*", "https://raw.githubusercontent.com/*");
+    manifest.host_permissions.push("https://raw.githubusercontent.com/*");
     delete manifest.declarative_net_request;
     manifest.permissions.push("webRequest", "webRequestBlocking", ...manifest.host_permissions);
     delete manifest.host_permissions;

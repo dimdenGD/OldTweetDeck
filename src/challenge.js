@@ -172,9 +172,15 @@ window.addEventListener('message', e => {
         let dom = new DOMParser().parseFromString(homepageData, 'text/html');
         let anims = Array.from(dom.querySelectorAll('svg[id^="loading-x"]')).map(svg => svg.outerHTML);
 
-        let vendorCode = homepageData.match(/vendor.(\w+).js"/)[1];
-        let challengePos = homepageData.match(/(\d+):"ondemand.s"/)[1];
-        let challengeCode = homepageData.match(new RegExp(`${challengePos}:"(\\w+)"`))[1];
+        let vendorCode = homepageData.match(/vendor\.([a-zA-Z0-9]+)\.js"/)?.[1];
+        let challengePos = homepageData.match(/(\d+):"ondemand\.s"/)?.[1];
+        let challengeCode = challengePos ? homepageData.match(new RegExp(`${challengePos}:"([a-zA-Z0-9_-]+)"`))?.[1] : null;
+        if(!challengeCode) {
+            challengeCode = homepageData.match(/ondemand\.s\.([a-zA-Z0-9_-]+)a?\.js/)?.[1];
+        }
+        if(!vendorCode || !challengeCode) {
+            throw new Error(`Could not find challenge assets: vendor=${vendorCode}, challenge=${challengeCode}`);
+        }
         let challengeData = await fetch(`https://abs.twimg.com/responsive-web/client-web/ondemand.s.${challengeCode}a.js`).then(res => res.text());
         console.log(`Successfully fetched challenge data (${challengeCode} / ${challengeData.length})`);
         let vendorData = await fetch(`https://abs.twimg.com/responsive-web/client-web/vendor.${vendorCode}.js`).then(res => res.text());

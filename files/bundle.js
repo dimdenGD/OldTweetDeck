@@ -32236,11 +32236,7 @@ document.body.addEventListener("click", function (e) {
                                     body: e.text,
                                     icon: e.img,
                                 })).onclose = o.reset),
-                                    (t.onshow = function () {
-                                        setTimeout(function () {
-                                            t.close();
-                                        }, 5e3);
-                                    }),
+                                    (t.onshow = null),
                                     (t.onclick = function () {
                                         o.showDetailView(e.columnKey, e.chirpID),
                                             TD.util.isChromeApp() &&

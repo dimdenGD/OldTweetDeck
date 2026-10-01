@@ -186,6 +186,63 @@ function parseNoteTweet(result) {
     return { text, entities };
 }
 
+function parseTweetCard(card) {
+    const legacy = card?.legacy;
+    if (!legacy) return;
+    const bindings = Array.isArray(legacy.binding_values)
+        ? Object.fromEntries(legacy.binding_values.filter(entry => entry?.key && entry.value).map(entry => [entry.key, entry.value]))
+        : legacy.binding_values || {};
+    const normalized = { ...legacy, binding_values: bindings };
+    if (legacy.name !== "unified_card") return normalized;
+    try {
+        const payload = JSON.parse(bindings.unified_card?.string_value);
+        if (!["image_website", "image_carousel_website", "image_multi_dest_carousel_website", "image_collection_website"].includes(payload?.type)) return normalized;
+        const objects = payload.component_objects || {};
+        const slides = payload.layout?.data?.slides;
+        const order = Array.isArray(slides) && slides.length
+            ? slides.flat()
+            : payload.components;
+        if (!Array.isArray(order)) return normalized;
+        const mediaKey = order.find(key => ["media", "swipeable_media"].includes(objects[key]?.type));
+        const component = objects[mediaKey];
+        const slot = component?.type === "swipeable_media" ? component.data?.media_list?.[0] : component?.data;
+        const media = payload.media_entities?.[slot?.id];
+        if (media?.type !== "photo") return normalized;
+        const imageUrl = media.media_url_https || media.media_url;
+        const image = new URL(imageUrl);
+        if (!["https:", "http:"].includes(image.protocol)) return normalized;
+        const slide = Array.isArray(slides) ? slides.find(keys => Array.isArray(keys) && keys.includes(mediaKey)) : null;
+        const details = (slide || order).map(key => objects[key]).find(value => value?.type === "details")?.data;
+        const destinationKey = slot?.destination || component?.data?.destination || details?.destination;
+        const destination = payload.destination_objects?.[destinationKey];
+        if (!["browser", "browser_with_docked_media"].includes(destination?.type)) return normalized;
+        const urlData = destination.data?.url_data;
+        const url = new URL(urlData?.url);
+        if (!["https:", "http:"].includes(url.protocol)) return normalized;
+        const vanity = typeof urlData.vanity === "string" && urlData.vanity ? urlData.vanity : url.hostname;
+        const stringValue = value => ({ type: "STRING", string_value: value });
+        const converted = {
+            card_url: stringValue(urlData.url),
+            title: stringValue(typeof details?.title?.content === "string" && details.title.content ? details.title.content : vanity),
+            description: stringValue(typeof details?.subtitle?.content === "string" ? details.subtitle.content : ""),
+            domain: stringValue(vanity),
+            vanity_url: stringValue(vanity),
+        };
+        for (const prefix of ["photo_image_full_size", "summary_photo_image", "thumbnail_image"]) {
+            for (const [suffix, bucket] of [["", "medium"], ["_small", "small"], ["_large", "large"], ["_x_large", "large"], ["_original", "original"]]) {
+                const sizes = media.sizes || {};
+                const size = sizes[bucket] || sizes.medium || sizes.large || {};
+                const width = bucket === "original" ? media.original_info?.width || sizes.large?.w || 0 : size.w || 0;
+                const height = bucket === "original" ? media.original_info?.height || sizes.large?.h || 0 : size.h || 0;
+                converted[prefix + suffix] = { type: "IMAGE", image_value: { url: imageUrl, width, height } };
+            }
+        }
+        return { ...legacy, name: "summary_large_image", url: urlData.url, binding_values: converted };
+    } catch {
+        return normalized;
+    }
+}
+
 function parseTweet(res) {
     try {
 
@@ -271,6 +328,8 @@ function parseTweet(res) {
                 result.quoted_status_result.result.core.user_results.result.legacy
             ) {
                 result.legacy.quoted_status = result.quoted_status_result.result.legacy;
+                const quotedCard = parseTweetCard(result.quoted_status_result.result.card);
+                if (quotedCard) result.legacy.quoted_status.card = quotedCard;
                 result.legacy.quoted_status.id = +result.legacy.quoted_status.id_str;
                 result.legacy.quoted_status.text = result.legacy.quoted_status.full_text;
                 result.legacy.quoted_status.conversation_id = +result.legacy.quoted_status.conversation_id_str;
@@ -369,9 +428,8 @@ function parseTweet(res) {
                 if (result.views) {
                     tweet.retweeted_status.ext.views = { r: { ok: { count: +result.views.count } } };
                 }
-                if (res.card && res.card.legacy && res.card.legacy.binding_values) {
-                    tweet.retweeted_status.card = res.card.legacy;
-                }
+                const retweetedCard = parseTweetCard(result.card);
+                if (retweetedCard) tweet.retweeted_status.card = retweetedCard;
             } else {
                 console.warn("No retweeted status", result);
             }
@@ -408,6 +466,8 @@ function parseTweet(res) {
             }
             if(result && result.legacy) {
                 tweet.quoted_status = result.legacy;
+                const quotedCard = parseTweetCard(result.card);
+                if (quotedCard) tweet.quoted_status.card = quotedCard;
                 tweet.quoted_status.id = +tweet.quoted_status.id_str;
                 tweet.quoted_status.conversation_id = +tweet.quoted_status.conversation_id_str;
                 tweet.quoted_status.text = tweet.quoted_status.full_text;
@@ -464,15 +524,8 @@ function parseTweet(res) {
                 }
             }
         }
-        if (res.card && res.card.legacy) {
-            tweet.card = res.card.legacy;
-            let bvo = {};
-            for (let i = 0; i < tweet.card.binding_values.length; i++) {
-                let bv = tweet.card.binding_values[i];
-                bvo[bv.key] = bv.value;
-            }
-            tweet.card.binding_values = bvo;
-        }
+        const card = parseTweetCard(res.card);
+        if (card) tweet.card = card;
         if (res.views) {
             if (!tweet.ext) tweet.ext = {};
             tweet.ext.views = { r: { ok: { count: +res.views.count } } };
@@ -2353,6 +2406,10 @@ const proxyRoutes = [
             }
             for (let id in data.globalObjects.tweets) {
                 let tweet = data.globalObjects.tweets[id];
+                for (const status of [tweet, tweet.retweeted_status, tweet.quoted_status, tweet.retweeted_status?.quoted_status]) {
+                    const card = parseTweetCard({ legacy: status?.card });
+                    if (card) status.card = card;
+                }
 
                 if (!tweet.contributors) tweet.contributors = null;
                 if (tweet.conversation_id_str)

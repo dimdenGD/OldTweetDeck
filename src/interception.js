@@ -196,7 +196,7 @@ function parseTweetCard(card) {
     if (legacy.name !== "unified_card") return normalized;
     try {
         const payload = JSON.parse(bindings.unified_card?.string_value);
-        if (!["image_website", "image_carousel_website", "image_collection_website"].includes(payload?.type)) return normalized;
+        if (!["image_website", "image_carousel_website", "image_multi_dest_carousel_website", "image_collection_website"].includes(payload?.type)) return normalized;
         const objects = payload.component_objects || {};
         const slides = payload.layout?.data?.slides;
         const order = Array.isArray(slides) && slides.length
@@ -2406,6 +2406,10 @@ const proxyRoutes = [
             }
             for (let id in data.globalObjects.tweets) {
                 let tweet = data.globalObjects.tweets[id];
+                for (const status of [tweet, tweet.retweeted_status, tweet.quoted_status, tweet.retweeted_status?.quoted_status]) {
+                    const card = parseTweetCard({ legacy: status?.card });
+                    if (card) status.card = card;
+                }
 
                 if (!tweet.contributors) tweet.contributors = null;
                 if (tweet.conversation_id_str)

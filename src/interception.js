@@ -18,7 +18,7 @@ if(localStorage.OTDverifiedUser) {
         verifiedUser = null;
     }
 }
-let feeds;
+let feeds = {};
 if(localStorage.OTDfeeds) {
     try {
         feeds = JSON.parse(localStorage.OTDfeeds);
@@ -27,7 +27,7 @@ if(localStorage.OTDfeeds) {
         feeds = {};
     }
 }
-let columns;
+let columns = {};
 if(localStorage.OTDcolumns) {
     try {
         columns = JSON.parse(localStorage.OTDcolumns);
@@ -720,7 +720,7 @@ function formatTwitterStyle(date) {
 }
 
 function emulateResponse(xhr) {
-    xhr._status = 200;
+    xhr._status = xhr._status ?? 200;
     xhr._readyState = 4;
     xhr.responseHeaderOverride = {
         "content-type": () => "application/json"
@@ -2623,7 +2623,25 @@ const proxyRoutes = [
         path: "/1.1/tweetdeck/clients/blackbird/all",
         method: "GET",
         openHandler: () => {},
-        sendHandler: emulateResponse,
+        sendHandler: async (xhr) => {
+            // Account verification and state loading run concurrently on first login.
+            // Do not build default settings until verification has supplied the ID.
+            const deadline = Date.now() + 20000;
+            while (!settings && !verifiedUser?.id_str) {
+                if (Date.now() >= deadline) {
+                    // Complete the request as an error so TweetDeck can show its
+                    // normal login error instead of leaving an unresolved spinner.
+                    xhr._status = 503;
+                    xhr._responseText = JSON.stringify({ errors: [{
+                        message: "Account verification timed out. Please refresh TweetDeck.",
+                    }] });
+                    emulateResponse(xhr);
+                    return;
+                }
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            emulateResponse(xhr);
+        },
         afterRequest: (xhr) => {
             const state = {
                 client: {

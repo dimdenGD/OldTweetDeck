@@ -41,14 +41,12 @@ async function main() {
     if (!localStorage.getItem("OTDalwaysUseLocalFiles")) {
         const [
             remote_challenge_js_req,
-            remote_interception_js_req,
             remote_vendor_js_req,
             remote_bundle_js_req,
             remote_bundle_css_req,
             remote_twitter_text_req,
         ] = await Promise.allSettled([
             fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/src/challenge.js"),
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/src/interception.js"),
             fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/vendor.js"),
             fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.js"),
             fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css"),
@@ -57,7 +55,6 @@ async function main() {
         
         if(
             (remote_challenge_js_req.value && remote_challenge_js_req.value.ok) ||
-            (remote_interception_js_req.value && remote_interception_js_req.value.ok) || 
             (remote_vendor_js_req.value && remote_vendor_js_req.value.ok) ||
             (remote_bundle_js_req.value && remote_bundle_js_req.value.ok) ||
             (remote_bundle_css_req.value && remote_bundle_css_req.value.ok) ||
@@ -65,14 +62,12 @@ async function main() {
         ) {
             const [
                 remote_challenge_js,
-                remote_interception_js,
                 remote_vendor_js,
                 remote_bundle_js,
                 remote_bundle_css,
                 remote_twitter_text,
             ] = await Promise.allSettled([
                 remote_challenge_js_req.value.text(),
-                remote_interception_js_req.value.text(),
                 remote_vendor_js_req.value.text(),
                 remote_bundle_js_req.value.text(),
                 remote_bundle_css_req.value.text(),
@@ -89,15 +84,6 @@ async function main() {
                 console.log("Using remote challenge.js");
             }
 
-            if (
-                remote_interception_js_req.value &&
-                remote_interception_js_req.value.ok &&
-                remote_interception_js.status === "fulfilled" &&
-                remote_interception_js.value.length > 30
-            ) {
-                interception_js = remote_interception_js;
-                console.log("Using remote interception.js");
-            }
             if (
                 remote_vendor_js_req.value &&
                 remote_vendor_js_req.value.ok &&
@@ -141,6 +127,8 @@ async function main() {
     challenge_js_script.innerHTML = challenge_js.value.replaceAll('SOLVER_URL', chrome.runtime.getURL("solver.html"));
     document.head.appendChild(challenge_js_script);
 
+    // Keep the request adapter bundled: remote replacement would discard local
+    // compatibility fixes, including first-login account verification ordering.
     let interception_js_script = document.createElement("script");
     interception_js_script.innerHTML = interception_js.value;
     document.head.appendChild(interception_js_script);

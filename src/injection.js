@@ -29,7 +29,7 @@ async function main() {
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
     document.documentElement.innerHTML = html;
 
-    let [challenge_js, interception_js, vendor_js, bundle_js, bundle_css, twitter_text] =
+    let [challenge_js, interception_js, vendor_js, bundle_js, bundle_css, twitter_text, grok_translate_js] =
         await Promise.allSettled([
             fetch(chrome.runtime.getURL("/src/challenge.js")).then(r => r.text()),
             fetch(chrome.runtime.getURL("/src/interception.js")).then(r => r.text()),
@@ -37,6 +37,8 @@ async function main() {
             fetch(chrome.runtime.getURL("/files/bundle.js")).then(r => r.text()),
             fetch(chrome.runtime.getURL("/files/bundle.css")).then(r => r.text()),
             fetch(chrome.runtime.getURL("/files/twitter-text.js")).then(r => r.text()),
+            // local only: not part of upstream, so there is no remote copy to prefer
+            fetch(chrome.runtime.getURL("/src/grok-translate.js")).then(r => r.text()),
         ]);
     if (!localStorage.getItem("OTDalwaysUseLocalFiles")) {
         const [
@@ -160,6 +162,12 @@ async function main() {
     let twitter_text_script = document.createElement("script");
     twitter_text_script.innerHTML = twitter_text.value;
     document.head.appendChild(twitter_text_script);
+
+    if(grok_translate_js.status === "fulfilled") {
+        let grok_translate_script = document.createElement("script");
+        grok_translate_script.innerHTML = grok_translate_js.value;
+        document.head.appendChild(grok_translate_script);
+    }
 
     (async () => {
         try {

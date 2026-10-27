@@ -2382,6 +2382,8 @@ const proxyRoutes = [
             params.delete("include_ext_sensitive_media_warning");
             params.delete("include_ext_media_color");
 
+            originalUrl.hostname = location.hostname;
+            originalUrl.pathname = `/i/api${originalUrl.pathname}`;
             originalUrl.search = params.toString();
 
             xhr.modUrl = originalUrl.toString();

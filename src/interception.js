@@ -257,6 +257,7 @@ function parseTweet(res) {
             res = res.tweet;
         }
         if (!res.legacy && res.tweet) res = res.tweet;
+        res = normalizeTweetResult(res);
         let tweet = res.legacy;
         if (!res.core || !tweet) return;
         if(!tweet.id) {
@@ -271,6 +272,26 @@ function parseTweet(res) {
         tweet.user = result.legacy || {};
         tweet.user.id = +tweet.user_id_str;
         tweet.user.id_str = tweet.user_id_str;
+        if(!tweet.user.description && result?.profile_bio?.description) {
+            tweet.user.description = result.profile_bio.description;
+        }
+        if(tweet.user.followers_count === undefined && result?.relationship_counts) {
+            tweet.user.followers_count = result.relationship_counts.followers ?? 0;
+            tweet.user.friends_count = result.relationship_counts.following ?? 0;
+        }
+        if(tweet.user.statuses_count === undefined && result?.tweet_counts) {
+            tweet.user.statuses_count = result.tweet_counts.tweets ?? 0;
+        }
+        if(tweet.user.following === undefined && result?.relationship_perspectives) {
+            tweet.user.following = Boolean(result.relationship_perspectives.following);
+            tweet.user.followed_by = Boolean(result.relationship_perspectives.followed_by);
+        }
+        if(!tweet.user.profile_image_url_https && result?.avatar?.image_url) {
+            tweet.user.profile_image_url_https = result.avatar.image_url;
+        }
+        if(tweet.user.verified === undefined && result?.verification?.verified !== undefined) {
+            tweet.user.verified = Boolean(result.verification.verified);
+        }
         if (result.is_blue_verified) {
             tweet.user.verified = true;
             tweet.user.verified_type = "Blue";
@@ -437,7 +458,9 @@ function parseTweet(res) {
                 let note = parseNoteTweet(result);
                 tweet.retweeted_status.full_text = note.text;
                 tweet.retweeted_status.entities = note.entities;
-                tweet.retweeted_status.display_text_range = undefined; // no text range for long tweets
+                // twitter-text's updateEntities() dereferences range[0]; leaving
+                // this undefined makes the whole tweet fail to render.
+                tweet.retweeted_status.display_text_range = [0, (note.text || "").length];
             }
         }
     
@@ -448,7 +471,9 @@ function parseTweet(res) {
             let note = parseNoteTweet(res);
             tweet.full_text = note.text;
             tweet.entities = note.entities;
-            tweet.display_text_range = undefined; // no text range for long tweets
+            // Never leave this undefined: TweetDeck's twitter-text call does
+            // range[0] and throws, which silently empties the whole thread.
+            tweet.display_text_range = [0, (note.text || "").length];
         }
         if (tweet.quoted_status_result && tweet.quoted_status_result.result) {
             let result = tweet.quoted_status_result.result;
@@ -550,6 +575,593 @@ function parseTweet(res) {
         console.error('error parsing tweet', e, res);
         throw new Error('error parsing tweet');
     }
+}
+
+// X retired the legacy REST endpoints TweetDeck still calls:
+//   /2/timeline/conversation/<id>.json  -> 404 Not Found
+//   /1.1/statuses/show/<id>.json        -> 403 (preflight)
+// Tweet detail and the whole reply conversation now live in the GraphQL
+// TweetDetail query, whose response has no entryId/type fields any more.
+// The helpers below talk to TweetDetail and rebuild the old REST shapes that
+// TweetDeck's own client code (processTimeline / getConversation) parses.
+const TWEET_DETAIL_FEATURES = {
+    rweb_video_screen_enabled: false,
+    profile_label_improvements_pcf_label_in_post_enabled: true,
+    responsive_web_profile_redirect_enabled: false,
+    rweb_tipjar_consumption_enabled: true,
+    verified_phone_label_enabled: false,
+    creator_subscriptions_tweet_preview_api_enabled: true,
+    responsive_web_graphql_timeline_navigation_enabled: true,
+    responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
+    premium_content_api_read_enabled: false,
+    communities_web_enable_tweet_community_results_fetch: true,
+    c9s_tweet_anatomy_moderator_badge_enabled: true,
+    responsive_web_grok_analyze_button_fetch_trends_enabled: false,
+    responsive_web_grok_analyze_post_followups_enabled: true,
+    responsive_web_jetfuel_frame: true,
+    responsive_web_grok_share_attachment_enabled: true,
+    articles_preview_enabled: true,
+    responsive_web_edit_tweet_api_enabled: true,
+    graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
+    view_counts_everywhere_api_enabled: true,
+    longform_notetweets_consumption_enabled: true,
+    responsive_web_twitter_article_tweet_consumption_enabled: true,
+    tweet_awards_web_tipping_enabled: false,
+    creator_subscriptions_quote_tweet_preview_enabled: false,
+    freedom_of_speech_not_reach_fetch_enabled: true,
+    standardized_nudges_misinfo: true,
+    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: true,
+    rweb_video_paywalls_application_enabled: false,
+    longform_notetweets_rich_text_read_enabled: true,
+    longform_notetweets_inline_media_enabled: true,
+    responsive_web_enhance_cards_enabled: false,
+};
+
+// queryIds rotate whenever X ships a new build; the list is tried in order and
+// the one that worked is remembered, so a stale first entry self-heals.
+const QUERY_ID_FALLBACKS = {
+    TweetDetail: [
+        "Sw99i6FKcwmZErirfGHJAg",
+        "3BlMtudy4N-d78ch7zTLZQ",
+        "gJoREC4Bspo4kJ0ax9C3sQ",
+        "meGUdoK_ryVZ0daBK-HJ2g",
+        "KwGBbJZc6DBx8EKmyQSP7g",
+    ],
+};
+
+function queryIdCache() {
+    try {
+        return JSON.parse(localStorage.OTDqueryIds || "{}") || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function getQueryId(name) {
+    let list = QUERY_ID_FALLBACKS[name] || [];
+    let cached = queryIdCache()[name];
+    if (cached && list.includes(cached.id)) return cached.id;
+    return list[0] || "";
+}
+
+function rotateQueryId(name) {
+    let list = QUERY_ID_FALLBACKS[name] || [];
+    if (list.length < 2) return;
+    let cache = queryIdCache();
+    let current = cache[name] && list.includes(cache[name].id) ? cache[name].id : list[0];
+    let next = list[(list.indexOf(current) + 1) % list.length];
+    if (next === current) return;
+    cache[name] = { id: next, ts: Date.now() };
+    localStorage.OTDqueryIds = JSON.stringify(cache);
+    console.warn(`OTD: ${name} queryId failed, rotating to ${next}`);
+}
+
+// TweetDetail needs these relay provider variables or the query fails GraphQL
+// validation ("must be defined") with a 422. They come from the query document
+// X ships with the current web build, so the list has to grow when X adds more
+// (healTweetDetailVars() appends whatever the error names).
+const TWEET_DETAIL_RELAY_VARS = {
+    __relay_internal__pv__communityboostformenabledrelayprovider: false,
+    __relay_internal__pv__fastnotesbadgeenabledrelayprovider: false,
+    __relay_internal__pv__newboostanalyticsrelayprovider: false,
+    __relay_internal__pv__noteinternalinsightsenabledrelayprovider: false,
+    __relay_internal__pv__notewritingenabledrelayprovider: false,
+    __relay_internal__pv__notificationsettingsenabledrelayprovider: false,
+    __relay_internal__pv__profilespotlightenabledrelayprovider: false,
+    __relay_internal__pv__ratingcrowdenabledrelayprovider: false,
+    __relay_internal__pv__ratingparticipantenabledrelayprovider: false,
+    __relay_internal__pv__signuppromptenabledrelayprovider: false,
+    __relay_internal__pv__urlnotesenabledrelayprovider: false,
+    __relay_internal__pv__xclientsfeaturesappviewerisloggedinrelayprovider: true,
+    __relay_internal__pv__xclientsfeaturestranslationgroktranslatedpostenabledrelayprovider: false,
+    __relay_internal__pv__xclientsfeaturestranslationnoteautotranslationenabledrelayprovider: false,
+    __relay_internal__pv__xclientsfeaturestweetcomponentsgrokanalyzepostrelayprovider: false,
+};
+
+// Extra variables discovered at runtime by healTweetDetailVars().
+function tweetDetailExtraVars() {
+    try {
+        return JSON.parse(localStorage.OTDtweetDetailVars || "{}") || {};
+    } catch (e) {
+        return {};
+    }
+}
+
+function tweetDetailUrl(tweetId, extraVariables) {
+    let variables = {
+        focalTweetId: String(tweetId),
+        with_rux_injections: false,
+        includePromotedContent: false,
+        withCommunity: true,
+        withQuickPromoteEligibilityTweetFields: true,
+        withBirdwatchNotes: true,
+        withVoice: true,
+        withV2Timeline: true,
+        withFocalTweet: true,
+        ...TWEET_DETAIL_RELAY_VARS,
+        ...tweetDetailExtraVars(),
+        ...extraVariables,
+    };
+    return `https://${location.hostname}/i/api/graphql/${getQueryId("TweetDetail")}/TweetDetail?${generateParams(
+        TWEET_DETAIL_FEATURES,
+        variables
+    )}`;
+}
+
+// X grows the TweetDetail document between builds: a variable the query now
+// references but the extension does not send makes every request 422. Probe
+// once in a while, learn the missing names from the validation error and cache
+// them, so the deck heals itself instead of showing an empty thread.
+let tweetDetailHealing = false;
+
+function otdCsrfToken() {
+    let match = document.cookie.match(/(?:^|;\s*)ct0=([^;]+)/);
+    return match ? match[1] : "";
+}
+
+async function healTweetDetailVars(force) {
+    if (tweetDetailHealing) return;
+    if (!window.solveChallenge) return;
+    if (!force && localStorage.OTDtweetDetailHealedAt) {
+        let age = Date.now() - Number(localStorage.OTDtweetDetailHealedAt);
+        if (age >= 0 && age < 6 * 60 * 60 * 1000) return;
+    }
+    tweetDetailHealing = true;
+    try {
+        for (let attempt = 0; attempt < 12; attempt++) {
+            let url = tweetDetailUrl("20");
+            let path = new URL(url).pathname;
+            let headers = {
+                authorization: PUBLIC_TOKENS[0],
+                "x-csrf-token": otdCsrfToken(),
+                "x-twitter-auth-type": "OAuth2Session",
+                "x-twitter-active-user": "yes",
+                "x-twitter-client-language": "en",
+                "content-type": "application/json",
+            };
+            try {
+                headers["x-client-transaction-id"] = await solveChallenge(path, "GET");
+            } catch (e) {
+                console.warn("OTD: no transaction id for TweetDetail probe", e);
+            }
+            let response;
+            try {
+                response = await fetch(url, { headers, credentials: "include" });
+            } catch (e) {
+                console.warn("OTD: TweetDetail probe failed", e);
+                return;
+            }
+            if (response.ok) {
+                localStorage.OTDtweetDetailHealedAt = Date.now();
+                return;
+            }
+            let text = "";
+            try {
+                text = await response.text();
+            } catch (e) {}
+            if (text.includes("Query not found")) {
+                rotateQueryId("TweetDetail");
+                continue;
+            }
+            let missing = null;
+            try {
+                missing = JSON.parse(text)?.errors?.[0]?.path?.[1];
+            } catch (e) {}
+            if (missing && missing.startsWith("__relay_internal__pv__")) {
+                let vars = tweetDetailExtraVars();
+                vars[missing] = missing.includes("loggedin");
+                localStorage.OTDtweetDetailVars = JSON.stringify(vars);
+                console.log(`OTD: learned TweetDetail variable ${missing}`);
+                continue;
+            }
+            console.warn("OTD: TweetDetail probe gave up", response.status, text.slice(0, 200));
+            return;
+        }
+    } finally {
+        tweetDetailHealing = false;
+    }
+}
+
+function tweetDetailInstructions(data) {
+    let instructions = data?.data?.threaded_conversation_with_injections_v2?.instructions;
+    return Array.isArray(instructions) ? instructions : null;
+}
+
+function tweetDetailEntries(instructions) {
+    let entries = [];
+    for (let instruction of instructions || []) {
+        if (Array.isArray(instruction.entries)) entries.push(...instruction.entries);
+    }
+    return entries;
+}
+
+// Collects tweet_results.result objects from an entry, tolerating both the old
+// REST shape (entryId + itemContent) and the current one (no entryId, the
+// content is the TimelineTweet itself and modules hold items[]).
+function tweetDetailEntryResults(entry) {
+    let content = entry?.content;
+    let results = [];
+    let push = (tweetResults) => {
+        if (tweetResults?.result) results.push(tweetResults.result);
+    };
+    if (!content) return results;
+    push(content.itemContent?.tweet_results);
+    push(content.content?.tweet_results);
+    let items = content.items || content.timelineModule?.items || [];
+    for (let item of items) {
+        // Promoted items are only marked on the item's own entry_id, not on the
+        // module entry that wraps them.
+        if (String(item?.entry_id || "").includes("promoted")) continue;
+        let itemContent = item?.item?.content || item?.item?.itemContent || item?.content;
+        push(itemContent?.tweet_results);
+    }
+    return results;
+}
+
+function unwrapTweetResult(res) {
+    if (!res) return null;
+    if (res.__typename === "TweetWithVisibilityResults" && res.tweet) return res.tweet;
+    if (!res.legacy && res.tweet) return res.tweet;
+    return res;
+}
+
+// TweetDetail's tweet object no longer mirrors the REST tweet: text lives in
+// `details`, counters in `counts`, per-viewer flags in `perspective`, and
+// `legacy` only keeps conversation_id_str/lang/entities. TweetDeck's
+// fromJSONObject() reads the REST layout (full_text/created_at/favorite_count
+// /in_reply_to_*), so fold the new fields back into `legacy` first.
+function normalizeTweetResult(res) {
+    if (!res?.legacy) return res;
+    let legacy = res.legacy;
+    let details = res.details || {};
+    let counts = res.counts || {};
+    let perspective = res.perspective || {};
+    let id = res.rest_id || legacy.id_str;
+
+    if (id && !legacy.id_str) legacy.id_str = String(id);
+    if (legacy.id_str && !legacy.id) legacy.id = +legacy.id_str;
+
+    // `user_id_str` disappeared from legacy; TweetDeck keys users by it, so a
+    // missing value leaves every tweet without an author.
+    let author = res.core?.user_results?.result;
+    if (author?.rest_id && !legacy.user_id_str) {
+        legacy.user_id_str = String(author.rest_id);
+        legacy.user_id = +author.rest_id;
+    }
+    // A retweet's payload nests the original tweet under
+    // legacy.retweeted_status_results, while parseTweet() looks for
+    // legacy.retweeted_status_result. Without this the deck treats the retweet
+    // as the main tweet (getMainTweet returns itself), asks for the retweet's
+    // own conversation and gets a single-tweet timeline back — replies blank.
+    let rtResults = res.retweeted_status_results || legacy.retweeted_status_results;
+    if (rtResults?.result) {
+        normalizeTweetResult(unwrapTweetResult(rtResults.result));
+        if (!legacy.retweeted_status_result) legacy.retweeted_status_result = rtResults;
+    }
+    if (res.quoted_tweet_results?.result) {
+        let quoted = normalizeTweetResult(unwrapTweetResult(res.quoted_tweet_results.result));
+        if (quoted?.legacy && !legacy.quoted_status) {
+            legacy.quoted_status = quoted.legacy;
+            legacy.quoted_status_id_str = quoted.legacy.id_str;
+            legacy.is_quote_status = true;
+        }
+    }
+
+    if (details.full_text !== undefined && legacy.full_text === undefined) {
+        legacy.full_text = details.full_text;
+    }
+    // twitter-text's updateEntities() converts unicode indices to UTF-16 and
+    // dereferences the range unconditionally; a missing display_text_range
+    // makes TweetDeck's model throw "Cannot read properties of undefined
+    // (reading '0')" and the whole conversation render blank.
+    if (!Array.isArray(legacy.display_text_range)) {
+        let range = Array.isArray(details.display_text_range)
+            ? details.display_text_range
+            : null;
+        legacy.display_text_range = range || [0, (legacy.full_text || "").length];
+    }
+    if (!legacy.created_at && details.created_at_ms) {
+        // TweetDeck runs created_at through Date.parse() after patching the REST
+        // " +0000" offset, so keep emitting the REST layout.
+        let d = new Date(details.created_at_ms);
+        let pad = (n) => String(n).padStart(2, "0");
+        legacy.created_at = `${["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][d.getUTCDay()]} ${
+            ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][
+                d.getUTCMonth()
+            ]
+        } ${pad(d.getUTCDate())} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(
+            d.getUTCSeconds()
+        )} +0000 ${d.getUTCFullYear()}`;
+    }
+    if (!legacy.entities) legacy.entities = {};
+    let entities = legacy.entities;
+    if (details.hashtag_entities?.length) entities.hashtags = details.hashtag_entities;
+    if (res.mention_entities?.length) {
+        entities.user_mentions = res.mention_entities.map((m) => ({
+            ...m,
+            indices: Array.isArray(m.indices) ? m.indices : [0, 0],
+            screen_name: m.screen_name || m.username,
+            name: m.name || m.screen_name || m.username,
+        }));
+    }
+    if (res.url_entities?.length) {
+        entities.urls = res.url_entities.map((u) => ({
+            ...u,
+            indices: Array.isArray(u.indices) ? u.indices : [0, 0],
+            url: u.url || u.display_url,
+            expanded_url: u.expanded_url || u.url || u.display_url,
+            display_url: u.display_url || u.url,
+        }));
+    }
+    if (res.cashtag_attachments?.length) {
+        entities.cashtags = res.cashtag_attachments.map((c) => ({
+            text: c.text || c.cashtag,
+            indices: c.indices || [0, 0],
+        }));
+    }
+    if (res.media_entities2?.length) {
+        let media = res.media_entities2
+            .map((m) => {
+                let info = m.media_info || m;
+                let url = info.original_img_url || info.media_url_https || info.media_url;
+                if (!url) return null;
+                let video = info.variants
+                    ? {
+                          variants: info.variants,
+                          duration_millis: info.duration_millis,
+                          aspect_ratio: info.aspect_ratio,
+                      }
+                    : {};
+                let width = info.original_img_width || info.width || info.original_info?.width || 1;
+                let height = info.original_img_height || info.height || info.original_info?.height || 1;
+                // TwitterMedia.bestUnifiedImageVariant() reads
+                // entity.sizes.medium.w without a guard, so every media entity
+                // needs a complete sizes map or the tweet fails to render.
+                let sizeEntry = (w, h, resize) => ({ w, h, resize });
+                let provided = info.sizes || {};
+                let sizes = {
+                    thumb: provided.thumb || sizeEntry(150, Math.round((150 * height) / width) || 150, "crop"),
+                    small: provided.small || sizeEntry(680, Math.round((680 * height) / width) || height, "fit"),
+                    medium: provided.medium || sizeEntry(width, height, "fit"),
+                    large: provided.large || sizeEntry(width, height, "fit"),
+                };
+                return {
+                    id_str: String(info.media_id || info.id_str || ""),
+                    // TweetDeck filters media through entityIsOutsideDisplayRange,
+                    // which dereferences indices[0]; a missing range throws and
+                    // the entire tweet fails to render.
+                    indices: Array.isArray(info.indices) ? info.indices : [0, 0],
+                    media_url_https: url,
+                    media_url: url,
+                    type: (info.__typename || info.type || "photo").toLowerCase().includes("video")
+                        ? "video"
+                        : (info.__typename || info.type || "photo").toLowerCase().includes("gif")
+                        ? "animated_gif"
+                        : "photo",
+                    sizes,
+                    original_info: { width, height },
+                    ...video,
+                };
+            })
+            .filter(Boolean);
+        if (media.length) {
+            entities.media = media;
+            legacy.extended_entities = { media };
+        }
+    }
+
+    // TweetDeck hands every entity to entityIsOutsideDisplayRange(), which does
+    // indices[0]/indices[1] with no guard. One malformed entity is enough to
+    // make the whole tweet (and therefore the whole thread) render blank.
+    for (let key of ["hashtags", "urls", "user_mentions", "cashtags", "media", "symbols", "smarttags"]) {
+        let list = entities[key];
+        if (!Array.isArray(list)) continue;
+        entities[key] = list.map((entity) =>
+            Array.isArray(entity?.indices) && entity.indices.length >= 2
+                ? entity
+                : { ...entity, indices: [0, 0] }
+        );
+    }
+
+    if (legacy.favorite_count === undefined) legacy.favorite_count = counts.favorite_count ?? 0;
+    if (legacy.retweet_count === undefined) legacy.retweet_count = counts.retweet_count ?? 0;
+    if (legacy.reply_count === undefined) legacy.reply_count = counts.reply_count ?? 0;
+    if (legacy.quote_count === undefined) legacy.quote_count = counts.quote_count ?? 0;
+    if (legacy.bookmark_count === undefined) legacy.bookmark_count = counts.bookmark_count ?? 0;
+    if (legacy.favorited === undefined) legacy.favorited = Boolean(perspective.favorited);
+    if (legacy.retweeted === undefined) legacy.retweeted = Boolean(perspective.retweeted);
+    if (legacy.conversation_muted === undefined) {
+        legacy.conversation_muted = Boolean(res.conversation_muted);
+    }
+    if (legacy.is_translatable === undefined && res.is_translatable !== undefined) {
+        legacy.is_translatable = res.is_translatable;
+    }
+
+    let replyTo = res.reply_to_results?.rest_id;
+    if (replyTo && !legacy.in_reply_to_status_id_str) {
+        legacy.in_reply_to_status_id_str = String(replyTo);
+        legacy.in_reply_to_status_id = +replyTo;
+    }
+    let replyToUser = res.reply_to_user_results?.rest_id;
+    if (replyToUser && !legacy.in_reply_to_user_id_str) {
+        legacy.in_reply_to_user_id_str = String(replyToUser);
+        legacy.in_reply_to_user_id = +replyToUser;
+        let screenName = res.reply_to_user_results?.result?.core?.screen_name;
+        if (screenName) legacy.in_reply_to_screen_name = screenName;
+    }
+
+    if (res.quoted_tweet_results?.result && !legacy.quoted_status) {
+        legacy.quoted_status_id_str =
+            res.quoted_tweet_results.result.rest_id || legacy.quoted_status_id_str;
+        legacy.is_quote_status = true;
+    }
+
+    return res;
+}
+
+function normalizeLegacyUser(user) {
+    if (!user) return user;
+    if (!user.entities) user.entities = {};
+    if (!user.entities.description) user.entities.description = { urls: [] };
+    if (!Array.isArray(user.entities.description.urls)) user.entities.description.urls = [];
+    if (!user.entities.url) user.entities.url = { urls: [] };
+    if (!Array.isArray(user.entities.url.urls)) user.entities.url.urls = [];
+    return user;
+}
+
+function findTweetResultInDetail(data, tweetId) {
+    let instructions = tweetDetailInstructions(data);
+    if (!instructions) return null;
+    let target = String(tweetId);
+    let first = null;
+    for (let entry of tweetDetailEntries(instructions)) {
+        for (let raw of tweetDetailEntryResults(entry)) {
+            let res = unwrapTweetResult(raw);
+            if (!res) continue;
+            if (!first) first = res;
+            if (String(res.rest_id || res.legacy?.id_str) === target) return res;
+        }
+    }
+    return first;
+}
+
+// Rebuilds the {globalObjects, timeline.instructions[addEntries]} payload that
+// TweetDeck's getConversation() expects, out of a TweetDetail response.
+// getConversation() reads entry.content.item.content.conversationThread
+// .conversationComponents[] (each one wraps a tweet id), then looks that id up
+// in the array processTimeline() built from globalObjects.tweets.
+function tweetDetailToConversation(data, focalId) {
+    let instructions = tweetDetailInstructions(data);
+    if (!instructions) return null;
+
+    let tweets = {};
+    let users = {};
+    let components = [];
+    // The focal tweet defines the conversation; deriving it from the first entry
+    // would break when a promoted/related module happens to come first.
+    let focalConversation =
+        unwrapTweetResult(findTweetResultInDetail(data, focalId))?.legacy?.conversation_id_str ||
+        String(focalId);
+
+    for (let entry of tweetDetailEntries(instructions)) {
+        let entryId = String(entry.entry_id || entry.entryId || "");
+        if (entryId.includes("promoted")) continue;
+        for (let raw of tweetDetailEntryResults(entry)) {
+            let res = unwrapTweetResult(raw?.result || raw);
+            if (!res?.legacy) continue;
+            let id = res.rest_id || res.legacy.id_str;
+            if (!id || tweets[id]) continue;
+            if (!focalConversation) focalConversation = res.legacy.conversation_id_str || null;
+            // TweetDetail also returns "related tweets" and promoted modules,
+            // which belong to other conversations; without this filter they show
+            // up as ancestors of the thread.
+            if (
+                focalConversation &&
+                res.legacy.conversation_id_str &&
+                res.legacy.conversation_id_str !== focalConversation
+            ) {
+                continue;
+            }
+            let tweet;
+            try {
+                tweet = parseTweet(res);
+            } catch (e) {
+                console.warn("OTD: could not parse conversation tweet", e);
+                continue;
+            }
+            if (!tweet || !tweet.user) continue;
+            tweets[id] = tweet;
+            let user = normalizeLegacyUser(tweet.user);
+            if (user) users[user.id_str || tweet.user_id_str] = user;
+            components.push({ id, tweet });
+        }
+    }
+    if (!components.length) {
+        console.warn("OTD: conversation empty — no tweets survived filtering", {
+            instructions: instructions.map((i) => i.__typename),
+            entries: tweetDetailEntries(instructions).length,
+            focalConversation,
+        });
+        return null;
+    }
+
+    // getConversation() decides ancestors/root/descendants by walking this list
+    // and flipping a flag when it reaches the focal tweet, so it must arrive in
+    // chronological order. TweetDetail returns replies in arbitrary order.
+    let createdOf = (tweet) => {
+        let parsed = Date.parse(tweet.created_at);
+        return Number.isNaN(parsed) ? 0 : parsed;
+    };
+    components.sort((a, b) => createdOf(a.tweet) - createdOf(b.tweet));
+
+    let focal = String(focalId);
+    if (!components.some((c) => c.id === focal)) {
+        // Without the focal tweet getConversation() would file every tweet as an
+        // ancestor and never render a root, so drop the thread instead of
+        // rendering a broken one.
+        console.warn("OTD: focal tweet missing from conversation payload", {
+            focal,
+            got: components.map((c) => c.id),
+        });
+        return null;
+    }
+
+    console.log(
+        `OTD: conversation ${focal} → ${components.length} tweets, ${Object.keys(users).length} users`
+    );
+
+    return {
+        globalObjects: { tweets, users },
+        timeline: {
+            instructions: [
+                {
+                    addEntries: {
+                        entries: [
+                            {
+                                entryId: `conversationThread-${focalId}`,
+                                content: {
+                                    item: {
+                                        content: {
+                                            conversationThread: {
+                                                conversationComponents: components.map((c) => ({
+                                                    conversationTweetComponent: {
+                                                        // getConversation() looks the tweet up by
+                                                        // id in processTimeline()'s array, where
+                                                        // TwitterStatus.id is the id_str string.
+                                                        tweet: { id: c.tweet.id_str },
+                                                    },
+                                                })),
+                                            },
+                                        },
+                                    },
+                                },
+                            },
+                        ],
+                    },
+                },
+            ],
+        },
+    };
 }
 
 function getCurrentUserId() {
@@ -2203,43 +2815,7 @@ const proxyRoutes = [
             xhr.storage.tweet_id = originalUrl.pathname.match(
                 /\/1.1\/statuses\/show\/(\d+).json/
             )[1];
-            xhr.modUrl = `https://${location.hostname}/i/api/graphql/KwGBbJZc6DBx8EKmyQSP7g/TweetDetail?variables=${encodeURIComponent(
-                JSON.stringify({
-                    focalTweetId: xhr.storage.tweet_id,
-                    with_rux_injections: false,
-                    includePromotedContent: false,
-                    withCommunity: true,
-                    withQuickPromoteEligibilityTweetFields: true,
-                    withBirdwatchNotes: true,
-                    withVoice: true,
-                    withV2Timeline: true,
-                })
-            )}&features=${encodeURIComponent(
-                JSON.stringify({
-                    rweb_lists_timeline_redesign_enabled: false,
-                    blue_business_profile_image_shape_enabled: true,
-                    responsive_web_graphql_exclude_directive_enabled: true,
-                    verified_phone_label_enabled: false,
-                    creator_subscriptions_tweet_preview_api_enabled: false,
-                    responsive_web_graphql_timeline_navigation_enabled: true,
-                    responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-                    tweetypie_unmention_optimization_enabled: true,
-                    vibe_api_enabled: true,
-                    responsive_web_edit_tweet_api_enabled: true,
-                    graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-                    view_counts_everywhere_api_enabled: true,
-                    longform_notetweets_consumption_enabled: true,
-                    tweet_awards_web_tipping_enabled: false,
-                    freedom_of_speech_not_reach_fetch_enabled: true,
-                    standardized_nudges_misinfo: true,
-                    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: false,
-                    interactive_text_enabled: true,
-                    responsive_web_text_conversations_enabled: false,
-                    longform_notetweets_rich_text_read_enabled: true,
-                    longform_notetweets_inline_media_enabled: false,
-                    responsive_web_enhance_cards_enabled: false,
-                })
-            )}`;
+            xhr.modUrl = tweetDetailUrl(xhr.storage.tweet_id);
         },
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["Content-Type"] = "application/json";
@@ -2258,15 +2834,17 @@ const proxyRoutes = [
                 return {};
             }
             if (data.errors && data.errors[0]) {
+                rotateQueryId("TweetDetail");
                 return {};
             }
-            let ic = data.data.threaded_conversation_with_injections_v2.instructions
-                .find((i) => i.type === "TimelineAddEntries")
-                .entries.find((e) => e.entryId === `tweet-${xhr.storage.tweet_id}`)
-                .content.itemContent;
-            let res = ic.tweet_results.result;
-            let tweet = parseTweet(res);
-            return tweet;
+            let res = findTweetResultInDetail(data, xhr.storage.tweet_id);
+            if (!res) return {};
+            try {
+                return parseTweet(res);
+            } catch (e) {
+                console.error(e);
+                return {};
+            }
         },
     },
     {
@@ -2275,43 +2853,7 @@ const proxyRoutes = [
         beforeRequest: (xhr) => {
             let originalUrl = new URL(xhr.originalUrl);
             xhr.storage.tweet_id = originalUrl.searchParams.get("id");
-            xhr.modUrl = `https://${location.hostname}/i/api/graphql/KwGBbJZc6DBx8EKmyQSP7g/TweetDetail?variables=${encodeURIComponent(
-                JSON.stringify({
-                    focalTweetId: xhr.storage.tweet_id,
-                    with_rux_injections: false,
-                    includePromotedContent: false,
-                    withCommunity: true,
-                    withQuickPromoteEligibilityTweetFields: true,
-                    withBirdwatchNotes: true,
-                    withVoice: true,
-                    withV2Timeline: true,
-                })
-            )}&features=${encodeURIComponent(
-                JSON.stringify({
-                    rweb_lists_timeline_redesign_enabled: false,
-                    blue_business_profile_image_shape_enabled: true,
-                    responsive_web_graphql_exclude_directive_enabled: true,
-                    verified_phone_label_enabled: false,
-                    creator_subscriptions_tweet_preview_api_enabled: false,
-                    responsive_web_graphql_timeline_navigation_enabled: true,
-                    responsive_web_graphql_skip_user_profile_image_extensions_enabled: false,
-                    tweetypie_unmention_optimization_enabled: true,
-                    vibe_api_enabled: true,
-                    responsive_web_edit_tweet_api_enabled: true,
-                    graphql_is_translatable_rweb_tweet_is_translatable_enabled: true,
-                    view_counts_everywhere_api_enabled: true,
-                    longform_notetweets_consumption_enabled: true,
-                    tweet_awards_web_tipping_enabled: false,
-                    freedom_of_speech_not_reach_fetch_enabled: true,
-                    standardized_nudges_misinfo: true,
-                    tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled: false,
-                    interactive_text_enabled: true,
-                    responsive_web_text_conversations_enabled: false,
-                    longform_notetweets_rich_text_read_enabled: true,
-                    longform_notetweets_inline_media_enabled: false,
-                    responsive_web_enhance_cards_enabled: false,
-                })
-            )}`;
+            xhr.modUrl = tweetDetailUrl(xhr.storage.tweet_id);
         },
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["Content-Type"] = "application/json";
@@ -2330,15 +2872,17 @@ const proxyRoutes = [
                 return {};
             }
             if (data.errors && data.errors[0]) {
+                rotateQueryId("TweetDetail");
                 return {};
             }
-            let ic = data.data.threaded_conversation_with_injections_v2.instructions
-                .find((i) => i.type === "TimelineAddEntries")
-                .entries.find((e) => e.entryId === `tweet-${xhr.storage.tweet_id}`)
-                .content.itemContent;
-            let res = ic.tweet_results.result;
-            let tweet = parseTweet(res);
-            return tweet;
+            let res = findTweetResultInDetail(data, xhr.storage.tweet_id);
+            if (!res) return {};
+            try {
+                return parseTweet(res);
+            } catch (e) {
+                console.error(e);
+                return {};
+            }
         },
     },
     // Tweet deletion
@@ -2373,20 +2917,12 @@ const proxyRoutes = [
         method: "GET",
         beforeRequest: (xhr) => {
             let originalUrl = new URL(xhr.originalUrl);
-            let params = new URLSearchParams(originalUrl.search);
-
-            params.delete("ext");
-            params.delete("include_ext_has_nft_avatar");
-            params.delete("include_ext_is_blue_verified");
-            params.delete("include_ext_verified_type");
-            params.delete("include_ext_sensitive_media_warning");
-            params.delete("include_ext_media_color");
-
-            originalUrl.hostname = location.hostname;
-            originalUrl.pathname = `/i/api${originalUrl.pathname}`;
-            originalUrl.search = params.toString();
-
-            xhr.modUrl = originalUrl.toString();
+            xhr.storage.tweet_id = originalUrl.pathname.match(
+                /\/2\/timeline\/conversation\/(\d+).json/
+            )[1];
+            // This REST endpoint returns 404 on x.com now; TweetDetail carries
+            // the whole conversation, and afterRequest() rebuilds the old shape.
+            xhr.modUrl = tweetDetailUrl(xhr.storage.tweet_id);
         },
         beforeSendHeaders: (xhr) => {
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
@@ -2403,8 +2939,17 @@ const proxyRoutes = [
                 console.error(e);
                 return data;
             }
-            if (data.errors && data.errors[0]) {
+            let conversation = tweetDetailToConversation(data, xhr.storage.tweet_id);
+            if (conversation) {
+                data = conversation;
+            } else if (data.errors && data.errors[0]) {
+                rotateQueryId("TweetDetail");
                 return data;
+            } else if (!data.globalObjects) {
+                // Nothing usable came back (404 body, HTML error page, unexpected
+                // schema). Hand TweetDeck an empty conversation instead of letting
+                // the normaliser below throw on a missing globalObjects.
+                return { globalObjects: { tweets: {}, users: {} }, timeline: { instructions: [] } };
             }
             for (let id in data.globalObjects.tweets) {
                 let tweet = data.globalObjects.tweets[id];
@@ -2439,6 +2984,7 @@ const proxyRoutes = [
 
                 if (!user.default_profile) user.default_profile = false;
                 if (!user.default_profile_image) user.default_profile_image = false;
+                if (!user.entities) user.entities = {};
                 if (!user.entities.description) user.entities.description = { urls: [] };
                 if (!user.entities.description.urls) user.entities.description.urls = [];
                 if (!user.entities.url) user.entities.url = { urls: [] };
@@ -2485,6 +3031,14 @@ const proxyRoutes = [
                 );
                 for (let entry of entries.addEntries.entries) {
                     if (entry.entryId.startsWith("conversationThread-")) {
+                        // Two producers feed this: the old REST payload wraps the
+                        // thread in content.timelineModule.items, while the
+                        // TweetDetail rewrite already emits
+                        // content.item.content.conversationThread. Reading
+                        // timelineModule unconditionally throws on the latter and
+                        // the whole response is lost.
+                        let existing = entry.content?.item?.content?.conversationThread;
+                        if (existing && Array.isArray(existing.conversationComponents)) continue;
                         let newContent = {
                             item: {
                                 content: {
@@ -2494,18 +3048,18 @@ const proxyRoutes = [
                                 },
                             },
                         };
-                        if (entry.content.timelineModule.items)
-                            for (let item of entry.content.timelineModule.items) {
-                                if (item.item && item.item.content && item.item.content.tweet) {
-                                    newContent.item.content.conversationThread.conversationComponents.push(
-                                        {
-                                            conversationTweetComponent: {
-                                                tweet: item.item.content.tweet,
-                                            },
-                                        }
-                                    );
-                                }
+                        let items = entry.content?.timelineModule?.items || [];
+                        for (let item of items) {
+                            if (item.item && item.item.content && item.item.content.tweet) {
+                                newContent.item.content.conversationThread.conversationComponents.push(
+                                    {
+                                        conversationTweetComponent: {
+                                            tweet: item.item.content.tweet,
+                                        },
+                                    }
+                                );
                             }
+                        }
                         entry.content = newContent;
                     }
                 }
@@ -2957,4 +3511,98 @@ XMLHttpRequest = function () {
             return headers;
         },
     });
+};
+
+// Warm the TweetDetail query id / variable set shortly after boot, so the first
+// conversation opened in the deck already has a working request.
+(function warmTweetDetail() {
+    let attempts = 0;
+    let timer = setInterval(() => {
+        attempts++;
+        if (window.solveChallenge) {
+            clearInterval(timer);
+            healTweetDetailVars();
+        } else if (attempts > 60) {
+            clearInterval(timer);
+        }
+    }, 1000);
+})();
+
+// Console helper: `await OTDdiag()` with a tweet open in the detail column
+// reports why its replies did or did not render — request status, GraphQL
+// error, entry types, and whether TweetDeck's own model accepts the payload.
+window.OTDdiag = async function (tweetId) {
+    let id = tweetId;
+    if (!id) {
+        let node = document.querySelector(
+            '.js-tweet-detail [data-key^="tweet-"], .js-tweet-detail .js-stream-item'
+        );
+        let key = node && node.getAttribute("data-key");
+        if (key) id = key.replace(/^tweet-/, "");
+    }
+    if (!id) return { error: "no tweet detail column open — open a tweet first" };
+
+    let url = tweetDetailUrl(id);
+    let response = await fetch(url, {
+        credentials: "include",
+        headers: {
+            authorization: PUBLIC_TOKENS[0],
+            "x-csrf-token": otdCsrfToken(),
+            "x-twitter-auth-type": "OAuth2Session",
+            "x-twitter-active-user": "yes",
+            "x-twitter-client-language": "en",
+        },
+    });
+    let text = await response.text();
+    let data = null;
+    try {
+        data = JSON.parse(text);
+    } catch (e) {}
+
+    let report = {
+        tweetId: id,
+        queryId: url.split("/")[6],
+        status: response.status,
+        bytes: text.length,
+        graphqlError: data?.errors?.[0] || null,
+        instructions: data?.data?.threaded_conversation_with_injections_v2?.instructions?.map(
+            (i) => i.__typename
+        ) || null,
+        rawBody: data ? null : text.slice(0, 200),
+    };
+    if (!data) return report;
+
+    let instructions = tweetDetailInstructions(data);
+    let entries = tweetDetailEntries(instructions);
+    report.entries = entries.length;
+    report.entryIds = entries.map((e) => String(e.entry_id || e.entryId || "")).slice(0, 12);
+    report.resultsPerEntry = entries.map((e) => tweetDetailEntryResults(e).length);
+    report.focalInPayload = Boolean(findTweetResultInDetail(data, id));
+
+    let conv = tweetDetailToConversation(data, id);
+    if (!conv) {
+        report.converted = null;
+        return report;
+    }
+    report.converted = {
+        tweets: Object.keys(conv.globalObjects.tweets).length,
+        users: Object.keys(conv.globalObjects.users).length,
+        components:
+            conv.timeline.instructions[0].addEntries.entries[0].content.item.content
+                .conversationThread.conversationComponents.length,
+    };
+
+    // Reproduce what TweetDeck does with the payload, so a render-side throw
+    // shows up here instead of only as an empty column.
+    try {
+        let statuses = Object.values(conv.globalObjects.tweets).map((tweet) =>
+            new TD.services.TwitterStatus(null).fromJSONObject(tweet)
+        );
+        report.deckStatuses = statuses.length;
+        report.deckTextSample = (statuses[0]?.text || "").slice(0, 60);
+        report.deckRootRendered = statuses.some((s) => String(s.id) === String(id));
+    } catch (e) {
+        report.deckModelError = String(e && e.message ? e.message : e);
+    }
+    return report;
 };

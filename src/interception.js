@@ -324,8 +324,7 @@ function parseTweet(res) {
                 result.quoted_status_result &&
                 result.quoted_status_result.result &&
                 result.quoted_status_result.result.legacy &&
-                result.quoted_status_result.result.core &&
-                result.quoted_status_result.result.core.user_results.result.legacy
+                result.quoted_status_result.result.core?.user_results?.result
             ) {
                 result.legacy.quoted_status = result.quoted_status_result.result.legacy;
                 const quotedCard = parseTweetCard(result.quoted_status_result.result.card);
@@ -335,7 +334,7 @@ function parseTweet(res) {
                 result.legacy.quoted_status.conversation_id = +result.legacy.quoted_status.conversation_id_str;
                 if (result.legacy.quoted_status) {
                     result.legacy.quoted_status.user =
-                        result.quoted_status_result.result.core.user_results.result.legacy;
+                        result.quoted_status_result.result.core.user_results.result.legacy || {};
                     result.legacy.quoted_status.user.id_str = result.legacy.quoted_status.user_id_str;
                     result.legacy.quoted_status.user.id = +result.legacy.quoted_status.user_id_str;
                     let user_result = result?.quoted_status_result?.result?.core?.user_results?.result;
@@ -380,12 +379,12 @@ function parseTweet(res) {
                 }
             }
             tweet.retweeted_status = result.legacy;
-            if (tweet.retweeted_status && result.core.user_results.result.legacy) {
+            if (tweet.retweeted_status && result.core?.user_results?.result) {
                 let user_result = result?.core?.user_results?.result;
                 tweet.retweeted_status.text = tweet.retweeted_status.full_text;
                 tweet.retweeted_status.id = +tweet.retweeted_status.id_str;
                 tweet.retweeted_status.conversation_id = +tweet.retweeted_status.conversation_id_str;
-                tweet.retweeted_status.user = user_result.legacy;
+                tweet.retweeted_status.user = user_result.legacy || {};
                 tweet.retweeted_status.user.id_str = tweet.retweeted_status.user_id_str;
                 tweet.retweeted_status.user.id = +tweet.retweeted_status.user_id_str;
                 if(!tweet.retweeted_status.user.profile_image_url && user_result?.avatar?.image_url) {
@@ -472,13 +471,13 @@ function parseTweet(res) {
                 tweet.quoted_status.conversation_id = +tweet.quoted_status.conversation_id_str;
                 tweet.quoted_status.text = tweet.quoted_status.full_text;
                 if (tweet.quoted_status) {
-                    tweet.quoted_status.user = result.core.user_results.result.legacy;
+                    let user_result = result.core?.user_results?.result;
+                    tweet.quoted_status.user = user_result ? user_result.legacy || {} : undefined;
                     if (!tweet.quoted_status.user) {
                         delete tweet.quoted_status;
                     } else {
                         tweet.quoted_status.user.id_str = tweet.quoted_status.user_id_str;
                         tweet.quoted_status.user.id = +tweet.quoted_status.user_id_str;
-                        let user_result = result?.core?.user_results?.result;
                         if(!tweet.quoted_status.user.profile_image_url && user_result?.avatar?.image_url) {
                             tweet.quoted_status.user.profile_image_url = user_result.avatar.image_url;
                             tweet.quoted_status.user.profile_image_url_https = tweet.quoted_status.user.profile_image_url.replace("http://", "https://");

@@ -1,5 +1,5 @@
 ﻿# OldTweetDeck
-昔のTweetDeckを取り戻しましょう！無料で！
+昔のTweetDeckを取り戻しましょう！
 
 > [!NOTE]
 > Twitterがいいねを非公開にしたため、いいねタブは読み込まれなくなりました。  
@@ -75,7 +75,7 @@ TweetDeckのファイルが更新された場合は、タブを再読み込み�
 
 一時的な解決策として https://github.com/dimdenGD/OldTweetDeck/issues/259#issuecomment-2281786253 を参考にして下さい。
    
-#### ユーザーカラムや検索カラムが読み込まれません
+#### いくつかのカラムが読み込まれません
 
 API制限に達しているため読み込めていません。しばらくしてAPI制限が解除されるとまた表示されます。  
 
@@ -84,6 +84,9 @@ API制限に達しているため読み込めていません。しばらくし�
 Twitterがいいねを非公開にしたことに伴い、いいねを取得するAPIがなくなりました。そのため、修正することができません。
 
 ## 更新履歴
+### 4.4.1
+* リプライが読み込まれない問題を修正
+
 ### 4.4.0
 * OldTweetDeckが読み込まれない問題を修正
 
@@ -359,6 +362,6 @@ manifest V2 で作り直し外部サーバーを必要としないように変�
 ## 日本語翻訳
 [@katabame](https://twitter.com/katabame)  
 以下の時点の内容を基に翻訳されています。  
-* README: commit [302b9ee](https://github.com/dimdenGD/OldTweetDeck/commit/302b9ee83ecbdefc589a23888aff051f9bfab75a)  
-* 更新履歴: release/tag [v4.3.5](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.3.5)
+* README: commit [6d686f2](https://github.com/dimdenGD/OldTweetDeck/commit/6d686f2e077b4b2f2c5c5e26c8dda8e5ab2bdb60)  
+* 更新履歴: release/tag [v4.4.1](https://github.com/dimdenGD/OldTweetDeck/releases/tag/v4.4.1)
 

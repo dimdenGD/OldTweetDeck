@@ -2373,22 +2373,20 @@ const proxyRoutes = [
         method: "GET",
         beforeRequest: (xhr) => {
             let originalUrl = new URL(xhr.originalUrl);
-            let params = new URLSearchParams(originalUrl.search);
-
-            params.delete("ext");
-            params.delete("include_ext_has_nft_avatar");
-            params.delete("include_ext_is_blue_verified");
-            params.delete("include_ext_verified_type");
-            params.delete("include_ext_sensitive_media_warning");
-            params.delete("include_ext_media_color");
-
-            originalUrl.hostname = location.hostname;
-            originalUrl.pathname = `/i/api${originalUrl.pathname}`;
-            originalUrl.search = params.toString();
-
-            xhr.modUrl = originalUrl.toString();
+            xhr.storage.tweet_id = originalUrl.pathname.match(
+                /\/2\/timeline\/conversation\/(\d+).json/
+            )[1];
+            let variables = {"focalTweetId":xhr.storage.tweet_id,"with_rux_injections":false,"rankingMode":"Relevance","includePromotedContent":false,"withCommunity":true,"withQuickPromoteEligibilityTweetFields":true,"withBirdwatchNotes":true,"withVoice":true};
+            let features = {"rweb_video_screen_enabled":false,"rweb_cashtags_enabled":true,"profile_label_improvements_pcf_label_in_post_enabled":true,"responsive_web_profile_redirect_enabled":true,"rweb_tipjar_consumption_enabled":false,"verified_phone_label_enabled":false,"creator_subscriptions_tweet_preview_api_enabled":true,"responsive_web_graphql_timeline_navigation_enabled":true,"premium_content_api_read_enabled":false,"communities_web_enable_tweet_community_results_fetch":true,"c9s_tweet_anatomy_moderator_badge_enabled":true,"responsive_web_grok_analyze_button_fetch_trends_enabled":false,"responsive_web_grok_analyze_post_followups_enabled":true,"rweb_cashtags_composer_attachment_enabled":true,"responsive_web_jetfuel_frame":true,"rweb_sports_post_context_enabled":true,"x_elections_post_context_enabled":true,"responsive_web_grok_share_attachment_enabled":true,"responsive_web_grok_annotations_enabled":true,"articles_preview_enabled":true,"responsive_web_edit_tweet_api_enabled":true,"rweb_conversational_replies_downvote_enabled":false,"graphql_is_translatable_rweb_tweet_is_translatable_enabled":true,"view_counts_everywhere_api_enabled":true,"longform_notetweets_consumption_enabled":true,"responsive_web_twitter_article_tweet_consumption_enabled":true,"content_disclosure_indicator_enabled":true,"content_disclosure_ai_generated_indicator_enabled":true,"responsive_web_grok_show_grok_translated_post":true,"responsive_web_grok_analysis_button_from_backend":true,"post_ctas_fetch_enabled":false,"freedom_of_speech_not_reach_fetch_enabled":true,"standardized_nudges_misinfo":true,"tweet_with_visibility_results_prefer_gql_limited_actions_policy_enabled":true,"longform_notetweets_rich_text_read_enabled":true,"longform_notetweets_inline_media_enabled":false,"responsive_web_nested_quote_preview_enabled":true,"responsive_web_grok_image_annotation_enabled":true,"responsive_web_grok_imagine_annotation_enabled":true,"responsive_web_made_on_x_label_enabled":false,"responsive_web_grok_community_note_auto_translation_is_enabled":true,"responsive_web_enhance_cards_enabled":false};
+            let fieldToggles = {"withPayments":false,"withDmBlocks":false,"withArticleRichContentState":true,"withArticlePlainText":false,"withArticleSummaryText":true,"withArticleVoiceOver":true,"withGrokAnalyze":false,"withDisallowedReplyControls":false};
+            xhr.modUrl = `${NEW_API}/qpemjmVMoTWDvcRT43JIVQ/TweetDetail?${generateParams(
+                features,
+                variables,
+                fieldToggles
+            )}`;
         },
         beforeSendHeaders: (xhr) => {
+            xhr.modReqHeaders["Content-Type"] = "application/json";
             xhr.modReqHeaders["X-Twitter-Active-User"] = "yes";
             xhr.modReqHeaders["X-Twitter-Client-Language"] = "en";
             xhr.modReqHeaders["Authorization"] =
@@ -2406,112 +2404,115 @@ const proxyRoutes = [
             if (data.errors && data.errors[0]) {
                 return data;
             }
-            for (let id in data.globalObjects.tweets) {
-                let tweet = data.globalObjects.tweets[id];
-                for (const status of [tweet, tweet.retweeted_status, tweet.quoted_status, tweet.retweeted_status?.quoted_status]) {
-                    const card = parseTweetCard({ legacy: status?.card });
-                    if (card) status.card = card;
-                }
 
+            let tweets = {};
+            let users = {};
+            let addTweet = (res) => {
+                let tweet;
+                try {
+                    tweet = parseTweet(res);
+                } catch (e) {
+                    return;
+                }
+                if (!tweet) return;
                 if (!tweet.contributors) tweet.contributors = null;
-                if (tweet.conversation_id_str)
-                    tweet.conversation_id = parseInt(tweet.conversation_id_str);
                 if (!tweet.coordinates) tweet.coordinates = null;
                 if (!tweet.conversation_muted) tweet.conversation_muted = false;
                 if (!tweet.favorited) tweet.favorited = false;
                 if (!tweet.geo) tweet.geo = null;
-                if (!tweet.id) tweet.id = parseInt(id);
                 if (!tweet.in_reply_to_screen_name) tweet.in_reply_to_screen_name = null;
-                if (!tweet.in_reply_to_status_id) tweet.in_reply_to_status_id = null;
                 if (!tweet.in_reply_to_status_id_str) tweet.in_reply_to_status_id_str = null;
-                if (!tweet.in_reply_to_user_id) tweet.in_reply_to_user_id = null;
                 if (!tweet.in_reply_to_user_id_str) tweet.in_reply_to_user_id_str = null;
                 if (!tweet.is_quote_status) tweet.is_quote_status = false;
                 if (!tweet.place) tweet.place = null;
-                if (!tweet.supplemental_language) tweet.supplemental_language = null;
                 if (!tweet.retweeted) tweet.retweeted = false;
                 if (!tweet.truncated) tweet.truncated = false;
-                if (!tweet.user_id) tweet.user_id = parseInt(tweet.user_id_str);
-            }
+                tweet.user_id = +tweet.user_id_str;
+                tweets[tweet.id_str] = tweet;
+                users[tweet.user_id_str] = tweet.user;
+                return tweet;
+            };
 
-            for (let id in data.globalObjects.users) {
-                let user = data.globalObjects.users[id];
-
-                if (!user.default_profile) user.default_profile = false;
-                if (!user.default_profile_image) user.default_profile_image = false;
-                if (!user.entities.description) user.entities.description = { urls: [] };
-                if (!user.entities.description.urls) user.entities.description.urls = [];
-                if (!user.entities.url) user.entities.url = { urls: [] };
-                if (!user.entities.url.urls) user.entities.url.urls = [];
-                if (!user.follow_request_sent) user.follow_request_sent = false;
-                if (!user.following) user.following = false;
-                if (!user.has_extended_profile) user.has_extended_profile = false;
-                if (!user.is_translation_enabled) user.is_translation_enabled = false;
-                if (!user.is_translator) user.is_translator = false;
-                if (!user.followed_by) user.followed_by = false;
-                if (!user.id) user.id = parseInt(id);
-                if (!user.lang) user.lang = null;
-                if (!user.notifications) user.notifications = false;
-                if (!user.profile_background_color) user.profile_background_color = "C0DEED";
-                if (!user.profile_background_image_url)
-                    user.profile_background_image_url =
-                        "http://abs.twimg.com/images/themes/theme1/bg.png";
-                if (!user.profile_background_image_url_https)
-                    user.profile_background_image_url_https =
-                        "https://abs.twimg.com/images/themes/theme1/bg.png";
-                if (!user.profile_background_tile) user.profile_background_tile = false;
-                if (!user.profile_link_color) user.profile_link_color = "1DA1F2";
-                if (!user.profile_image_url && user.profile_image_url_https)
-                    user.profile_image_url = user.profile_image_url_https.replace(
-                        "https://",
-                        "http://"
-                    );
-                if (!user.profile_sidebar_border_color)
-                    user.profile_sidebar_border_color = "000000";
-                if (!user.profile_sidebar_fill_color) user.profile_sidebar_fill_color = "DDEEF6";
-                if (!user.profile_text_color) user.profile_text_color = "333333";
-                if (!user.profile_use_background_image) user.profile_use_background_image = true;
-                if (!user.protected) user.protected = false;
-                if (!user.require_some_consent) user.require_some_consent = false;
-                if (!user.time_zone) user.time_zone = null;
-                if (!user.utc_offset) user.utc_offset = null;
-                if (!user.verified) user.verified = false;
-            }
-
-            let entries = data.timeline.instructions.find((i) => i.addEntries);
-            if (entries) {
-                entries.addEntries.entries = entries.addEntries.entries.filter(
-                    (e) => !e.entryId.startsWith("tweetComposer-")
-                );
-                for (let entry of entries.addEntries.entries) {
-                    if (entry.entryId.startsWith("conversationThread-")) {
-                        let newContent = {
+            let entries = [];
+            let instructions = data.data.threaded_conversation_with_injections_v2.instructions;
+            let addEntries = instructions.find((i) => i.type === "TimelineAddEntries");
+            for (let entry of addEntries ? addEntries.entries : []) {
+                let content = entry.content;
+                if (entry.entryId.startsWith("tweet-")) {
+                    let tweet = addTweet(content.itemContent.tweet_results.result);
+                    if (!tweet) continue;
+                    entries.push({
+                        entryId: `tweet-${tweet.id_str}`,
+                        sortIndex: entry.sortIndex,
+                        content: {
                             item: {
                                 content: {
-                                    conversationThread: {
-                                        conversationComponents: [],
+                                    tweet: {
+                                        id: tweet.id_str,
+                                        displayType: content.itemContent.tweetDisplayType,
                                     },
                                 },
                             },
-                        };
-                        if (entry.content.timelineModule.items)
-                            for (let item of entry.content.timelineModule.items) {
-                                if (item.item && item.item.content && item.item.content.tweet) {
-                                    newContent.item.content.conversationThread.conversationComponents.push(
-                                        {
-                                            conversationTweetComponent: {
-                                                tweet: item.item.content.tweet,
-                                            },
-                                        }
-                                    );
-                                }
-                            }
-                        entry.content = newContent;
+                        },
+                    });
+                } else if (entry.entryId.startsWith("conversationthread-")) {
+                    let components = [];
+                    let showMoreCursor = null;
+                    for (let item of content.items || []) {
+                        let itemContent = item.item.itemContent;
+                        if (itemContent.itemType === "TimelineTweet") {
+                            let tweet = addTweet(itemContent.tweet_results.result);
+                            if (!tweet) continue;
+                            components.push({
+                                conversationTweetComponent: {
+                                    tweet: {
+                                        id: tweet.id_str,
+                                        displayType: itemContent.tweetDisplayType,
+                                    },
+                                },
+                            });
+                        } else if (itemContent.cursorType === "ShowMore") {
+                            showMoreCursor = itemContent;
+                        }
                     }
+                    if (!components.length) continue;
+                    entries.push({
+                        entryId: entry.entryId.replace("conversationthread-", "conversationThread-"),
+                        sortIndex: entry.sortIndex,
+                        content: {
+                            item: {
+                                content: {
+                                    conversationThread: {
+                                        conversationComponents: components,
+                                        showMoreCursor,
+                                    },
+                                },
+                            },
+                        },
+                    });
+                } else if (entry.entryId.startsWith("cursor-top-")) {
+                    entries.push({
+                        entryId: entry.entryId,
+                        sortIndex: entry.sortIndex,
+                        content: {
+                            operation: {
+                                cursor: {
+                                    value: content.value,
+                                    cursorType: "Top",
+                                },
+                            },
+                        },
+                    });
                 }
             }
 
-            return data;
+            return {
+                globalObjects: { tweets, users },
+                timeline: {
+                    id: `Conversation-${xhr.storage.tweet_id}`,
+                    instructions: [{ addEntries: { entries } }],
+                },
+            };
         },
     },
     // getting user

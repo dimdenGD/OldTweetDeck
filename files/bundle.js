@@ -68074,6 +68074,31 @@ document.body.addEventListener("click", function (e) {
                     }),
                         (this.currentDragElement = null);
                 }),
+                (this.handlePasteEvent = function (e) {
+                    const target = e.target;
+                    const clipboard = e.originalEvent && e.originalEvent.clipboardData;
+                    if (e.isDefaultPrevented() || !clipboard ||
+                        !target.matches?.(".js-docked-compose textarea.js-compose-text") ||
+                        target.disabled || target.readOnly) return;
+
+                    const composer = target.closest(".js-docked-compose");
+                    const button = composer.querySelector(".js-add-image-button");
+                    if (!button || button.disabled || button.classList.contains("is-disabled") ||
+                        this.$uploadInputSelector.prop("disabled")) return;
+
+                    const images = Array.from(clipboard.items || [])
+                        .filter(item => item.kind === "file" && item.type.startsWith("image/"))
+                        .map(item => item.getAsFile())
+                        .filter(Boolean);
+                    if (!images.length) {
+                        images.push(...Array.from(clipboard.files || [])
+                            .filter(file => file.type.startsWith("image/")));
+                    }
+                    if (!images.length) return;
+
+                    e.preventDefault();
+                    this.addFilesToUpload(images);
+                }),
                 (this.cancel = function (e) {
                     return e.preventDefault(), !1;
                 }),
@@ -68153,6 +68178,7 @@ document.body.addEventListener("click", function (e) {
                         this.on(document, "dragenter", this.whenEnabled(this.handleDragEnterEvent)),
                         this.on(document, "dragleave", this.whenEnabled(this.handleDragLeaveEvent)),
                         this.on(document, "drop", this.whenEnabled(this.handleDropEvent)),
+                        this.on(document, "paste", this.handlePasteEvent),
                         this.on(document, "dragover", this.whenEnabled(this.cancel)),
                         this.on(document, "uiComposeImageAdded", this.updateFilesOncePreviewed),
                         this.$uploadInputSelector.on(

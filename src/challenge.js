@@ -11,7 +11,7 @@ solverIframe.style.border = 'none';
 solverIframe.style.opacity = 0;
 solverIframe.style.pointerEvents = 'none';
 solverIframe.tabIndex = -1;
-solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?4"; // check source code of that page to make sure its safe if u dont trust it
+solverIframe.src = "https://tweetdeck.dimden.dev/solver.html?5"; // check source code of that page to make sure its safe if u dont trust it
 fetch(solverIframe.src).catch(() => {
     console.error("Cannot load solver iframe");
     solverErrored = true;
@@ -81,6 +81,33 @@ async function readCryptoKey() {
             }
         };
     });
+}
+
+function findChallengeModuleInHtml(html) {
+    let m = html.match(/\[((?:"[\w-]+",?)+)\]\.forEach\(function\(\w+\)\{var href="(https:\/\/abs\.twimg\.com\/[^"]+\/)"\+\w+\+"\.js";[^}]*?createElement\(['"]script['"]\)/);
+    if(!m) return null;
+    let names = m[1].match(/[\w-]+/g);
+    if(names.length !== 1) return null;
+    return `${m[2]}${names[0]}.js`;
+}
+
+async function findChallengeModule(entryUrl) {
+    let queue = [entryUrl];
+    let seen = new Set();
+    while(queue.length && seen.size < 30) {
+        let url = queue.shift();
+        if(seen.has(url)) continue;
+        seen.add(url);
+        let code = await fetch(url).then(res => res.text());
+        if(code.includes('x-client-transaction-id')) {
+            let m = code.match(/import\(["'`](\.{1,2}\/[\w\/-]+\.js)["'`]\)\.then\(\(?(\w+)\)?=>\2\.default\(\)\)/);
+            if(m) return new URL(m[1], url).href;
+        }
+        for(let imp of code.matchAll(/from\s*["'`](\.{1,2}\/[\w\/-]+\.js)["'`]/g)) {
+            queue.push(new URL(imp[1], url).href);
+        }
+    }
+    return null;
 }
 
 function solveChallenge(path, method) {
@@ -172,22 +199,38 @@ window.addEventListener('message', e => {
         let dom = new DOMParser().parseFromString(homepageData, 'text/html');
         let anims = Array.from(dom.querySelectorAll('svg[id^="loading-x"]')).map(svg => svg.outerHTML);
 
-        let vendorCode = homepageData.match(/vendor.(\w+).js"/)[1];
-        let challengePos = homepageData.match(/(\d+):"ondemand.s"/)[1];
-        let challengeCode = homepageData.match(new RegExp(`${challengePos}:"(\\w+)"`))[1];
-        let challengeData = await fetch(`https://abs.twimg.com/responsive-web/client-web/ondemand.s.${challengeCode}a.js`).then(res => res.text());
-        console.log(`Successfully fetched challenge data (${challengeCode} / ${challengeData.length})`);
-        let vendorData = await fetch(`https://abs.twimg.com/responsive-web/client-web/vendor.${vendorCode}.js`).then(res => res.text());
-        console.log(`Successfully fetched vendor data (${vendorCode} / ${vendorData.length})`);
+        let verificationCode = dom.querySelector('meta[name="twitter-site-verification"]').content;
+        let initData;
+
+        let vendorMatch = homepageData.match(/vendor.(\w+).js"/);
+        let entryMatch = homepageData.match(/https:\/\/abs\.twimg\.com\/[\w\/.-]+\/entry-client-[\w-]+\.js/);
+        if(vendorMatch) {
+            // webpack
+            let vendorCode = vendorMatch[1];
+            let challengePos = homepageData.match(/(\d+):"ondemand.s"/)[1];
+            let challengeCode = homepageData.match(new RegExp(`${challengePos}:"(\\w+)"`))[1];
+            let challengeData = await fetch(`https://abs.twimg.com/responsive-web/client-web/ondemand.s.${challengeCode}a.js`).then(res => res.text());
+            console.log(`Successfully fetched challenge data (${challengeCode} / ${challengeData.length})`);
+            let vendorData = await fetch(`https://abs.twimg.com/responsive-web/client-web/vendor.${vendorCode}.js`).then(res => res.text());
+            console.log(`Successfully fetched vendor data (${vendorCode} / ${vendorData.length})`);
+            initData = { challenge: challengeData, vendor: vendorData };
+        } else if(entryMatch) {
+            // vite
+            let challengeUrl = findChallengeModuleInHtml(homepageData) || await findChallengeModule(entryMatch[0]);
+            if(!challengeUrl) throw new Error('Challenge module not found');
+            console.log(`Found challenge module (${challengeUrl})`);
+            initData = { challengeUrl };
+        } else {
+            throw new Error('Unknown client');
+        }
 
         function sendInit() {
             console.log('Sending init');
             solverIframe.contentWindow.postMessage({
                 action: 'init',
-                challenge: challengeData,
-                vendor: vendorData,
+                ...initData,
                 anims,
-                verificationCode: dom.querySelector('meta[name="twitter-site-verification"]').content,
+                verificationCode,
             }, '*');
         }
         if(solverIframe.contentWindow) {

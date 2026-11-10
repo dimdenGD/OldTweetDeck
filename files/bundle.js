@@ -37734,7 +37734,7 @@ document.body.addEventListener("click", function (e) {
                 if (cleanText.endsWith("…")) {
                     if (this.text.length >= 100 && this.text.length < 400) {
                         let id = this.retweetedStatus ? this.retweetedStatus.id : this.id;
-                        this.htmlText += ` <a href="https://twitter.com/${this.user.screenName}/status/${id}" onclick="expandTweet(event, '${id}')" class="expand-tweet" data-clicked="false">Expand tweet</a>`;
+                        this.htmlText += ` <a href="https://twitter.com/${this.user ? this.user.screenName : "i"}/status/${id}" onclick="expandTweet(event, '${id}')" class="expand-tweet" data-clicked="false">Expand tweet</a>`;
                     }
                 }
             }),

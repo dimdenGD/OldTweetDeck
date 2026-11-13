@@ -7975,7 +7975,7 @@ document.body.addEventListener("click", function (e) {
                 return e.messageRecipients.length >= e.attr.maxRecipients;
             },
             getMaxAllowedImages: function (e) {
-                return "message" === e.tweetType ? 1 : 4;
+                return "message" === e.tweetType ? 1 : 20;
             },
             shouldSetNewReplyTo: function (e) {
                 return !e.inReplyTo;
@@ -15448,7 +15448,7 @@ document.body.addEventListener("click", function (e) {
                 return "video/mp4" === e.type;
             }),
             (t.getMaxAllowedFiles = function () {
-                return 4;
+                return 20;
             }),
             (t.getMaxAllowedSize = function () {
                 return (arguments.length > 0 && void 0 !== arguments[0] ? arguments[0] : {}).bytes
@@ -18945,13 +18945,13 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '{{#withMediaPreview}} {{#hasMedia}} {{#isMediaPreviewLarge}} <div class="js-media position-rel item-box-full-bleed margin-tm {{#isMediaGridContent}}media-size-large-height{{/isMediaGridContent}} {{#dataminr}}dataminr-large-preview{{/dataminr}}" data-key="{{id}}"> {{#isMediaGridContent}} <div class="media-caret"></div> <div class="media-grid-{{mediaLength}}"> {{#getMedia}} {{> status/media_image_container}} {{/getMedia}} </div> {{#isPossiblySensitive}} {{> status/media_sensitive}} {{/isPossiblySensitive}} {{/isMediaGridContent}} {{^isMediaGridContent}} {{#getMedia}} {{>status/media_thumb}} {{/getMedia}} {{/isMediaGridContent}} </div> {{/isMediaPreviewLarge}} {{/hasMedia}} {{/withMediaPreview}}');
+                '{{#withMediaPreview}} {{#hasMedia}} {{#isMediaPreviewLarge}} <div class="js-media position-rel item-box-full-bleed margin-tm {{#isMediaGridContent}}media-size-large-height{{/isMediaGridContent}} {{#dataminr}}dataminr-large-preview{{/dataminr}}" data-key="{{id}}"> {{#isMediaGridContent}} <div class="media-caret"></div> <div class="media-grid-{{mediaLength}}"{{#mediaMoreCount}} data-more="+{{mediaMoreCount}}"{{/mediaMoreCount}}> {{#getMedia}} {{> status/media_image_container}} {{/getMedia}} </div> {{#isPossiblySensitive}} {{> status/media_sensitive}} {{/isPossiblySensitive}} {{/isMediaGridContent}} {{^isMediaGridContent}} {{#getMedia}} {{>status/media_thumb}} {{/getMedia}} {{/isMediaGridContent}} </div> {{/isMediaPreviewLarge}} {{/hasMedia}} {{/withMediaPreview}}');
     },
     function (e, t, i) {
         "use strict";
         i.r(t),
             (t.default =
-                '{{#isMediaGridContent}} <div class="media-grid-{{mediaLength}}"> {{#getMedia}} {{> status/media_image_container}} {{/getMedia}} </div> {{#isPossiblySensitive}} {{> status/media_sensitive}} {{/isPossiblySensitive}} {{/isMediaGridContent}} {{^isMediaGridContent}} {{#getMedia}} {{> status/media_thumb}} {{/getMedia}} {{/isMediaGridContent}}');
+                '{{#isMediaGridContent}} <div class="media-grid-{{mediaLength}}"{{#mediaMoreCount}} data-more="+{{mediaMoreCount}}"{{/mediaMoreCount}}> {{#getMedia}} {{> status/media_image_container}} {{/getMedia}} </div> {{#isPossiblySensitive}} {{> status/media_sensitive}} {{/isPossiblySensitive}} {{/isMediaGridContent}} {{^isMediaGridContent}} {{#getMedia}} {{> status/media_thumb}} {{/getMedia}} {{/isMediaGridContent}}');
     },
     function (e, t, i) {
         "use strict";
@@ -18969,7 +18969,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<div class="media-grid-{{mediaLength}}"> {{#getUniqueMedia}} {{{renderMediaGridView}}} {{/getUniqueMedia}} {{> status/media_sensitive}} </div>');
+                '<div class="media-grid-{{mediaLength}}"{{#mediaMoreCount}} data-more="+{{mediaMoreCount}}"{{/mediaMoreCount}}> {{#getUniqueMedia}} {{{renderMediaGridView}}} {{/getUniqueMedia}} {{> status/media_sensitive}} </div>');
     },
     function (e, t, i) {
         "use strict";
@@ -19029,7 +19029,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '{{#chirp}} {{#reasonText}} <div class="margin-bl padding-as srt-error-msg"> {{reasonText}} </div> {{/reasonText}} <div class="padding-b--5 flex flex-row flex-align--center"> <span class="no-wrap flex-grow--1 txt-size--13">{{ formattedTime }}</span> {{#canEdit}} <a href="#" rel="edit"><i class="icon icon-edit padding-r--10"></i></a> {{/canEdit}} <a href="#" rel="destroy"><i class="icon icon-trash"></i></a> </div> <div class="padding-al br--4 scheduled-tweet"> {{#updates}} {{>status/scheduled_tweet_single_header}} {{/updates}} <div class="txt-size-variable--12">{{{getReplyContext}}}</div> {{#hasText}} <p class="with-linebreaks">{{{htmlText}}} {{#attachmentUrl}}{{attachmentUrl}}{{/attachmentUrl}}</p> {{/hasText}} {{#hasMedia}} <div class="js-media media-preview position-rel media-size-medium {{#isMediaGridContent}}media-grid-container{{/isMediaGridContent}} {{#inBox}}is-hidden{{/inBox}}" data-key="{{id}}"> {{#isMediaGridContent}} <div class="media-grid-{{mediaLength}}"> {{#getMedia}} {{> status/media_image_container}} {{/getMedia}} </div> {{/isMediaGridContent}} {{^isMediaGridContent}} {{#getMedia}} {{>status/media_thumb}} {{/getMedia}} {{/isMediaGridContent}} </div> {{/hasMedia}} </div> {{/chirp}}');
+                '{{#chirp}} {{#reasonText}} <div class="margin-bl padding-as srt-error-msg"> {{reasonText}} </div> {{/reasonText}} <div class="padding-b--5 flex flex-row flex-align--center"> <span class="no-wrap flex-grow--1 txt-size--13">{{ formattedTime }}</span> {{#canEdit}} <a href="#" rel="edit"><i class="icon icon-edit padding-r--10"></i></a> {{/canEdit}} <a href="#" rel="destroy"><i class="icon icon-trash"></i></a> </div> <div class="padding-al br--4 scheduled-tweet"> {{#updates}} {{>status/scheduled_tweet_single_header}} {{/updates}} <div class="txt-size-variable--12">{{{getReplyContext}}}</div> {{#hasText}} <p class="with-linebreaks">{{{htmlText}}} {{#attachmentUrl}}{{attachmentUrl}}{{/attachmentUrl}}</p> {{/hasText}} {{#hasMedia}} <div class="js-media media-preview position-rel media-size-medium {{#isMediaGridContent}}media-grid-container{{/isMediaGridContent}} {{#inBox}}is-hidden{{/inBox}}" data-key="{{id}}"> {{#isMediaGridContent}} <div class="media-grid-{{mediaLength}}"{{#mediaMoreCount}} data-more="+{{mediaMoreCount}}"{{/mediaMoreCount}}> {{#getMedia}} {{> status/media_image_container}} {{/getMedia}} </div> {{/isMediaGridContent}} {{^isMediaGridContent}} {{#getMedia}} {{>status/media_thumb}} {{/getMedia}} {{/isMediaGridContent}} </div> {{/hasMedia}} </div> {{/chirp}}');
     },
     function (e, t, i) {
         "use strict";
@@ -37415,7 +37415,11 @@ document.body.addEventListener("click", function (e) {
                 return TD.decider.get("multi_photo_media_grid") && this.getMedia().length > 1;
             }),
             (TD.services.ChirpBase.prototype.mediaLength = function () {
-                return this.getMedia().length;
+                return Math.min(this.getMedia().length, 4);
+            }),
+            (TD.services.ChirpBase.prototype.mediaMoreCount = function () {
+                var e = this.getMedia().length;
+                return e > 4 ? e - 4 : 0;
             }),
             (TD.services.ChirpBase.prototype.hasImage = function () {
                 return (
@@ -70530,7 +70534,7 @@ document.body.addEventListener("click", function (e) {
                 oneGIF: (0, n.default)("You cannot upload a GIF with other images"),
                 oneVideo: (0, n.default)("You cannot upload a Video with other images"),
                 isScheduling: (0, n.default)(
-                    "You cannot add more than 4 images to a scheduled Tweet"
+                    "You cannot add more than 20 images to a scheduled Tweet"
                 ),
                 isMessaging: (0, n.default)("You cannot add more than 1 image to a message"),
                 reachedLimit: "You cannot add more than {{max}} images",
@@ -70547,7 +70551,7 @@ document.body.addEventListener("click", function (e) {
                 return "message" === e.tweetType;
             },
             getTooltipText: function (e) {
-                if (4 === s.default.getMaxAllowedImages(e)) {
+                if (20 === s.default.getMaxAllowedImages(e)) {
                     if (a(e)) return l.tooltipText.oneGIF;
                     if (o(e)) return l.tooltipText.oneVideo;
                 }
@@ -73901,7 +73905,7 @@ document.body.addEventListener("click", function (e) {
                         r = "video/mp4" === n,
                         o = h.default.render("compose/media_bar_image", {
                             isMediaGridContent: i,
-                            mediaLength: t,
+                            mediaLength: t > 4 ? "many" : t,
                             isVideo: r,
                             isGif: "image/gif" === n,
                             mediaInfo: this.getMediaInfo(),

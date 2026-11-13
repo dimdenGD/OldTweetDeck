@@ -13079,6 +13079,28 @@ h6 {
 .media-grid-4 > .media-image-container-mini:nth-child(2n + 2) > .media-image {
     left: 1px;
 }
+.media-grid-4 > .media-image-container:nth-child(n + 5) {
+    display: none;
+}
+.media-grid-4[data-more] {
+    position: relative;
+}
+.media-grid-4[data-more]::after {
+    content: attr(data-more);
+    position: absolute;
+    top: calc(50% + 2px);
+    left: calc(50% + 2px);
+    right: 0;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    font-size: 20px;
+    font-weight: bold;
+    pointer-events: none;
+}
 .img-strip {
     overflow: hidden;
     list-style: none;
@@ -17281,6 +17303,18 @@ a.caldisabled {
 }
 .compose-media-grid-holder .media-grid-container {
     height: 108px;
+}
+.compose-media-grid-holder .media-grid-container:has(> .media-grid-many),
+html.dark .compose-media-grid-holder .media-grid-container:has(> .media-grid-many) {
+    height: auto;
+}
+.media-grid-many {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+}
+.media-grid-many > .media-image-container {
+    height: 72px;
 }
 .compose-media-grid-remove {
     position: absolute;

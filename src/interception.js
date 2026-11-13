@@ -243,6 +243,69 @@ function parseTweetCard(card) {
     }
 }
 
+function parseUser(result, id_str) {
+    const user = result.legacy || {};
+    id_str = id_str || result.rest_id;
+    user.id_str = id_str;
+    user.id = +id_str;
+    const set = (key, value) => {
+        if (user[key] == null && value != null) user[key] = value;
+    };
+
+    set("name", result.core?.name);
+    set("screen_name", result.core?.screen_name);
+    set("created_at", result.core?.created_at);
+    if (!user.profile_image_url && result.avatar?.image_url) {
+        user.profile_image_url = result.avatar.image_url;
+        user.profile_image_url_https = result.avatar.image_url.replace("http://", "https://");
+    }
+    if (!user.profile_image_url && user.profile_image_url_https) {
+        user.profile_image_url = user.profile_image_url_https.replace("https://", "http://");
+    }
+    set("profile_banner_url", result.banner?.image_url);
+
+    set("followers_count", result.relationship_counts?.followers);
+    set("friends_count", result.relationship_counts?.following);
+    set("statuses_count", result.tweet_counts?.tweets);
+    set("media_count", result.tweet_counts?.media_tweets);
+    set("favourites_count", result.action_counts?.favorites_count);
+    set("listed_count", 0);
+
+    set("description", result.profile_bio?.description);
+    if (!user.entities && result.profile_bio?.entities) {
+        const entities = result.profile_bio.entities;
+        user.entities = {
+            description: { urls: entities.description?.urls || [] },
+            url: { urls: entities.url?.urls || [] },
+        };
+    }
+    set("url", result.website?.url);
+    set("location", result.location?.location);
+    set("pinned_tweet_ids_str", result.pinned_items?.tweet_ids_str || []);
+    set("possibly_sensitive", result.possibly_sensitive);
+    set("profile_interstitial_type", result.profile_metadata?.profile_interstitial_type);
+    set("translator_type", result.profile_translation?.translator_type);
+    set("protected", result.privacy?.protected);
+
+    const rel = result.relationship_perspectives || {};
+    set("following", rel.following);
+    set("followed_by", rel.followed_by);
+    set("blocking", rel.blocking);
+    set("blocked_by", rel.blocked_by);
+    set("muting", rel.muting);
+    set("follow_request_sent", result.follow_request_sent);
+    set("notifications", result.notifications_settings?.notifications_enabled);
+
+    if (result.verification?.verified) {
+        user.verified = true;
+    }
+    if (result.is_blue_verified) {
+        user.verified = true;
+        user.verified_type = "Blue";
+    }
+    return user;
+}
+
 function parseTweet(res) {
     try {
 
@@ -265,47 +328,7 @@ function parseTweet(res) {
         let result = res.core.user_results.result;
         tweet.conversation_id = +tweet.conversation_id_str;
         tweet.text = tweet.full_text;
-        // X is migrating user fields out of `legacy` into `core`/`avatar`/etc,
-        // so `legacy` can now be missing entirely. The fallbacks below already
-        // repopulate name/screen_name/avatar/created_at from the new shape.
-        tweet.user = result.legacy || {};
-        tweet.user.id = +tweet.user_id_str;
-        tweet.user.id_str = tweet.user_id_str;
-        if (result.is_blue_verified) {
-            tweet.user.verified = true;
-            tweet.user.verified_type = "Blue";
-        }
-        if(!tweet.user.profile_image_url && result?.avatar?.image_url) {
-            tweet.user.profile_image_url = result.avatar.image_url;
-            tweet.user.profile_image_url_https = tweet.user.profile_image_url.replace("http://", "https://");
-        }
-        if(!tweet.user.profile_image_url && tweet.user.profile_image_url_https) {
-            tweet.user.profile_image_url = tweet.user.profile_image_url_https.replace("https://", "http://");
-        }
-        if(!tweet.user.name && result?.core?.name) {
-            tweet.user.name = result.core.name;
-        }
-        if(!tweet.user.screen_name && result?.core?.screen_name) {
-            tweet.user.screen_name = result.core.screen_name;
-        }
-        if(!tweet.user.created_at && result?.core?.created_at) {
-            tweet.user.created_at = result.core.created_at;
-        }
-        if(result?.relationship_perspectives?.muting) {
-            tweet.user.muting = true;
-        }
-        if(result?.relationship_perspectives?.blocking) {
-            tweet.user.blocking = true;
-        }
-        if(result?.privacy?.protected) {
-            tweet.user.protected = true;
-        }
-        if(result?.location?.location) {
-            tweet.user.location = res.core.user_results.result.location.location;
-        }
-        if(result?.verification?.verified) {
-            tweet.user.verified = true;
-        }
+        tweet.user = parseUser(result, tweet.user_id_str);
 
         if (tweet.retweeted_status_result?.result) {
             let result = tweet.retweeted_status_result.result;
@@ -333,47 +356,10 @@ function parseTweet(res) {
                 result.legacy.quoted_status.text = result.legacy.quoted_status.full_text;
                 result.legacy.quoted_status.conversation_id = +result.legacy.quoted_status.conversation_id_str;
                 if (result.legacy.quoted_status) {
-                    result.legacy.quoted_status.user =
-                        result.quoted_status_result.result.core.user_results.result.legacy || {};
-                    result.legacy.quoted_status.user.id_str = result.legacy.quoted_status.user_id_str;
-                    result.legacy.quoted_status.user.id = +result.legacy.quoted_status.user_id_str;
-                    let user_result = result?.quoted_status_result?.result?.core?.user_results?.result;
-                    if(!result.legacy.quoted_status.user.profile_image_url && user_result?.avatar?.image_url) {
-                        result.legacy.quoted_status.user.profile_image_url = user_result.avatar.image_url;
-                        result.legacy.quoted_status.user.profile_image_url_https = result.legacy.quoted_status.user.profile_image_url.replace("http://", "https://");
-                    }
-                    if(!result.legacy.quoted_status.user.profile_image_url && result.legacy.quoted_status.user.profile_image_url_https) {
-                        result.legacy.quoted_status.user.profile_image_url = result.legacy.quoted_status.user.profile_image_url_https.replace("https://", "http://");
-                    }
-                    if(!result.legacy.quoted_status.user.name && user_result?.core?.name) {
-                        result.legacy.quoted_status.user.name = user_result.core.name;
-                    }
-                    if(!result.legacy.quoted_status.user.screen_name && user_result?.core?.screen_name) {
-                        result.legacy.quoted_status.user.screen_name = user_result.core.screen_name;
-                    }
-                    if(!result.legacy.quoted_status.user.created_at && user_result?.core?.created_at) {
-                        result.legacy.quoted_status.user.created_at = user_result.core.created_at;
-                    }
-                    if(user_result?.relationship_perspectives?.muting) {
-                        result.legacy.quoted_status.user.muting = true;
-                    }
-                    if(user_result?.relationship_perspectives?.blocking) {
-                        result.legacy.quoted_status.user.blocking = true;
-                    }
-                    if(user_result?.privacy?.protected) {
-                        result.legacy.quoted_status.user.protected = true;
-                    }
-                    if(user_result?.location?.location) {
-                        result.legacy.quoted_status.user.location = user_result.location.location;
-                    }
-                    if(user_result?.verification?.verified) {
-                        result.legacy.quoted_status.user.verified = true;
-                    }
-                    
-                    if (user_result.is_blue_verified) {
-                        result.legacy.quoted_status.user.verified = true;
-                        result.legacy.quoted_status.user.verified_type = "Blue";
-                    }
+                    result.legacy.quoted_status.user = parseUser(
+                        result.quoted_status_result.result.core.user_results.result,
+                        result.legacy.quoted_status.user_id_str
+                    );
                 } else {
                     console.warn("No retweeted quoted status", result);
                 }
@@ -384,45 +370,7 @@ function parseTweet(res) {
                 tweet.retweeted_status.text = tweet.retweeted_status.full_text;
                 tweet.retweeted_status.id = +tweet.retweeted_status.id_str;
                 tweet.retweeted_status.conversation_id = +tweet.retweeted_status.conversation_id_str;
-                tweet.retweeted_status.user = user_result.legacy || {};
-                tweet.retweeted_status.user.id_str = tweet.retweeted_status.user_id_str;
-                tweet.retweeted_status.user.id = +tweet.retweeted_status.user_id_str;
-                if(!tweet.retweeted_status.user.profile_image_url && user_result?.avatar?.image_url) {
-                    tweet.retweeted_status.user.profile_image_url = user_result.avatar.image_url;
-                    tweet.retweeted_status.user.profile_image_url_https = tweet.retweeted_status.user.profile_image_url.replace("http://", "https://");
-                } 
-                if(!tweet.retweeted_status.user.profile_image_url && tweet.retweeted_status.user.profile_image_url_https) {
-                    tweet.retweeted_status.user.profile_image_url = tweet.retweeted_status.user.profile_image_url_https.replace("https://", "http://");
-                }
-                if(!tweet.retweeted_status.user.name && user_result?.core?.name) {
-                    tweet.retweeted_status.user.name = user_result.core.name;
-                }
-                if(!tweet.retweeted_status.user.screen_name && user_result?.core?.screen_name) {
-                    tweet.retweeted_status.user.screen_name = user_result.core.screen_name;
-                }
-                if(!tweet.retweeted_status.user.created_at && user_result?.core?.created_at) {
-                    tweet.retweeted_status.user.created_at = user_result.core.created_at;
-                }
-                if(user_result?.relationship_perspectives?.muting) {
-                    tweet.retweeted_status.user.muting = true;
-                }
-                if(user_result?.relationship_perspectives?.blocking) {
-                    tweet.retweeted_status.user.blocking = true;
-                }
-                if(user_result?.privacy?.protected) {
-                    tweet.retweeted_status.user.protected = true;
-                }
-                if(user_result?.location?.location) {
-                    tweet.retweeted_status.user.location = result.core.user_results.result.location.location;
-                }
-                if(user_result?.verification?.verified) {
-                    tweet.retweeted_status.user.verified = true;
-                }
-
-                if (result.core.user_results.result.is_blue_verified) {
-                    tweet.retweeted_status.user.verified = true;
-                    tweet.retweeted_status.user.verified_type = "Blue";
-                }
+                tweet.retweeted_status.user = parseUser(user_result, tweet.retweeted_status.user_id_str);
                 tweet.retweeted_status.ext = {};
                 if (result.views) {
                     tweet.retweeted_status.ext.views = { r: { ok: { count: +result.views.count } } };
@@ -472,47 +420,10 @@ function parseTweet(res) {
                 tweet.quoted_status.text = tweet.quoted_status.full_text;
                 if (tweet.quoted_status) {
                     let user_result = result.core?.user_results?.result;
-                    tweet.quoted_status.user = user_result ? user_result.legacy || {} : undefined;
+                    tweet.quoted_status.user = user_result ? parseUser(user_result, tweet.quoted_status.user_id_str) : undefined;
                     if (!tweet.quoted_status.user) {
                         delete tweet.quoted_status;
                     } else {
-                        tweet.quoted_status.user.id_str = tweet.quoted_status.user_id_str;
-                        tweet.quoted_status.user.id = +tweet.quoted_status.user_id_str;
-                        if(!tweet.quoted_status.user.profile_image_url && user_result?.avatar?.image_url) {
-                            tweet.quoted_status.user.profile_image_url = user_result.avatar.image_url;
-                            tweet.quoted_status.user.profile_image_url_https = tweet.quoted_status.user.profile_image_url.replace("http://", "https://");
-                        }
-                        if(!tweet.quoted_status.user.profile_image_url && tweet.quoted_status.user.profile_image_url_https) {
-                            tweet.quoted_status.user.profile_image_url = tweet.quoted_status.user.profile_image_url_https.replace("https://", "http://");
-                        }
-                        if(!tweet.quoted_status.user.name && user_result?.core?.name) {
-                            tweet.quoted_status.user.name = user_result.core.name;
-                        }
-                        if(!tweet.quoted_status.user.screen_name && user_result?.core?.screen_name) {
-                            tweet.quoted_status.user.screen_name = user_result.core.screen_name;
-                        }
-                        if(!tweet.quoted_status.user.created_at && user_result?.core?.created_at) {
-                            tweet.quoted_status.user.created_at = user_result.core.created_at;
-                        }
-                        if(user_result?.relationship_perspectives?.muting) {
-                            tweet.quoted_status.user.muting = true;
-                        }
-                        if(user_result?.relationship_perspectives?.blocking) {
-                            tweet.quoted_status.user.blocking = true;
-                        }
-                        if(user_result?.privacy?.protected) {
-                            tweet.quoted_status.user.protected = true;
-                        }
-                        if(user_result?.location?.location) {
-                            tweet.quoted_status.user.location = user_result.location.location;
-                        }
-                        if(user_result?.verification?.verified) {
-                            tweet.quoted_status.user.verified = true;
-                        }
-                        if (user_result.is_blue_verified) {
-                            tweet.quoted_status.user.verified = true;
-                            tweet.quoted_status.user.verified_type = "Blue";
-                        }
                         tweet.quoted_status.ext = {};
                         if (result.views) {
                             tweet.quoted_status.ext.views = { r: { ok: { count: +result.views.count } } };

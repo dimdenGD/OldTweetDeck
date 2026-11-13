@@ -18281,7 +18281,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<div class="js-media-gif-container media-item nbfc {{thumbSizeClass}}" style="background-image: url({{imageSrc}})"> {{#isGifActive}} <video class="js-media-gif media-item-gif full-width block {{#isPossiblySensitive}}is-invisible{{/isPossiblySensitive}}" {{#withAutoplay}}autoplay{{/withAutoplay}}  loop src="{{src}}"> <source video-src="{{src}}" type="{{contentType}}" src="{{src}}"> </video> <div class="gif-badge"><i class="sprite sprite-gif"></i></div> <a class="js-gif-pause is-actionable gif-pause" rel="pause"><i class="sprite sprite-gif-pause"></i></a> <a class="js-gif-play pin-all gif-play" rel="play">{{> media/video_overlay}}</a> {{/isGifActive}} {{^isGifActive}} <div class="media-item-gif full-width block" /> {{/isGifActive}} </div>');
+                '{{#isGalleryView}} <video autoplay loop muted playsinline poster="{{imageSrc}}" style="max-width: 90vw; max-height: min(410px, calc(100vh - 220px));"> <source src="{{src}}" type="{{contentType}}"> </video> {{/isGalleryView}} {{^isGalleryView}} <div class="js-media-gif-container media-item nbfc {{thumbSizeClass}}" style="background-image: url({{imageSrc}})"> {{#isGifActive}} <video class="js-media-gif media-item-gif full-width block {{#isPossiblySensitive}}is-invisible{{/isPossiblySensitive}}" {{#withAutoplay}}autoplay{{/withAutoplay}}  loop src="{{src}}"> <source video-src="{{src}}" type="{{contentType}}" src="{{src}}"> </video> <div class="gif-badge"><i class="sprite sprite-gif"></i></div> <a class="js-gif-pause is-actionable gif-pause" rel="pause"><i class="sprite sprite-gif-pause"></i></a> <a class="js-gif-play pin-all gif-play" rel="play">{{> media/video_overlay}}</a> {{/isGifActive}} {{^isGifActive}} <div class="media-item-gif full-width block" /> {{/isGifActive}} </div> {{/isGalleryView}}');
     },
     function (e, t, i) {
         "use strict";
@@ -18939,7 +18939,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<div class="media-image-container {{#isMediaPreviewCompact}}media-image-container-compact{{/isMediaPreviewCompact}} block position-rel"> <a class="js-media-image-link {{#needsSecureUrl}}js-needs-secure-url{{/needsSecureUrl}} pin-all media-image block {{#isPossiblySensitive}}is-invisible{{/isPossiblySensitive}}" {{#needsSecureUrl}}data-original-url="{{mediaPreviewSrc}}{{imageSrc}}"{{/needsSecureUrl}} {{^needsSecureUrl}}style="background-image:url({{mediaPreviewSrc}}{{imageSrc}})"{{/needsSecureUrl}} href="{{url}}" rel="mediaPreview" target="_blank" data-media-entity-id="{{mediaId}}" title="{{altText}}" ></a> </div>');
+                '<div class="media-image-container {{#isMediaPreviewCompact}}media-image-container-compact{{/isMediaPreviewCompact}} block position-rel"> <a class="js-media-image-link {{#needsSecureUrl}}js-needs-secure-url{{/needsSecureUrl}} pin-all media-image block {{#isPossiblySensitive}}is-invisible{{/isPossiblySensitive}}" {{#needsSecureUrl}}data-original-url="{{mediaPreviewSrc}}"{{/needsSecureUrl}} {{^needsSecureUrl}}style="background-image:url({{mediaPreviewSrc}})"{{/needsSecureUrl}} href="{{url}}" rel="mediaPreview" target="_blank" data-media-entity-id="{{mediaId}}" title="{{altText}}"> {{#isVideo}}{{> media/video_overlay}}{{/isVideo}} {{#isAnimatedGif}}{{> media/video_overlay}}{{/isAnimatedGif}} </a> </div>');
     },
     function (e, t, i) {
         "use strict";
@@ -39967,6 +39967,16 @@ document.body.addEventListener("click", function (e) {
                     (0, g.default)(i, function (e) {
                         (0, m.default)(e, t);
                     });
+                var attachments = i.filter(function (media) {
+                    return (
+                        !media.isScheduled &&
+                        !media.referenced_media &&
+                        (media.nativePhotoCapable() ||
+                            media.nativeVideoCapable() ||
+                            media.animatedGifCapable())
+                    );
+                });
+                if (attachments.length > 1) return attachments;
                 var r = TD.services.TwitterMedia._entitiesContainNativeMultiPhoto(i);
                 if (r.length > 0) return r;
                 var a = TD.services.TwitterMedia._entitiesContainMultiPhoto(i);
@@ -40348,9 +40358,9 @@ document.body.addEventListener("click", function (e) {
                         altText: this.getAltText(),
                         isPossiblySensitive: t,
                         url: this.url,
-                        imageSrc: this.small(),
+                        mediaPreviewSrc: this.small(),
                         isVideo: this.isVideo,
-                        thumbClass: TD.services.TwitterMedia.IMAGE_CLASS,
+                        isAnimatedGif: this.isAnimatedGif,
                     };
                 return TD.ui.template.render("status/media_image_container", i);
             }),
@@ -40492,10 +40502,8 @@ document.body.addEventListener("click", function (e) {
                     s = "twitter" === this.service && this.isVideo;
                 if ("twitter" === this.service && "animated_gif" === this.entity.type)
                     (e = "media/animated_gif"),
-                        (t = {
-                            gifSrc: (i = this.chooseVideoVariant()).url,
-                            contentType: i.content_type,
-                        });
+                        (t = this.getAnimatedGifForPreview()),
+                        (t.isGalleryView = !0);
                 else if (s && this.isScheduled) e = "media/scheduled_video";
                 else if (s) {
                     e = "media/native_video";

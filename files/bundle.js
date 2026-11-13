@@ -62337,7 +62337,9 @@ document.body.addEventListener("click", function (e) {
                                               )
                                           )
                                         : i && i.length
-                                        ? i.map(function (e) {
+                                        ? i.filter(function (trend, index, all) {
+                                              return all.findIndex(function (other) { return other.name === trend.name; }) === index;
+                                          }).map(function (e) {
                                               return c.default.createElement(u.TrendContainer, {
                                                   trend: e,
                                                   key: e.name,

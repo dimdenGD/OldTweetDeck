@@ -16,7 +16,7 @@ let _destroyerInt = setInterval(() => {
     if(document.getElementById('ScriptLoadFailure')) {
         document.getElementById('ScriptLoadFailure').remove();
     }
-});
+}, 50);
 
 // Step 3: destroy twitter critical modules
 let _originalPush = Array.prototype.push;

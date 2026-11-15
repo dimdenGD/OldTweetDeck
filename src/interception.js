@@ -53,7 +53,39 @@ let timings = {
     user: {},
     search: {},
 }
-let refreshInterval = localStorage.OTDrefreshInterval ? parseInt(localStorage.OTDrefreshInterval) : 35000;
+const OTD_OPTS = window.__OTD_OPTS || {};
+let refreshInterval = localStorage.OTDrefreshInterval ? parseInt(localStorage.OTDrefreshInterval) : (OTD_OPTS.refreshInterval || 35000);
+
+// Debounced localStorage writer: avoids repeated big JSON.stringify calls
+const _pendingLS = {};
+function saveLS(key, getter) {
+    if(_pendingLS[key]) { _pendingLS[key].getter = getter; return; }
+    _pendingLS[key] = { getter, timer: setTimeout(() => flushLS(key), 400) };
+}
+function flushLS(key) {
+    const p = _pendingLS[key];
+    if(!p) return;
+    clearTimeout(p.timer);
+    delete _pendingLS[key];
+    try { localStorage[key] = JSON.stringify(p.getter()); } catch(e) { console.error(e); }
+}
+function flushAllLS() { Object.keys(_pendingLS).forEach(flushLS); }
+window.addEventListener('beforeunload', flushAllLS);
+window.addEventListener('pagehide', flushAllLS);
+document.addEventListener('visibilitychange', () => { if(document.hidden) flushAllLS(); });
+
+// Effective refresh interval: slower in background tabs and after rate limits (429)
+let otdBackoff = 1;
+let otdBackoffTimer = null;
+function getRefreshInterval() {
+    const hiddenMul = (OTD_OPTS.slowInBackground !== false && document.hidden) ? 4 : 1;
+    return refreshInterval * hiddenMul * otdBackoff;
+}
+function otdRateLimited() {
+    otdBackoff = Math.min(otdBackoff * 2, 8);
+    clearTimeout(otdBackoffTimer);
+    otdBackoffTimer = setTimeout(() => { otdBackoff = 1; }, 5 * 60 * 1000);
+}
 
 function exportState() {
 	const a = document.createElement('a');
@@ -112,8 +144,11 @@ function cleanUp() {
     localStorage.OTDfeeds = JSON.stringify(feeds);
 }
 
+const _followsInflight = {};
 function getFollows(id = getCurrentUserId(), cursor = -1, count = 5000) {
-	return new Promise(function (resolve, reject) {
+	const k = `${id}:${cursor}:${count}`;
+	if(_followsInflight[k]) return _followsInflight[k];
+	return _followsInflight[k] = new Promise(function (resolve, reject) {
 		var xhr = new XMLHttpRequest();
 		xhr.open("GET", `https://api.${location.hostname}/1.1/friends/ids.json?user_id=${id}&cursor=${cursor}&stringify_ids=true&count=${count}`, true);
 		xhr.setRequestHeader("X-Twitter-Active-User", "yes");
@@ -127,6 +162,7 @@ function getFollows(id = getCurrentUserId(), cursor = -1, count = 5000) {
 		xhr.withCredentials = true;
 
 		xhr.onreadystatechange = function () {
+			if (xhr.readyState === 4) delete _followsInflight[k];
 			if (xhr.readyState === 4 && xhr.status === 200) {
 				resolve(JSON.parse(xhr.responseText));
 			} else if (xhr.readyState === 4 && xhr.status !== 200) {
@@ -157,7 +193,7 @@ function updateFollows(id = getCurrentUserId()) {
         if(res.next_cursor_str === "0" || i++ > 10) {
             followsData[id].lastUpdate = Date.now();
             followsData[id].data = newfollows;
-            localStorage.OTDfollowsData = JSON.stringify(followsData);
+            saveLS("OTDfollowsData", () => followsData);
             updatingFollows = false;
             return;
         }
@@ -698,7 +734,7 @@ const proxyRoutes = [
             if(!timings.home[user_id]) {
                 timings.home[user_id] = 0;
             }
-            if(Date.now() - timings.home[user_id] < refreshInterval && xhr.storage.cursor && Math.random() > 0.6) {
+            if(Date.now() - timings.home[user_id] < getRefreshInterval() && xhr.storage.cursor && Math.random() > 0.6) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);
@@ -897,7 +933,7 @@ const proxyRoutes = [
             if(!timings.list[list_id]) {
                 timings.list[list_id] = 0;
             }
-            if(Date.now() - timings.list[list_id] < refreshInterval && xhr.storage.cursor) {
+            if(Date.now() - timings.list[list_id] < getRefreshInterval() && xhr.storage.cursor) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);
@@ -1065,7 +1101,7 @@ const proxyRoutes = [
             if(!timings.user[user_id]) {
                 timings.user[user_id] = 0;
             }
-            if(Date.now() - timings.user[user_id] < refreshInterval && xhr.storage.cursor) {
+            if(Date.now() - timings.user[user_id] < getRefreshInterval() && xhr.storage.cursor) {
                 xhr.storage.cancelled = true;
             } else {
                 xhr.open(method, url, async, username, password);
@@ -2452,7 +2488,7 @@ const proxyRoutes = [
             const data = JSON.parse(xhr.responseText);
             try {
                 if(!xhr.storage.user_id && !data.errors) {
-                    localStorage.OTDverifiedUser = JSON.stringify(data);
+                    saveLS("OTDverifiedUser", () => data);
                     verifiedUser = data;
                 } 
             } catch (e) {
@@ -2570,7 +2606,7 @@ const proxyRoutes = [
             };
             if(!settings) {
                 settings = state.client.settings;
-                localStorage.OTDsettings = JSON.stringify(settings);
+                saveLS("OTDsettings", () => settings);
             }
             cleanUp();
             console.log('account state', state);
@@ -2599,7 +2635,7 @@ const proxyRoutes = [
                 for(let key in json.settings) {
                     settings[key] = json.settings[key];
                 }
-                localStorage.OTDsettings = JSON.stringify(settings);
+                saveLS("OTDsettings", () => settings);
             }
             cleanUp();
             return body;
@@ -2628,7 +2664,7 @@ const proxyRoutes = [
                 feeds[id] = json[i];
             }
             xhr.storage.ids = ids;
-            localStorage.OTDfeeds = JSON.stringify(feeds);
+            saveLS("OTDfeeds", () => feeds);
             console.log('feeds push', json, ids);
             return body;
         },
@@ -2656,7 +2692,7 @@ const proxyRoutes = [
                 columns[id] = json[i];
             }
             xhr.storage.ids = ids;
-            localStorage.OTDcolumns = JSON.stringify(columns);
+            saveLS("OTDcolumns", () => columns);
             console.log('columns push', json, ids);
             return body;
         },
@@ -2715,6 +2751,7 @@ XMLHttpRequest = function () {
             this.originalUrl = url;
             this.modReqHeaders = {};
             this.storage = {};
+            try { this.addEventListener('loadend', () => { if(this.status === 429) otdRateLimited(); }); } catch(e) {}
 
 
             try {

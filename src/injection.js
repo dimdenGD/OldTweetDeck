@@ -13,6 +13,7 @@ window.addEventListener('message', e => {
     if(e.data.extensionId) {
         console.log("got extensionId", e.data.extensionId);
         extId = e.data.extensionId;
+        otdOpts = e.data.opts || {};
         main();
     } else if(e.data.cookie) {
         cookie = e.data.cookie;
@@ -25,117 +26,75 @@ window.postMessage('extensionId', '*');
 window.postMessage('cookie', '*');
 window.postMessage('getotdtoken', '*');
 
+const OTD_FILES = {
+    challenge: ["/src/challenge.js", "src/challenge.js"],
+    interception: ["/src/interception.js", "src/interception.js"],
+    vendor: ["/files/vendor.js", "files/vendor.js"],
+    bundle: ["/files/bundle.js", "files/bundle.js"],
+    css: ["/files/bundle.css", "files/bundle.css"],
+    twitter_text: ["/files/twitter-text.js", "files/twitter-text.js"],
+};
+const OTD_REMOTE = "https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/";
+const OTD_CACHE = "otd-remote-v1";
+let otdOpts = {};
+
+// Cache API may be unavailable; every use is guarded.
+async function openCache() {
+    try { return await caches.open(OTD_CACHE); } catch(e) { return null; }
+}
+
+// Prefer previously downloaded remote copy (cache), else bundled local file. No network wait.
+async function loadFile(key) {
+    const [localPath, remotePath] = OTD_FILES[key];
+    if (!localStorage.getItem("OTDalwaysUseLocalFiles") && otdOpts.remoteUpdates !== false) {
+        const cache = await openCache();
+        if (cache) {
+            try {
+                const hit = await cache.match(OTD_REMOTE + remotePath);
+                if (hit) {
+                    const text = await hit.text();
+                    if (text.length > 30) return text;
+                }
+            } catch(e) {}
+        }
+    }
+    return fetch(chrome.runtime.getURL(localPath)).then(r => r.text());
+}
+
+// Revalidate remote files in the background using ETag; new versions apply on next load.
+async function refreshRemoteInBackground() {
+    if (localStorage.getItem("OTDalwaysUseLocalFiles") || otdOpts.remoteUpdates === false) return;
+    const cache = await openCache();
+    if (!cache) return;
+    let etags = {};
+    try { etags = JSON.parse(localStorage.OTDremoteEtags || "{}"); } catch(e) {}
+    await Promise.allSettled(Object.values(OTD_FILES).map(async ([, remotePath]) => {
+        const url = OTD_REMOTE + remotePath;
+        const headers = {};
+        if (etags[url] && await cache.match(url)) headers["If-None-Match"] = etags[url];
+        const res = await fetch(url, { headers });
+        if (res.status === 304 || !res.ok) return;
+        const copy = res.clone();
+        const text = await res.text();
+        if (text.length <= 30) return;
+        await cache.put(url, copy);
+        const etag = res.headers.get("etag");
+        if (etag) etags[url] = etag;
+    }));
+    try { localStorage.OTDremoteEtags = JSON.stringify(etags); } catch(e) {}
+}
+
 async function main() {
+    window.__OTD_OPTS = otdOpts;
     let html = await fetch(chrome.runtime.getURL('/files/index.html')).then(r => r.text());
     document.documentElement.innerHTML = html;
 
-    let [challenge_js, interception_js, vendor_js, bundle_js, bundle_css, twitter_text] =
-        await Promise.allSettled([
-            fetch(chrome.runtime.getURL("/src/challenge.js")).then(r => r.text()),
-            fetch(chrome.runtime.getURL("/src/interception.js")).then(r => r.text()),
-            fetch(chrome.runtime.getURL("/files/vendor.js")).then(r => r.text()),
-            fetch(chrome.runtime.getURL("/files/bundle.js")).then(r => r.text()),
-            fetch(chrome.runtime.getURL("/files/bundle.css")).then(r => r.text()),
-            fetch(chrome.runtime.getURL("/files/twitter-text.js")).then(r => r.text()),
-        ]);
-    if (!localStorage.getItem("OTDalwaysUseLocalFiles")) {
-        const [
-            remote_challenge_js_req,
-            remote_interception_js_req,
-            remote_vendor_js_req,
-            remote_bundle_js_req,
-            remote_bundle_css_req,
-            remote_twitter_text_req,
-        ] = await Promise.allSettled([
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/src/challenge.js"),
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/src/interception.js"),
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/vendor.js"),
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.js"),
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/bundle.css"),
-            fetch("https://raw.githubusercontent.com/dimdenGD/OldTweetDeck/main/files/twitter-text.js"),
-        ]);
-        
-        if(
-            (remote_challenge_js_req.value && remote_challenge_js_req.value.ok) ||
-            (remote_interception_js_req.value && remote_interception_js_req.value.ok) || 
-            (remote_vendor_js_req.value && remote_vendor_js_req.value.ok) ||
-            (remote_bundle_js_req.value && remote_bundle_js_req.value.ok) ||
-            (remote_bundle_css_req.value && remote_bundle_css_req.value.ok) ||
-            (remote_twitter_text_req.value && remote_twitter_text_req.value.ok)
-        ) {
-            const [
-                remote_challenge_js,
-                remote_interception_js,
-                remote_vendor_js,
-                remote_bundle_js,
-                remote_bundle_css,
-                remote_twitter_text,
-            ] = await Promise.allSettled([
-                remote_challenge_js_req.value.text(),
-                remote_interception_js_req.value.text(),
-                remote_vendor_js_req.value.text(),
-                remote_bundle_js_req.value.text(),
-                remote_bundle_css_req.value.text(),
-                remote_twitter_text_req.value.text(),
-            ]);
+    const [challenge_js, interception_js, vendor_js, bundle_js, bundle_css, twitter_text] =
+        (await Promise.all(["challenge", "interception", "vendor", "bundle", "css", "twitter_text"].map(loadFile)))
+            .map(value => ({ value }));
 
-            if (
-                remote_challenge_js_req.value &&
-                remote_challenge_js_req.value.ok &&
-                remote_challenge_js.status === "fulfilled" &&
-                remote_challenge_js.value.length > 30
-            ) {
-                challenge_js = remote_challenge_js;
-                console.log("Using remote challenge.js");
-            }
-
-            if (
-                remote_interception_js_req.value &&
-                remote_interception_js_req.value.ok &&
-                remote_interception_js.status === "fulfilled" &&
-                remote_interception_js.value.length > 30
-            ) {
-                interception_js = remote_interception_js;
-                console.log("Using remote interception.js");
-            }
-            if (
-                remote_vendor_js_req.value &&
-                remote_vendor_js_req.value.ok &&
-                remote_vendor_js.status === "fulfilled" &&
-                remote_vendor_js.value.length > 30
-            ) {
-                vendor_js = remote_vendor_js;
-                console.log("Using remote vendor.js");
-            }
-            if (
-                remote_bundle_js_req.value &&
-                remote_bundle_js_req.value.ok &&
-                remote_bundle_js.status === "fulfilled" &&
-                remote_bundle_js.value.length > 30
-            ) {
-                bundle_js = remote_bundle_js;
-                console.log("Using remote bundle.js");
-            }
-            if (
-                remote_bundle_css_req.value &&
-                remote_bundle_css_req.value.ok &&
-                remote_bundle_css.status === "fulfilled" &&
-                remote_bundle_css.value.length > 30
-            ) {
-                bundle_css = remote_bundle_css;
-                console.log("Using remote bundle.css");
-            }
-            if (
-                remote_twitter_text_req.value &&
-                remote_twitter_text_req.value.ok &&
-                remote_twitter_text.status === "fulfilled" &&
-                remote_twitter_text.value.length > 30
-            ) {
-                twitter_text = remote_twitter_text;
-                console.log("Using remote twitter-text.js");
-            }
-        }
-    }
+    // Update cache after the page is up so it never delays startup.
+    setTimeout(() => refreshRemoteInBackground().catch(console.error), 15000);
 
     let challenge_js_script = document.createElement("script");
     challenge_js_script.innerHTML = challenge_js.value.replaceAll('SOLVER_URL', chrome.runtime.getURL("solver.html"));
@@ -163,17 +122,12 @@ async function main() {
 
     (async () => {
         try {
-            const additionalScripts = await fetch("https://oldtd.org/api/scripts", {
-                headers: otdtoken ? {
-                    Authorization: `Bearer ${otdtoken}`
-                } : undefined
-            }).then(r => r.json());
-            for(let script of additionalScripts) {
-                let scriptSource = await fetch(`https://oldtd.org/api/scripts/${script}`, {
-                    headers: otdtoken ? {
-                        Authorization: `Bearer ${otdtoken}`
-                    } : undefined
-                }).then(r => r.text());
+            const headers = otdtoken ? { Authorization: `Bearer ${otdtoken}` } : undefined;
+            const additionalScripts = await fetch("https://oldtd.org/api/scripts", { headers }).then(r => r.json());
+            const sources = await Promise.all(additionalScripts.map(script =>
+                fetch(`https://oldtd.org/api/scripts/${script}`, { headers }).then(r => r.text())
+            ));
+            for(let scriptSource of sources) {
                 let scriptElement = document.createElement("script");
                 scriptElement.innerHTML = scriptSource;
                 document.head.appendChild(scriptElement);
@@ -205,5 +159,5 @@ async function main() {
             chrome.runtime.sendMessage({ action: "setcookie" }); 
         });
     }
-    setInterval(injectAccount, 1000);
+    injInt = setInterval(injectAccount, 1000);
 };

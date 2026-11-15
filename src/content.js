@@ -1,7 +1,9 @@
 window.addEventListener('message', async e => {
     if(e.data === 'extensionId') {
         let extId = chrome.runtime.getURL('/injection.js').split("/")[2];
-        window.postMessage({ extensionId: extId }, '*');
+        chrome.storage.local.get('otd_opts', r => {
+            window.postMessage({ extensionId: extId, opts: r.otd_opts || {} }, '*');
+        });
     } else if(e.data === 'cookie') {
         chrome.runtime.sendMessage({ action: "getcookie" }, cookie => {
             window.postMessage({ cookie }, '*');

@@ -175,8 +175,8 @@ function parseNoteTweet(result) {
     let text, entities;
     if (result.note_tweet.note_tweet_results.result) {
         text = result.note_tweet.note_tweet_results.result.text;
-        entities = result.note_tweet.note_tweet_results.result.entity_set;
-        if (result.note_tweet.note_tweet_results.result.richtext?.richtext_tags.length) {
+        entities = result.note_tweet.note_tweet_results.result.entity_set ?? {};
+        if (result.note_tweet.note_tweet_results.result.richtext?.richtext_tags?.length) {
             entities.richtext = result.note_tweet.note_tweet_results.result.richtext.richtext_tags; // logically, richtext is an entity, right?
         }
     } else {
@@ -306,156 +306,179 @@ function parseUser(result, id_str) {
     return user;
 }
 
+// The legacy timeline can contain asset IDs without ticker metadata.
+const knownSmartTagTickers = new Map([
+    ["zcash:native", "ZEC"],
+    ["pearl-2:native", "PEARL"],
+]);
+const smartTagAssetPattern = /(?<![\w:$./-])[a-z][a-z0-9-]{0,39}:(?:native|0x[\da-fA-F]{40}|[1-9A-HJ-NP-Za-km-z]{32,44})(?![\w:/-]|\.\w)/g;
+const smartTagPostCache = new Map();
+
+function addSmartTagFallbacks(tweet, smarttags) {
+    const tags = Array.isArray(smarttags) ? [...smarttags] : [];
+    const publicPost = tweet.user.protected === false && /^\w{1,15}$/.test(tweet.user.screen_name ?? "") &&
+        /^\d{1,20}$/.test(tweet.id_str ?? "")
+        ? { screenName: tweet.user.screen_name, id: tweet.id_str }
+        : null;
+    for (const match of tweet.text.matchAll(smartTagAssetPattern)) {
+        const assetId = match[0];
+        const ticker = knownSmartTagTickers.get(assetId);
+        if (!ticker && !publicPost) continue;
+        const start = Array.from(tweet.text.slice(0, match.index)).length;
+        const end = start + assetId.length;
+        if (tags.some((entry) => entry?.tag?.rest_id === assetId && entry.text === assetId &&
+            entry.indices?.[0] === start && entry.indices?.[1] === end &&
+            (entry.tag.info?.info?.ticker || entry.publicPost))) continue;
+        tags.push({
+            indices: [start, end],
+            text: assetId,
+            tag: { rest_id: assetId, info: { info: { ticker } } },
+            publicPost: ticker ? null : publicPost,
+        });
+    }
+    if (tags.length) tweet.entities = { ...tweet.entities, smarttags: tags };
+}
+
+function smartTagSearchUrl(label, assetId) {
+    return `https://x.com/search?q=${encodeURIComponent(label + " OR " + assetId)}&src=smarttag_click`;
+}
+
+function loadPublicSmartTagTickers(screenName, postId) {
+    if (!/^\w{1,15}$/.test(screenName) || !/^\d{1,20}$/.test(postId)) return Promise.resolve(new Map());
+    if (smartTagPostCache.has(postId)) return smartTagPostCache.get(postId);
+    const request = fetch(`https://x.com/${screenName}/status/${postId}`, {
+        credentials: "omit",
+        redirect: "error",
+        referrerPolicy: "no-referrer",
+        signal: AbortSignal.timeout?.(6000),
+    }).then(async (response) => {
+        if (!response.ok) return new Map();
+        const html = await response.text();
+        // The public page includes serialized JSON for the focal post.
+        const payloads = html.matchAll(/kind:"Result\.Ok",value:("(?:(?:\\.)|[^"\\])*")/g);
+        for (const [, payload] of payloads) {
+            const serialized = JSON.parse(payload);
+            if (!serialized.startsWith("{")) continue;
+            const post = JSON.parse(serialized).data?.tweet_result_by_rest_id?.result;
+            if (post?.rest_id !== postId || !Array.isArray(post.details?.smarttags)) continue;
+            const tickers = new Map();
+            for (const entity of post.details.smarttags) {
+                const ticker = entity?.tag?.info?.info?.ticker;
+                const assetId = entity?.tag?.rest_id;
+                if (typeof ticker === "string" && ticker && typeof assetId === "string") tickers.set(assetId, ticker);
+            }
+            return tickers;
+        }
+        return new Map();
+    }).catch(() => new Map());
+    smartTagPostCache.set(postId, request);
+    if (smartTagPostCache.size > 128) smartTagPostCache.delete(smartTagPostCache.keys().next().value);
+    return request;
+}
+
+if (typeof customElements !== "undefined" && !customElements.get("otd-smart-tag")) {
+    customElements.define("otd-smart-tag", class extends HTMLElement {
+        async connectedCallback() {
+            if (this.firstElementChild) return;
+            const { screenName, postId } = this.dataset;
+            const assetId = this.textContent;
+            const tickers = await loadPublicSmartTagTickers(screenName, postId);
+            const ticker = tickers.get(assetId);
+            if (!ticker || !this.isConnected || this.firstElementChild) return;
+
+            const label = "$" + ticker.replace(/^\$/, "");
+            const link = document.createElement("a");
+            link.textContent = label;
+            link.href = smartTagSearchUrl(label, assetId);
+            link.target = "_blank";
+            link.rel = "url noopener noreferrer";
+            this.replaceChildren(link);
+        }
+    });
+}
+
+function parseTweetResult(result, expandNote) {
+    const limitation = result?.limitedActionResults?.limited_actions?.find((entry) => entry.action === "Reply");
+    if (!result?.legacy) result = result?.tweet;
+    const tweet = result?.legacy;
+    const user = result?.core?.user_results?.result;
+    if (!tweet || !user) return;
+
+    const details = result.details;
+    tweet.id_str ??= result.rest_id;
+    tweet.user_id_str ??= user.rest_id;
+    tweet.id ??= +tweet.id_str;
+    tweet.conversation_id = +tweet.conversation_id_str;
+    tweet.user = parseUser(user, tweet.user_id_str);
+    if (limitation) {
+        tweet.limited_actions_text = limitation.prompt?.subtext?.text || "This tweet has limitations to who can reply.";
+    }
+
+    if (tweet.full_text == null && typeof details?.full_text === "string") {
+        // X can return post text and entities outside the legacy object.
+        Object.assign(tweet, { ...result.counts, full_text: details.full_text });
+        tweet.display_text_range = details.display_text_range;
+        if (details.created_at_ms != null) {
+            tweet.created_at ??= new Date(details.created_at_ms).toUTCString();
+        }
+        tweet.entities = {
+            ...tweet.entities,
+            hashtags: details.hashtag_entities,
+            user_mentions: result.mention_entities,
+            urls: result.url_entities,
+        };
+        if (result.media_entities2?.length) {
+            const characters = Array.from(tweet.full_text);
+            tweet.extended_entities ??= {
+                media: result.media_entities2.map((media) => ({
+                    ...media,
+                    url: media.url ?? (media.indices && characters.slice(...media.indices).join("")),
+                })),
+            };
+        }
+    }
+
+    const smarttags = details?.smarttags ?? tweet.entities?.smarttags;
+    const note = expandNote && result.note_tweet?.note_tweet_results && parseNoteTweet(result);
+    if (typeof note?.text === "string") {
+        tweet.full_text = note.text;
+        tweet.entities = note.entities ?? {};
+        tweet.display_text_range = undefined;
+    }
+    tweet.text = tweet.full_text ?? tweet.text ?? "";
+    addSmartTagFallbacks(tweet, typeof note?.text === "string" ? tweet.entities.smarttags : smarttags);
+
+    const repost = tweet.retweeted_status_result?.result ?? result.retweeted_tweet_results?.result;
+    if (repost) {
+        const parsed = parseTweetResult(repost, localStorage.OTDenableAutoExpand === "1");
+        if (parsed) tweet.retweeted_status = parsed;
+    }
+
+    const quoteResults = result.quoted_status_result ?? tweet.quoted_status_result ?? result.quoted_tweet_results;
+    if (quoteResults) {
+        const parsed = parseTweetResult(quoteResults.result, false);
+        if (parsed) tweet.quoted_status = parsed;
+        tweet.quoted_status_id_str ??= parsed?.id_str ?? quoteResults.rest_id;
+    }
+
+    const card = parseTweetCard(result.card);
+    if (card) tweet.card = card;
+    if (result.views) {
+        tweet.ext ??= {};
+        tweet.ext.views = { r: { ok: { count: +result.views.count } } };
+    }
+    if (result.source) tweet.source = result.source;
+    if (result.birdwatch_pivot) tweet.birdwatch = result.birdwatch_pivot;
+
+    if (tweet.favorited && tweet.favorite_count === 0) tweet.favorite_count = 1;
+    if (tweet.retweeted && tweet.retweet_count === 0) tweet.retweet_count = 1;
+
+    return tweet;
+}
+
 function parseTweet(res) {
     try {
-
-        if (typeof res !== "object") return;
-        if (res.limitedActionResults) {
-            let limitation = res.limitedActionResults.limited_actions.find((l) => l.action === "Reply");
-            if (limitation) {
-                res.tweet.legacy.limited_actions_text = limitation.prompt
-                    ? limitation.prompt.subtext.text
-                    : "This tweet has limitations to who can reply.";
-            }
-            res = res.tweet;
-        }
-        if (!res.legacy && res.tweet) res = res.tweet;
-        let tweet = res.legacy;
-        if (!res.core || !tweet) return;
-        if(!tweet.id) {
-            tweet.id = +tweet.id_str;
-        }
-        let result = res.core.user_results.result;
-        tweet.conversation_id = +tweet.conversation_id_str;
-        tweet.text = tweet.full_text;
-        tweet.user = parseUser(result, tweet.user_id_str);
-
-        if (tweet.retweeted_status_result?.result) {
-            let result = tweet.retweeted_status_result.result;
-            if (result.limitedActionResults) {
-                let limitation = result.limitedActionResults.limited_actions.find(
-                    (l) => l.action === "Reply"
-                );
-                if (limitation) {
-                    result.tweet.legacy.limited_actions_text = limitation.prompt
-                        ? limitation.prompt.subtext.text
-                        : "This tweet has limitations to who can reply.";
-                }
-                result = result.tweet;
-            }
-            if (
-                result.quoted_status_result &&
-                result.quoted_status_result.result &&
-                result.quoted_status_result.result.legacy &&
-                result.quoted_status_result.result.core?.user_results?.result
-            ) {
-                result.legacy.quoted_status = result.quoted_status_result.result.legacy;
-                const quotedCard = parseTweetCard(result.quoted_status_result.result.card);
-                if (quotedCard) result.legacy.quoted_status.card = quotedCard;
-                result.legacy.quoted_status.id = +result.legacy.quoted_status.id_str;
-                result.legacy.quoted_status.text = result.legacy.quoted_status.full_text;
-                result.legacy.quoted_status.conversation_id = +result.legacy.quoted_status.conversation_id_str;
-                if (result.legacy.quoted_status) {
-                    result.legacy.quoted_status.user = parseUser(
-                        result.quoted_status_result.result.core.user_results.result,
-                        result.legacy.quoted_status.user_id_str
-                    );
-                } else {
-                    console.warn("No retweeted quoted status", result);
-                }
-            }
-            tweet.retweeted_status = result.legacy;
-            if (tweet.retweeted_status && result.core?.user_results?.result) {
-                let user_result = result?.core?.user_results?.result;
-                tweet.retweeted_status.text = tweet.retweeted_status.full_text;
-                tweet.retweeted_status.id = +tweet.retweeted_status.id_str;
-                tweet.retweeted_status.conversation_id = +tweet.retweeted_status.conversation_id_str;
-                tweet.retweeted_status.user = parseUser(user_result, tweet.retweeted_status.user_id_str);
-                tweet.retweeted_status.ext = {};
-                if (result.views) {
-                    tweet.retweeted_status.ext.views = { r: { ok: { count: +result.views.count } } };
-                }
-                const retweetedCard = parseTweetCard(result.card);
-                if (retweetedCard) tweet.retweeted_status.card = retweetedCard;
-            } else {
-                console.warn("No retweeted status", result);
-            }
-            if (result.note_tweet && result.note_tweet.note_tweet_results && localStorage.OTDenableAutoExpand === "1") {
-                let note = parseNoteTweet(result);
-                tweet.retweeted_status.full_text = note.text;
-                tweet.retweeted_status.entities = note.entities;
-                tweet.retweeted_status.display_text_range = undefined; // no text range for long tweets
-            }
-        }
-    
-        if (res.quoted_status_result) {
-            tweet.quoted_status_result = res.quoted_status_result;
-        }
-        if (res.note_tweet && res.note_tweet.note_tweet_results) {
-            let note = parseNoteTweet(res);
-            tweet.full_text = note.text;
-            tweet.entities = note.entities;
-            tweet.display_text_range = undefined; // no text range for long tweets
-        }
-        if (tweet.quoted_status_result && tweet.quoted_status_result.result) {
-            let result = tweet.quoted_status_result.result;
-            if (!result.core && result.tweet) result = result.tweet;
-            if (result.limitedActionResults) {
-                let limitation = result.limitedActionResults.limited_actions.find(
-                    (l) => l.action === "Reply"
-                );
-                if (limitation) {
-                    result.tweet.legacy.limited_actions_text = limitation.prompt
-                        ? limitation.prompt.subtext.text
-                        : "This tweet has limitations to who can reply.";
-                }
-                result = result.tweet;
-            }
-            if(result && result.legacy) {
-                tweet.quoted_status = result.legacy;
-                const quotedCard = parseTweetCard(result.card);
-                if (quotedCard) tweet.quoted_status.card = quotedCard;
-                tweet.quoted_status.id = +tweet.quoted_status.id_str;
-                tweet.quoted_status.conversation_id = +tweet.quoted_status.conversation_id_str;
-                tweet.quoted_status.text = tweet.quoted_status.full_text;
-                if (tweet.quoted_status) {
-                    let user_result = result.core?.user_results?.result;
-                    tweet.quoted_status.user = user_result ? parseUser(user_result, tweet.quoted_status.user_id_str) : undefined;
-                    if (!tweet.quoted_status.user) {
-                        delete tweet.quoted_status;
-                    } else {
-                        tweet.quoted_status.ext = {};
-                        if (result.views) {
-                            tweet.quoted_status.ext.views = { r: { ok: { count: +result.views.count } } };
-                        }
-                    }
-                } else {
-                    console.warn("No quoted status", result);
-                }
-            }
-        }
-        const card = parseTweetCard(res.card);
-        if (card) tweet.card = card;
-        if (res.views) {
-            if (!tweet.ext) tweet.ext = {};
-            tweet.ext.views = { r: { ok: { count: +res.views.count } } };
-        }
-        if (res.source) {
-            tweet.source = res.source;
-        }
-        if (res.birdwatch_pivot) {
-            // community notes
-            tweet.birdwatch = res.birdwatch_pivot;
-        }
-    
-        if (tweet.favorited && tweet.favorite_count === 0) {
-            tweet.favorite_count = 1;
-        }
-        if (tweet.retweeted && tweet.retweet_count === 0) {
-            tweet.retweet_count = 1;
-        }
-    
-        return tweet;
+        return parseTweetResult(res, true);
     } catch (e) {
         console.error('error parsing tweet', e, res);
         throw new Error('error parsing tweet');
@@ -472,7 +495,7 @@ function getCurrentUserId() {
 function generateParams(features, variables, fieldToggles) {
     let params = new URLSearchParams();
     params.append("variables", JSON.stringify(variables));
-    params.append("features", JSON.stringify(features));
+    params.append("features", JSON.stringify({ rweb_cashtags_enabled: true, ...features }));
     if (fieldToggles) params.append("fieldToggles", JSON.stringify(fieldToggles));
 
     return params.toString();

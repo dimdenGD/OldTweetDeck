@@ -1100,7 +1100,12 @@ document.body.addEventListener("click", function (e) {
                         t.user_mentions && t.user_mentions.length
                             ? o(e, t.user_mentions)
                             : (t.user_mentions = []),
-                        (t.cashtags = twttrTxt.extractCashtagsWithIndices(e));
+                        (t.smarttags = S.extractSmartTagEntities(e, t)),
+                        (t.cashtags = twttrTxt.extractCashtagsWithIndices(e).filter((entity) =>
+                            !t.smarttags.some((tag) =>
+                                entity.indices[0] < tag.indices[1] && entity.indices[1] > tag.indices[0]
+                            )
+                        ));
                     for (n = 0, s = (i = S.extractMentionEntities(e)).length; n < s; n++) {
                         r = i[n];
                         (a = S.getEntityOverlap(r, t))
@@ -1110,6 +1115,26 @@ document.body.addEventListener("click", function (e) {
                             : false && t.user_mentions.push(r); // weird bug that adds mentions randomly
                     }
                     return t;
+                },
+                extractSmartTagEntities: function (text, entities) {
+                    const tags = [];
+                    if (!Array.isArray(entities.smarttags)) return tags;
+                    for (const entry of entities.smarttags) {
+                        const ticker = entry?.tag?.info?.info?.ticker;
+                        const assetId = entry?.tag?.rest_id;
+                        const publicPost = entry?.publicPost;
+                        if ((typeof ticker !== "string" || !ticker) && !publicPost) continue;
+                        if (typeof assetId !== "string" || !assetId) continue;
+                        if (!Array.isArray(entry.indices) || entry.indices.length !== 2) continue;
+                        const [start, end] = entry.indices;
+                        if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start) continue;
+                        const tag = { ticker, assetId, publicPost, indices: [start, end] };
+                        twttrTxt.modifyIndicesFromUnicodeToUTF16(text, [tag]);
+                        if (text.slice(...tag.indices) !== entry.text || S.getEntityOverlap(tag, entities)) continue;
+                        if (tags.some((other) => tag.indices[0] < other.indices[1] && tag.indices[1] > other.indices[0])) continue;
+                        tags.push(tag);
+                    }
+                    return tags;
                 },
                 extractMentionEntities: function (e) {
                     var t = twttrTxt.extractMentionsOrListsWithIndices(e);
@@ -1155,7 +1180,7 @@ document.body.addEventListener("click", function (e) {
                         o,
                         l = "",
                         c = []
-                            .concat(t.urls, t.media, t.user_mentions, t.hashtags, t.cashtags)
+                            .concat(t.urls, t.media, t.user_mentions, t.hashtags, t.cashtags, t.smarttags)
                             .filter(Boolean);
                     c.sort(function (e, t) {
                         return t.indices[0] - e.indices[0];
@@ -1197,6 +1222,8 @@ document.body.addEventListener("click", function (e) {
                                               : null,
                                       }),
                                       (a = TD.ui.template.render("text/search_link", o)))
+                                    : r.assetId
+                                    ? (a = S.createSmartTagAnchor(r))
                                     : r.cashtag &&
                                       ((o = {
                                           searchTerm: r.cashtag,
@@ -1222,6 +1249,15 @@ document.body.addEventListener("click", function (e) {
                             i = e.trim().match(y);
                         return i && i[1] && (t = i[1]), t;
                     }
+                },
+                createSmartTagAnchor: function (tag) {
+                    if (tag.publicPost) {
+                        const { screenName, id } = tag.publicPost;
+                        return `<otd-smart-tag data-screen-name="${S.clean(screenName)}" data-post-id="${S.clean(id)}">${S.clean(tag.assetId)}</otd-smart-tag>`;
+                    }
+                    const label = "$" + tag.ticker.replace(/^\$/, "");
+                    const href = smartTagSearchUrl(label, tag.assetId).replace("&", "&amp;");
+                    return `<a href="${href}" rel="url noopener noreferrer" target="_blank">${S.clean(label)}</a>`;
                 },
                 createUrlAnchor: function (e) {
                     var t,
@@ -13752,6 +13788,7 @@ document.body.addEventListener("click", function (e) {
                         urls: t.urls,
                         user_mentions: t.user_mentions,
                         cashtags: t.cashtags,
+                        smarttags: t.smarttags,
                         media: t.media,
                     };
                 return (
@@ -19083,7 +19120,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '{{<stream_item}} {{$stream_item_data}} {{#chirp}} data-key="{{key}}{{id}}" data-account-key="{{#account}}{{getKey}}{{/account}}" data-tweet-id="{{#getMainTweet}}{{id}}{{/getMainTweet}}" {{/chirp}} {{/stream_item_data}} {{$content}} {{#chirp}} <div class="js-tweet tweet-detail {{#isFavorite}}is-favorite{{/isFavorite}} {{#isRetweeted}}is-retweet{{/isRetweeted}} {{#quotedTweet}}is-quote-tweet{{/quotedTweet}} {{#isInThread}}{{#hasReplies}}js-has-replies {{#indentedChirp}}margin-l--46{{/indentedChirp}}{{/hasReplies}}{{/isInThread}}"> <div class="{{^indentedChirp}}margin-b--10{{/indentedChirp}} {{#indentedChirp}}margin-l---46{{/indentedChirp}}"> {{#getMainUser}} {{> account_summary }} {{/getMainUser}} </div> {{^isInThread}} <div class="txt-size-variable--12 margin-b--2"> {{{getReplyContext}}} </div> {{/isInThread}} {{#indentedChirp}} <div class="thread margin-t--4"></div> {{/indentedChirp}} <p class="js-tweet-text tweet-text txt-size-variable--18 margin-b--10 with-linebreaks{{#translation}} tweet-translation-original-text margin-bn{{/translation}}{{#indentedChirp}} padding-t--10{{/indentedChirp}}" lang="{{lang}}">{{{htmlText}}}</p> {{#translation}}{{>status/tweet_translation}}{{/translation}} {{#isTranslatable}}{{^translation}}<a class="js-translate-call-to-action txt-mute" href="#" rel="translateTweet">{{_i}}Translate Tweet{{/i}}</a>{{/translation}}{{/isTranslatable}} {{#getMainTweet}} <div class="js-tweet-media tweet-detail-media margin-v--15 margin-h--0 is-hidden {{#user}}{{#isProtected}}is-protected{{/isProtected}}{{/user}}"></div> {{^hasMedia}} {{#quotedTweet}} {{{ renderQuoted }}} {{/quotedTweet}} {{/hasMedia}} {{#quotedTweetMissing}} {{! placeholder to be replaced when quoted tweet is fetched}} <div class="js-attachment-tweet"> {{>status/attachment_tweet}} </div> {{/quotedTweetMissing}} <div class="js-card-container"></div> <div class="margin-tl txt-mute txt-size-variable--12"> <a href="{{getChirpURL}}" rel="url" target="_blank">{{createdPrettyFull}}</a> &middot; <a href="{{sourceUrl}}" rel="url" target="_blank">{{sourceNoHTML}}</a> </div> {{#hasLocationData}} <div class="margin-bl txt-mute txt-size-variable--12 tweet-location"> <a href="{{getLocationURL}}" rel="url" target="_blank"><i class="icon icon-base-valigned icon-geo"></i>{{getLocationFullName}}</a> </div> {{/hasLocationData}} <footer> <div class="js-tweet-stats"></div> {{> status/tweet_detail_actions}} </footer> {{/getMainTweet}} </div> <div class="js-detail-view-inline detail-view-inline item-box-full-bleed padding-axl scroll-conversation {{^isInThread}}dark-border-top{{/isInThread}} {{#indentedChirp}}dark-border margin-l--46{{/indentedChirp}}"> <div rel="reply" class="js-detail-view-inline-text detail-view-inline-text padding-h--15 padding-v--10 inline-block full-width txt-ellipsis br--20">{{_i}}Reply to{{/i}} {{mentions}}</div> </div> {{#dataminr}} <a class="js-skip-to-replies is-hidden is-actionable link-complex block item-box-full-bleed padding-hxl padding-bl scroll-conversation" rel="skipToReplies"> &#8595; <span class="link-complex-target align-middle">{{_i}}Skip to replies{{/i}}</span> </a> {{/dataminr}} {{/chirp}} {{/content}} {{/stream_item}}');
+                '{{<stream_item}} {{$stream_item_data}} {{#chirp}} data-key="{{key}}{{id}}" data-account-key="{{#account}}{{getKey}}{{/account}}" data-tweet-id="{{#getMainTweet}}{{id}}{{/getMainTweet}}" {{/chirp}} {{/stream_item_data}} {{$content}} {{#chirp}} <div class="js-tweet tweet-detail {{#isFavorite}}is-favorite{{/isFavorite}} {{#isRetweeted}}is-retweet{{/isRetweeted}} {{#quotedTweet}}is-quote-tweet{{/quotedTweet}} {{#isInThread}}{{#hasReplies}}js-has-replies {{#indentedChirp}}margin-l--46{{/indentedChirp}}{{/hasReplies}}{{/isInThread}}"> <div class="{{^indentedChirp}}margin-b--10{{/indentedChirp}} {{#indentedChirp}}margin-l---46{{/indentedChirp}}"> {{#getMainUser}} {{> account_summary }} {{/getMainUser}} </div> {{^isInThread}} <div class="txt-size-variable--12 margin-b--2"> {{{getReplyContext}}} </div> {{/isInThread}} {{#indentedChirp}} <div class="thread margin-t--4"></div> {{/indentedChirp}} <p class="js-tweet-text tweet-text txt-size-variable--18 margin-b--10 with-linebreaks{{#translation}} tweet-translation-original-text margin-bn{{/translation}}{{#indentedChirp}} padding-t--10{{/indentedChirp}}" lang="{{lang}}">{{{htmlText}}}</p> {{#translation}}{{>status/tweet_translation}}{{/translation}} {{#isTranslatable}}{{^translation}}<a class="js-translate-call-to-action txt-mute" href="#" rel="translateTweet">{{_i}}Translate Tweet{{/i}}</a>{{/translation}}{{/isTranslatable}} {{#getMainTweet}} <div class="js-tweet-media tweet-detail-media margin-v--15 margin-h--0 is-hidden {{#user}}{{#isProtected}}is-protected{{/isProtected}}{{/user}}"></div> {{#quotedTweet}} {{{ renderQuoted }}} {{/quotedTweet}} {{#quotedTweetMissing}} {{! placeholder to be replaced when quoted tweet is fetched}} <div class="js-attachment-tweet"> {{>status/attachment_tweet}} </div> {{/quotedTweetMissing}} <div class="js-card-container"></div> <div class="margin-tl txt-mute txt-size-variable--12"> <a href="{{getChirpURL}}" rel="url" target="_blank">{{createdPrettyFull}}</a> &middot; <a href="{{sourceUrl}}" rel="url" target="_blank">{{sourceNoHTML}}</a> </div> {{#hasLocationData}} <div class="margin-bl txt-mute txt-size-variable--12 tweet-location"> <a href="{{getLocationURL}}" rel="url" target="_blank"><i class="icon icon-base-valigned icon-geo"></i>{{getLocationFullName}}</a> </div> {{/hasLocationData}} <footer> <div class="js-tweet-stats"></div> {{> status/tweet_detail_actions}} </footer> {{/getMainTweet}} </div> <div class="js-detail-view-inline detail-view-inline item-box-full-bleed padding-axl scroll-conversation {{^isInThread}}dark-border-top{{/isInThread}} {{#indentedChirp}}dark-border margin-l--46{{/indentedChirp}}"> <div rel="reply" class="js-detail-view-inline-text detail-view-inline-text padding-h--15 padding-v--10 inline-block full-width txt-ellipsis br--20">{{_i}}Reply to{{/i}} {{mentions}}</div> </div> {{#dataminr}} <a class="js-skip-to-replies is-hidden is-actionable link-complex block item-box-full-bleed padding-hxl padding-bl scroll-conversation" rel="skipToReplies"> &#8595; <span class="link-complex-target align-middle">{{_i}}Skip to replies{{/i}}</span> </a> {{/dataminr}} {{/chirp}} {{/content}} {{/stream_item}}');
     },
     function (e, t, i) {
         "use strict";
@@ -19151,7 +19188,7 @@ document.body.addEventListener("click", function (e) {
         "use strict";
         i.r(t),
             (t.default =
-                '<div class="js-tweet tweet {{#isFavorite}}is-favorite{{/isFavorite}} {{#isRetweeted}}is-retweet{{/isRetweeted}} {{#isInConvo}}is-conversation{{/isInConvo}} {{#isMinimalist}}is-minimalist{{/isMinimalist}} {{#quotedTweet}}is-quote-tweet{{/quotedTweet}} {{#quotedTweetMissing}}is-quote-tweet{{/quotedTweetMissing}} {{#withContentMute}}txt-mute{{/withContentMute}} {{#hasReplies}}js-has-replies{{/hasReplies}}"> {{#isRetweetedStatus}} <div class="tweet-context txt-size-variable--12 txt-mute padding-bs"> <div class="obj-left item-img"> <i class="pull-right icon icon-retweet-filled icon-small-context icon-retweet-color txt-size--16"></i> </div> <div class="nbfc"> {{#user}} <a href="{{getProfileURL}}" rel="user" target="_blank">{{{emojifiedName}}}</a>{{_i}} Retweeted{{/i}} {{/user}} </div> </div> {{/isRetweetedStatus}} <header class="tweet-header js-tweet-header flex flex-row flex-align--baseline"> {{#getMainUser}} {{>status/tweet_single_header}} {{/getMainUser}} {{#getMainTweet}} {{>status/tweet_timestamp}} {{/getMainTweet}} </header> {{#isInConvo}} {{#hasReplies}} <div class="thread"></div> {{/hasReplies}} {{/isInConvo}} <div class="tweet-body js-tweet-body"> {{^isInThread}} {{#getMainTweet}} <div class="nbfc txt-size-variable--12 txt-ellipsis"> {{{ getReplyContext }}} </div> {{/getMainTweet}} {{/isInThread}} <p class="js-tweet-text tweet-text {{#withLinebreaks}}with-linebreaks{{/withLinebreaks}} {{#translation}}tweet-translation-original-text margin-bn{{/translation}}" lang="{{lang}}">{{{htmlText}}}</p> <div class="js-card-container"></div> {{^hasMedia}} {{#quotedTweet}} {{{ renderQuoted }}} {{/quotedTweet}} {{#isInThread}} <div class="margin-b--5"></div> {{/isInThread}} {{/hasMedia}} {{#quotedTweetMissing}} {{>status/quoted_tweet_missing}} {{/quotedTweetMissing}} {{#translation}}{{>status/tweet_translation}}{{/translation}} {{>status/tweet_media_wrapper}} </div> {{>status/tweet_single_footer}} <div class="js-show-this-thread"> {{^isInConvo}} {{#isInThread}} {{^inDialog}} <p class="color-twitter-blue txt-link txt-ellipsis link-complex-target margin-t--5">{{_i}}Show this thread{{/i}}</p> {{/inDialog}} {{#inDialog}} <p class="txt-mute">{{_i}}Show this thread{{/i}}</p> {{/inDialog}} {{/isInThread}} {{/isInConvo}} </div> </div>');
+                '<div class="js-tweet tweet {{#isFavorite}}is-favorite{{/isFavorite}} {{#isRetweeted}}is-retweet{{/isRetweeted}} {{#isInConvo}}is-conversation{{/isInConvo}} {{#isMinimalist}}is-minimalist{{/isMinimalist}} {{#quotedTweet}}is-quote-tweet{{/quotedTweet}} {{#quotedTweetMissing}}is-quote-tweet{{/quotedTweetMissing}} {{#withContentMute}}txt-mute{{/withContentMute}} {{#hasReplies}}js-has-replies{{/hasReplies}}"> {{#isRetweetedStatus}} <div class="tweet-context txt-size-variable--12 txt-mute padding-bs"> <div class="obj-left item-img"> <i class="pull-right icon icon-retweet-filled icon-small-context icon-retweet-color txt-size--16"></i> </div> <div class="nbfc"> {{#user}} <a href="{{getProfileURL}}" rel="user" target="_blank">{{{emojifiedName}}}</a>{{_i}} Retweeted{{/i}} {{/user}} </div> </div> {{/isRetweetedStatus}} <header class="tweet-header js-tweet-header flex flex-row flex-align--baseline"> {{#getMainUser}} {{>status/tweet_single_header}} {{/getMainUser}} {{#getMainTweet}} {{>status/tweet_timestamp}} {{/getMainTweet}} </header> {{#isInConvo}} {{#hasReplies}} <div class="thread"></div> {{/hasReplies}} {{/isInConvo}} <div class="tweet-body js-tweet-body"> {{^isInThread}} {{#getMainTweet}} <div class="nbfc txt-size-variable--12 txt-ellipsis"> {{{ getReplyContext }}} </div> {{/getMainTweet}} {{/isInThread}} <p class="js-tweet-text tweet-text {{#withLinebreaks}}with-linebreaks{{/withLinebreaks}} {{#translation}}tweet-translation-original-text margin-bn{{/translation}}" lang="{{lang}}">{{{htmlText}}}</p> <div class="js-card-container"></div> {{#translation}}{{>status/tweet_translation}}{{/translation}} {{>status/tweet_media_wrapper}} {{#quotedTweet}} {{{ renderQuoted }}} {{/quotedTweet}} {{^hasMedia}}{{#isInThread}} <div class="margin-b--5"></div> {{/isInThread}}{{/hasMedia}} {{#quotedTweetMissing}} {{>status/quoted_tweet_missing}} {{/quotedTweetMissing}} </div> {{>status/tweet_single_footer}} <div class="js-show-this-thread"> {{^isInConvo}} {{#isInThread}} {{^inDialog}} <p class="color-twitter-blue txt-link txt-ellipsis link-complex-target margin-t--5">{{_i}}Show this thread{{/i}}</p> {{/inDialog}} {{#inDialog}} <p class="txt-mute">{{_i}}Show this thread{{/i}}</p> {{/inDialog}} {{/isInThread}} {{/isInConvo}} </div> </div>');
     },
     function (e, t, i) {
         "use strict";
